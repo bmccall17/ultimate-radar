@@ -1,12 +1,13 @@
 # 13 — M2, detection
 
-**Status: recall passes, false positives do not — and the reason is structural, not
-a threshold that needs tuning.**
+**Status: recall passes. The false-positive gate failed here and was deferred to M3,
+where it passed — see `docs/14-m3.md`. The reason it could not pass here was
+structural, not a threshold that needed tuning.**
 
 | M2 gate | Required | Measured | |
 |---|---|---|---|
 | Recall on held-out frames | ≥ 0.95 | **0.9873** (233 of 236) | pass |
-| False positives per frame, after the out-of-bounds filter | ≤ 1.0 | **1.35** | **fail** |
+| False positives per frame, after the out-of-bounds filter | ≤ 1.0 | **1.35** | **fail, closed in M3 at 0.30** |
 
 20 held-out frames, seeded, from those with calibration confidence ≥ 0.5. 236 on-field
 players in truth. Labels and the arithmetic are in `eval/m2/labels.json` and
@@ -32,9 +33,14 @@ Two classes, and only one of them is fixable by geometry:
 **Referees — about a third of them — stand on the field.** No bounds test can reject a
 person who is inside the field, because they *are* inside the field. This is exactly what
 AD-3 anticipates: it specifies the reject as position **and** appearance, not position
-alone, and the M0 review pointed at the mechanism — referee stripes give a torso high
-luminance *variance*, a flat kit gives low, and that works precisely where the geometric
-filter does not. **That test belongs to M3 and is not built yet.**
+alone. **That test belongs to M3 and is not built yet.**
+
+> *Amended after M3.* The M0 review's proposed mechanism — referee stripes give a torso
+> high luminance *variance*, a flat kit gives low — turned out not to work, and the way it
+> fails is worth keeping. A Wind Chill jersey carries a large light number on the back, and
+> a box drawn round two overlapping players holds one dark torso and one light one; both
+> have high variance too. What separates stripes is that they are *periodic and vertically
+> coherent*. `docs/14-m3.md` has the measurements.
 
 **Camera crew near the far boards — the rest.** Photographers and operators sitting or
 standing just beyond the far touchline. Most are now rejected; the survivors are the ones
@@ -45,6 +51,11 @@ assumes the out-of-bounds filter can do the whole job. On this footage it cannot
 missing half of AD-3's reject is a later milestone. **Recommendation: re-measure the false
 positive rate at the end of M3, once appearance is available, rather than tuning a
 geometric threshold now to hit a number it cannot honestly hit.**
+
+> *Done.* M3 re-measured it at **0.30 per frame with zero real players lost**, against 1.15
+> before — the denominator differs from the 1.35 above because M3 judged every box
+> individually rather than counting per frame, and found four fewer non-players. Both
+> label sets are committed and `eval/m3/team_labels.json` records where they disagree.
 
 ## What the misses are, all three of them
 
@@ -136,4 +147,10 @@ Inference runs at about 30 fps batched on the RTX 4070 Ti SUPER.
   broadcast, where M0 measured players at up to 460 px and only 1–5 in frame.
 - The false-positive gate is deferred to M3 rather than met. That is a real gap in the M2
   acceptance, not a technicality, and it should be closed before M4 builds a tracker on top
-  of detections that still contain a referee about a third of the time.
+  of detections that still contain a referee about a third of the time. **Closed in M3 at
+  0.30/frame — but only partly: 3 referees in 8 still survive as dark-kit players, carrying
+  `weak_team`. M4 must not treat a `weak_team` detection as a confirmed player.**
+- `sigma_yd` here was built on an *assumed* 3 px of foot error. M3 measured it at 5.83 px
+  rms and found that the assumed value put only 46 % of truths inside the drawn disc. The
+  constant in `ur/detect/run.py` is now measured; any number quoted from a detections.json
+  generated before 2026-09-13 carries the old sigma.

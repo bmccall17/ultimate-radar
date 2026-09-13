@@ -39,7 +39,7 @@ margin, which would throw away real players - in ultimate a defender chasing a
 throw and a thrower with a pivot on the line are both out of play and both matter.
 Appearance alone would risk a mid-grey reading on a real player. Together: a figure
 whose torso matches neither kit *and* whose feet are beyond the far sideline is
-crew. On this possession that is 13 of 15, and no labelled player is anywhere near
+crew. On this possession that is 12 of 15, and no labelled player is anywhere near
 - the six players whose torsos do land between the kits are all at soccer
 y = -2 to 0, in the middle of the pitch.
 
@@ -390,7 +390,7 @@ def run(work: Path, *, verbose: bool = True) -> dict:
                        "geometric statement it always was.",
         "measured": "5 of 8 referees and 12 of 15 crew rejected on the M2 held-out "
                     "frames, with 0 real players lost: 1.15 -> 0.30 false positives "
-                    "per frame. See docs/14-m3-team.md.",
+                    "per frame. See docs/14-m3.md.",
         "known_leak": "The stripe test is high-precision, moderate-recall. A referee "
                       "whose stripes do not survive one frame's pose is kept and given "
                       "the nearer kit - usually the dark one - with weak_team set and a "

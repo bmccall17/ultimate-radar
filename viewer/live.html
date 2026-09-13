@@ -1,0 +1,457 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>ultimate-radar — live possession</title>
+<!--
+  M3's viewer: the real clip with real measured positions on it.
+
+  This is NOT the M6 viewer. docs/06-viewer.md governs that, and viewer/prototype.html
+  is its behavioural reference. This page exists to answer one question at the end of
+  M3 - does the pipeline put players where the players actually are - and it answers it
+  the only honest way, by drawing the overlay on the broadcast and the radar beside it
+  and letting you look at both at once.
+
+  It opens from file:// with no build step and no server. Data comes from live-data.js,
+  which tools/make_view.py writes.
+-->
+<style>
+  :root {
+    --bg: #10130f; --panel: #171b15; --line: #2b3128; --ink: #e6e9e2;
+    --dim: #8b9385; --sol: #f2f4ef; --chill: #3f7fd6; --warn: #d8a33a;
+    --unknown: #6d7568;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 13px/1.5 ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 10px 16px; border-bottom: 1px solid var(--line); }
+  h1 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: .01em; }
+  .sub { color: var(--dim); font-size: 12px; margin-top: 2px; }
+  .standin { margin: 10px 16px 0; padding: 9px 12px; border-radius: 5px;
+             background: #3a2d10; border: 1px solid #6b5418; color: #f0d9a0;
+             font-size: 12px; max-width: 1600px; }
+  .standin b { color: var(--warn); }
+  main { display: grid; grid-template-columns: minmax(560px, 1.35fr) minmax(420px, 1fr);
+         gap: 14px; padding: 12px 16px 4px; align-items: start; max-width: 1600px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+           overflow: hidden; }
+  .panel h2 { margin: 0; padding: 7px 11px; font-size: 11px; font-weight: 600;
+              text-transform: uppercase; letter-spacing: .07em; color: var(--dim);
+              border-bottom: 1px solid var(--line); }
+  .stage { position: relative; background: #000; line-height: 0; }
+  .stage video, .stage canvas { display: block; width: 100%; height: auto; }
+  .stage canvas { position: absolute; inset: 0; }
+  #radar { width: 100%; height: auto; display: block; background: #1a2417; }
+  .bar { display: flex; align-items: center; gap: 12px; padding: 9px 16px;
+         max-width: 1600px; }
+  button { background: #222820; color: var(--ink); border: 1px solid var(--line);
+           border-radius: 4px; padding: 5px 13px; cursor: pointer; font: inherit; }
+  button:hover { border-color: #46503f; }
+  input[type=range] { flex: 1; accent-color: #6f9f5a; }
+  .mono { font: 12px/1.4 ui-monospace, "Cascadia Mono", Consolas, monospace;
+          color: var(--dim); white-space: nowrap; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; padding: 4px 16px 14px;
+            color: var(--dim); font-size: 12px; max-width: 1600px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  th, td { text-align: left; padding: 3px 11px; border-bottom: 1px solid #20261d; }
+  th { color: var(--dim); font-weight: 500; font-size: 11px; text-transform: uppercase;
+       letter-spacing: .06em; }
+  td.n { font: 12px ui-monospace, Consolas, monospace; }
+  .off { color: var(--unknown); }
+  footer { color: var(--dim); font-size: 12px; padding: 4px 16px 26px; max-width: 1600px; }
+  code { color: #b9c4b0; }
+</style>
+
+<header>
+  <h1>ultimate-radar <span class="mono" id="pid"></span></h1>
+  <div class="sub" id="subtitle"></div>
+</header>
+
+<div class="standin" id="notice"></div>
+
+<main>
+  <section class="panel">
+    <h2>Broadcast, with the overlay the calibration produces</h2>
+    <div class="stage">
+      <video id="vid" playsinline preload="auto"></video>
+      <canvas id="over"></canvas>
+    </div>
+  </section>
+  <section class="panel">
+    <h2>Overhead — what the pipeline believes</h2>
+    <canvas id="radar" width="760" height="470"></canvas>
+    <table id="roster"></table>
+  </section>
+</main>
+
+<div class="bar">
+  <button id="play">Play</button>
+  <input type="range" id="scrub" min="0" value="0" step="1">
+  <span class="mono" id="readout"></span>
+</div>
+
+<div class="legend">
+  <span><i class="sw" style="background:var(--sol)"></i> <span id="lgSol"></span></span>
+  <span><i class="sw" style="background:var(--chill)"></i> <span id="lgChill"></span></span>
+  <span><i class="sw" style="background:var(--unknown);opacity:.55"></i> unknown — not seen this frame, no position stated</span>
+  <span><i class="sw" style="background:#2f3a2a;border:1px dashed #6f9f5a"></i> camera footprint on the ground</span>
+  <span>the ring around each dot is its sigma, drawn to scale</span>
+</div>
+
+<footer id="foot"></footer>
+
+<script src="live-data.js"></script>
+<script>
+(() => {
+  const P = window.POSSESSION;
+  if (!P) { document.body.innerHTML = "<p style='padding:20px'>live-data.js is missing. " +
+            "Run <code>python -m tools.make_view work/p0001</code>.</p>"; return; }
+
+  const FIELD = P.field, CAM = P.camera, PL = P.players;
+  const NF = P.possession.frames, FPS = P.possession.fps;
+  const teams = P.teams;
+
+  document.getElementById("pid").textContent = P.possession.id;
+  document.getElementById("subtitle").textContent =
+    P.possession.label + " · " + P.possession.duration_s.toFixed(1) + " s · " +
+    NF + " frames at " + FPS + " fps · broadcast " +
+    P.possession.source_video.start_s.toFixed(2) + " s";
+  document.getElementById("notice").innerHTML =
+    "<b>Stand-in.</b> " + P.notice;
+  document.getElementById("lgSol").textContent = teams[P.possession.offense].name +
+    " (offence, light kit)";
+  document.getElementById("lgChill").textContent = teams[P.possession.defense].name +
+    " (defence, dark kit)";
+
+  // ---- frame <-> video time -------------------------------------------------
+  // Built from the relation ingest measured and recorded, not from a uniform
+  // n/fps clock: the fps filter keeps the LAST source frame in each output slot,
+  // so frames/n sits up to one source frame behind uniform. Getting this wrong
+  // puts the overlay on the wrong moment with nothing on screen to signal it.
+  const SY = P.possession.clip_frames_sync, SRC = SY.video_fps;
+  const frameTime = new Float64Array(NF);
+  for (let n = 0; n < NF; n++)
+    frameTime[n] = (Math.ceil((n + 0.5) * SRC / FPS) - 1) / SRC;
+  function timeToFrame(t) {
+    let lo = 0, hi = NF - 1;
+    if (t <= frameTime[0]) return 0;
+    while (lo < hi) { const m = (lo + hi + 1) >> 1; if (frameTime[m] <= t) lo = m; else hi = m - 1; }
+    return lo;
+  }
+
+  // ---- 3x3 helpers ----------------------------------------------------------
+  function inv3(m) {
+    const [a,b,c] = m[0], [d,e,f] = m[1], [g,h,i] = m[2];
+    const A = e*i-f*h, B = -(d*i-f*g), C = d*h-e*g;
+    const det = a*A + b*B + c*C;
+    if (!det) return null;
+    const s = 1/det;
+    return [[A*s, -(b*i-c*h)*s, (b*f-c*e)*s],
+            [B*s,  (a*i-c*g)*s, -(a*f-c*d)*s],
+            [C*s, -(a*h-b*g)*s, (a*e-b*d)*s]];
+  }
+  function apply(m, x, y) {
+    const w = m[2][0]*x + m[2][1]*y + m[2][2];
+    return [(m[0][0]*x + m[0][1]*y + m[0][2]) / w,
+            (m[1][0]*x + m[1][1]*y + m[1][2]) / w, w];
+  }
+
+  // Cache the field->image inverse per frame; H is image->field.
+  //
+  // The sign of w tells whether a field point is in front of the camera, but only
+  // relative to a reference: H is normalised so H[2][2] = 1, which fixes the sign
+  // of w in the image->field direction and leaves the inverse's overall scale
+  // free. On this footage every in-front point comes back with w NEGATIVE, so a
+  // naive `w > 0` test rejects the entire field and the overlay silently draws
+  // nothing. Take the reference from a point that must be in front: the bottom
+  // centre of the image, pushed through H and straight back.
+  const invCache = new Array(NF).fill(undefined);
+  function fieldToImage(n) {
+    if (invCache[n] === undefined) {
+      const pf = CAM.per_frame[n];
+      if (!pf) { invCache[n] = null; }
+      else {
+        const M = inv3(pf.H);
+        let sgn = 1;
+        if (M) {
+          const g = apply(pf.H, CAM.image_w / 2, CAM.image_h - 1);
+          const b = apply(M, g[0], g[1]);
+          sgn = b[2] >= 0 ? 1 : -1;
+        }
+        invCache[n] = M ? { M, sgn } : null;
+      }
+    }
+    return invCache[n];
+  }
+  // In front of the camera, given that frame's reference sign.
+  function project(fi, x, y) {
+    const q = apply(fi.M, x, y);
+    return { x: q[0], y: q[1], ok: fi.sgn * q[2] > 1e-9 };
+  }
+
+  // ---- camera footprint -----------------------------------------------------
+  // A homography maps lines to lines, so the visible ground region is the image
+  // rectangle clipped to the half-plane in front of the camera (w > 0) and then
+  // mapped vertex by vertex. Clipping a hair inside the horizon keeps the
+  // vertices finite. Then clip the result to the field.
+  function clipPoly(poly, inside, intersect) {
+    const out = [];
+    for (let i = 0; i < poly.length; i++) {
+      const a = poly[i], b = poly[(i + 1) % poly.length];
+      const ia = inside(a), ib = inside(b);
+      if (ia) out.push(a);
+      if (ia !== ib) out.push(intersect(a, b));
+    }
+    return out;
+  }
+  function footprint(n) {
+    const pf = CAM.per_frame[n];
+    if (!pf) return null;
+    const H = pf.H, W = CAM.image_w, Hh = CAM.image_h;
+    const wOf = p => H[2][0]*p[0] + H[2][1]*p[1] + H[2][2];
+    let poly = [[0,0],[W,0],[W,Hh],[0,Hh]];
+    const EPS = 1e-6, sgn = wOf([W/2, Hh - 1]) >= 0 ? 1 : -1;
+    const good = p => sgn * wOf(p) > EPS;
+    poly = clipPoly(poly, good, (a, b) => {
+      const wa = sgn*wOf(a) - EPS, wb = sgn*wOf(b) - EPS, t = wa / (wa - wb);
+      return [a[0] + t*(b[0]-a[0]), a[1] + t*(b[1]-a[1])];
+    });
+    if (poly.length < 3) return null;
+    let g = poly.map(p => { const q = apply(H, p[0], p[1]); return [q[0], q[1]]; });
+    const pad = 6;
+    const lims = [[0, -pad], [0, FIELD.length_yd + pad],
+                  [1, -pad], [1, FIELD.width_yd + pad]];
+    for (let k = 0; k < lims.length; k++) {
+      const [ax, val] = lims[k], lower = (k % 2 === 0);
+      const ins = p => lower ? p[ax] >= val : p[ax] <= val;
+      g = clipPoly(g, ins, (a, b) => {
+        const t = (val - a[ax]) / (b[ax] - a[ax]);
+        return [a[0] + t*(b[0]-a[0]), a[1] + t*(b[1]-a[1])];
+      });
+      if (g.length < 3) return null;
+    }
+    return g;
+  }
+
+  // ---- overlay --------------------------------------------------------------
+  const vid = document.getElementById("vid");
+  const over = document.getElementById("over");
+  const octx = over.getContext("2d");
+  vid.src = P.video_src;
+
+  function sizeOverlay() {
+    const r = vid.getBoundingClientRect();
+    if (!r.width) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    over.width = Math.round(r.width * dpr);
+    over.height = Math.round(r.height * dpr);
+    over.style.width = r.width + "px";
+    over.style.height = r.height + "px";
+  }
+  window.addEventListener("resize", () => { sizeOverlay(); draw(); });
+  vid.addEventListener("loadedmetadata", () => { sizeOverlay(); draw(); });
+
+  function teamColour(t) {
+    return t === P.possession.offense ? "#f2f4ef" : "#3f7fd6";
+  }
+
+  function drawOverlay(n) {
+    octx.clearRect(0, 0, over.width, over.height);
+    const fi = fieldToImage(n);
+    const s = over.width / CAM.image_w;
+    if (!fi) {
+      octx.fillStyle = "rgba(216,163,58,.9)";
+      octx.font = `${14*s*1.6}px ui-monospace, Consolas, monospace`;
+      octx.fillText("calibration confidence too low on this frame — no overlay drawn",
+                    16*s, 30*s);
+      return;
+    }
+    // Field lines, so the calibration is judged against the paint and not against
+    // where you expect the players to be.
+    octx.lineWidth = Math.max(1, 1.6 * s);
+    octx.strokeStyle = "rgba(140,220,120,.55)";
+    const seg = [];
+    for (const x of [0, 20, 60, 100, 120])
+      seg.push([[x, 0], [x, FIELD.width_yd]]);
+    seg.push([[0, 0], [FIELD.length_yd, 0]], [[0, FIELD.width_yd], [FIELD.length_yd, FIELD.width_yd]]);
+    for (const [a, b] of seg) {
+      const N = 24;
+      octx.beginPath();
+      let started = false;
+      for (let i = 0; i <= N; i++) {
+        const fx = a[0] + (b[0]-a[0])*i/N, fy = a[1] + (b[1]-a[1])*i/N;
+        const q = project(fi, fx, fy);
+        if (!q.ok) { started = false; continue; }
+        if (!started) { octx.moveTo(q.x*s, q.y*s); started = true; }
+        else octx.lineTo(q.x*s, q.y*s);
+      }
+      octx.stroke();
+    }
+
+    for (const p of PL) {
+      if (p.state[n] !== "observed") continue;
+      const xy = p.est[n];
+      const q = project(fi, xy[0], xy[1]);
+      if (!q.ok) continue;
+      const c = teamColour(p.team);
+      // The sigma disc, projected: a circle on the ground is an ellipse in the
+      // image, so sample it rather than drawing a circle of a guessed radius.
+      const sig = p.sigma[n];
+      octx.beginPath();
+      for (let k = 0; k <= 20; k++) {
+        const th = k / 20 * Math.PI * 2;
+        const e = project(fi, xy[0] + sig*Math.cos(th), xy[1] + sig*Math.sin(th));
+        if (!e.ok) continue;
+        if (k === 0) octx.moveTo(e.x*s, e.y*s); else octx.lineTo(e.x*s, e.y*s);
+      }
+      octx.closePath();
+      octx.strokeStyle = c + "66";
+      octx.lineWidth = Math.max(1, 1.2*s);
+      octx.stroke();
+
+      octx.beginPath();
+      octx.arc(q.x*s, q.y*s, Math.max(2.5, 4*s), 0, Math.PI*2);
+      octx.fillStyle = c;
+      octx.fill();
+      octx.strokeStyle = "rgba(0,0,0,.7)";
+      octx.lineWidth = Math.max(1, 1*s);
+      octx.stroke();
+      octx.font = `${Math.max(10, 11*s)}px ui-monospace, Consolas, monospace`;
+      octx.fillStyle = c;
+      octx.strokeStyle = "rgba(0,0,0,.85)";
+      octx.lineWidth = Math.max(2, 2.4*s);
+      octx.strokeText(p.id, q.x*s + 7*s, q.y*s - 7*s);
+      octx.fillText(p.id, q.x*s + 7*s, q.y*s - 7*s);
+    }
+  }
+
+  // ---- radar ----------------------------------------------------------------
+  const radar = document.getElementById("radar"), rctx = radar.getContext("2d");
+  const RPAD = 26;
+  function rx(x) { return RPAD + x / FIELD.length_yd * (radar.width - 2*RPAD); }
+  function ry(y) { return RPAD + y / FIELD.width_yd * (radar.height - 2*RPAD); }
+
+  function drawRadar(n) {
+    rctx.clearRect(0, 0, radar.width, radar.height);
+    rctx.fillStyle = "#1c2718";
+    rctx.fillRect(rx(0), ry(0), rx(FIELD.length_yd)-rx(0), ry(FIELD.width_yd)-ry(0));
+
+    const fp = footprint(n);
+    if (fp) {
+      rctx.beginPath();
+      fp.forEach((p, i) => i ? rctx.lineTo(rx(p[0]), ry(p[1])) : rctx.moveTo(rx(p[0]), ry(p[1])));
+      rctx.closePath();
+      rctx.fillStyle = "rgba(111,159,90,.17)";
+      rctx.fill();
+      rctx.setLineDash([5, 4]);
+      rctx.strokeStyle = "rgba(111,159,90,.75)";
+      rctx.lineWidth = 1.3;
+      rctx.stroke();
+      rctx.setLineDash([]);
+    }
+
+    rctx.strokeStyle = "#5d6b56"; rctx.lineWidth = 1.4;
+    rctx.strokeRect(rx(0), ry(0), rx(FIELD.length_yd)-rx(0), ry(FIELD.width_yd)-ry(0));
+    rctx.strokeStyle = "#46523f";
+    for (const x of [FIELD.endzone_yd, FIELD.length_yd - FIELD.endzone_yd]) {
+      rctx.beginPath(); rctx.moveTo(rx(x), ry(0)); rctx.lineTo(rx(x), ry(FIELD.width_yd));
+      rctx.stroke();
+    }
+    rctx.setLineDash([3, 5]);
+    rctx.beginPath();
+    rctx.moveTo(rx(FIELD.length_yd/2), ry(0));
+    rctx.lineTo(rx(FIELD.length_yd/2), ry(FIELD.width_yd));
+    rctx.stroke();
+    rctx.setLineDash([]);
+    rctx.fillStyle = "#6b7764";
+    rctx.font = "11px ui-monospace, Consolas, monospace";
+    rctx.fillText("attacking →", rx(FIELD.length_yd/2) - 26, ry(0) - 9);
+    rctx.fillText("near sideline (camera side)", rx(2), ry(FIELD.width_yd) + 16);
+
+    for (const p of PL) {
+      if (p.state[n] !== "observed") continue;
+      const [x, y] = p.est[n], c = teamColour(p.team), sig = p.sigma[n];
+      const rr = sig / FIELD.length_yd * (radar.width - 2*RPAD);
+      rctx.beginPath(); rctx.arc(rx(x), ry(y), rr, 0, Math.PI*2);
+      rctx.fillStyle = c + "22"; rctx.fill();
+      rctx.strokeStyle = c + "77"; rctx.lineWidth = 1; rctx.stroke();
+      rctx.beginPath(); rctx.arc(rx(x), ry(y), 5, 0, Math.PI*2);
+      rctx.fillStyle = c; rctx.fill();
+      rctx.strokeStyle = "rgba(0,0,0,.6)"; rctx.stroke();
+      rctx.fillStyle = c;
+      rctx.fillText(p.id, rx(x) + 7, ry(y) - 6);
+    }
+  }
+
+  // ---- roster ---------------------------------------------------------------
+  const roster = document.getElementById("roster");
+  function drawRoster(n) {
+    const rows = PL.map(p => {
+      const obs = p.state[n] === "observed";
+      const pos = obs ? `${p.est[n][0].toFixed(1)}, ${p.est[n][1].toFixed(1)}` : "—";
+      const sig = `${p.sigma[n].toFixed(1)}`;
+      return `<tr class="${obs ? "" : "off"}">
+        <td style="color:${obs ? teamColour(p.team) : ""}">${p.id}</td>
+        <td>${obs ? "observed" : "unknown"}</td>
+        <td class="n">${pos}</td><td class="n">${sig}</td>
+        <td class="n">${p.observed_frames}</td></tr>`;
+    }).join("");
+    roster.innerHTML =
+      `<tr><th>slot</th><th>state</th><th>x, y (yd)</th><th>&sigma; yd</th>
+       <th>frames seen</th></tr>` + rows;
+  }
+
+  // ---- drive ----------------------------------------------------------------
+  const scrub = document.getElementById("scrub");
+  const readout = document.getElementById("readout");
+  const playBtn = document.getElementById("play");
+  scrub.max = NF - 1;
+  let frame = 0;
+
+  function draw() {
+    drawOverlay(frame); drawRadar(frame); drawRoster(frame);
+    const pf = CAM.per_frame[frame];
+    const cov = P.derived.coverage[frame];
+    readout.textContent =
+      `f${String(frame).padStart(4, "0")}  ${(frame/FPS).toFixed(2)}s  ` +
+      `coverage ${cov}/14  ` +
+      (pf ? `calib ${pf.confidence.toFixed(2)}` : "calib — (no pose)");
+  }
+  function setFrame(n, seek) {
+    frame = Math.max(0, Math.min(NF - 1, n));
+    scrub.value = frame;
+    if (seek) vid.currentTime = frameTime[frame];
+    draw();
+  }
+  scrub.addEventListener("input", () => setFrame(+scrub.value, true));
+  playBtn.addEventListener("click", () => { vid.paused ? vid.play() : vid.pause(); });
+  vid.addEventListener("play",  () => playBtn.textContent = "Pause");
+  vid.addEventListener("pause", () => playBtn.textContent = "Play");
+  document.addEventListener("keydown", e => {
+    if (e.key === " ") { e.preventDefault(); vid.paused ? vid.play() : vid.pause(); }
+    if (e.key === "ArrowRight") { vid.pause(); setFrame(frame + 1, true); }
+    if (e.key === "ArrowLeft")  { vid.pause(); setFrame(frame - 1, true); }
+  });
+
+  function tick() {
+    if (!vid.paused && !vid.ended) { const n = timeToFrame(vid.currentTime);
+      if (n !== frame) { frame = n; scrub.value = n; draw(); } }
+    requestAnimationFrame(tick);
+  }
+  vid.addEventListener("seeked", draw);
+  requestAnimationFrame(tick);
+
+  const m = P.method;
+  document.getElementById("foot").innerHTML =
+    `Overlay projected through <code>calibration.json</code>: image↔field homography per ` +
+    `frame, fitted to the soccer centre circle and halfway line. ` +
+    `Frames below calibration confidence 0.5 draw no overlay, by AD-1. ` +
+    `Association: <code>${m.association}</code>. ` +
+    `${m.slots_claimed_outside_the_speed_gate} slot claims fell outside the speed gate ` +
+    `and took a free slot anyway — those are identity shuffles. ` +
+    `Video↔frame mapping uses the relation ingest measured ` +
+    `(<code>${SY.frames_to_clip_frame}</code>), not a uniform clock.`;
+
+  setFrame(0, false);
+})();
+</script>

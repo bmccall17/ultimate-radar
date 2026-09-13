@@ -107,6 +107,22 @@ for referees/sideline. Foot point → field coordinates via `calibration.json`.
 given light vs dark kit — if it is not, stop and find out why before building the tracker on
 top of it), and foot-point field error **< 0.6 yd** on 50 hand-checked detections.
 
+**Done, 2026-09-13.** `docs/14-m3.md`. Team accuracy **0.9957** (233/234); foot-point error
+**0.4345 yd** median. **M2's deferred false-positive gate closes here: 1.15 → 0.30 per frame
+with zero real players lost.** Three things moved other milestones:
+
+- The referee test is **not** the luminance *variance* the M0 review predicted — a numbered
+  dark jersey and a two-player box both have high torso variance. Stripes are separable
+  because they are *periodic and vertically coherent*. It is high-precision, moderate-recall:
+  5 of 8 referees, 0 of 234 players. **The rest survive as dark-kit players carrying
+  `weak_team`, and M4 must vote team over a tracklet rather than trust a frame.**
+- `sigma_yd` was measured and found to be **46 % honest** — M2's assumed 3 px of foot error
+  is really 5.83 px rms. docs/05 wants ≥ 80 % of truths inside the drawn disc. Corrected to
+  94 %. M4 inherits the corrected number.
+- `H` in calibration.json had been left behind by M2's venue correction, and
+  `ur.calibrate.run` would have silently reverted that correction on re-run. Both fixed in
+  code.
+
 ## M4 — Tracking ·  three to four days.  The hard one.
 
 `ur/track/`: field-space Kalman, team-gated Hungarian association, 14 locked slots, evidence

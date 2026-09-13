@@ -21,7 +21,7 @@ compromise the early docs anticipated is not needed; a 1080p60 H.264 stream is o
 
 | Read | For |
 |---|---|
-| `HANDOFF.md` | **Resuming work. Current state (end of M2), how to rebuild the environment, what M3 should do first. Read this first.** |
+| `HANDOFF.md` | **Resuming work. Current state (end of M3), how to rebuild the environment, what M4 should do first. Read this first.** |
 | `docs/09-decision-record.md` | One page: the commitments, the decisions, the state |
 | `docs/00-footage-report.md` | **What the real footage actually looks like, measured. It corrected several figures in the docs below; its foot lists every change.** |
 | `docs/01-brief.md` | What success means, and what this is not |
@@ -35,12 +35,13 @@ compromise the early docs anticipated is not needed; a 1080p60 H.264 stream is o
 | `docs/10-getting-the-footage.md` | Downloading the game and cutting a possession |
 | `docs/11-m0-review.md` | An independent review of M0 — found a real M1 hazard, and a claim that had to be withdrawn |
 | `docs/12-m1-calibration.md` | M1: how calibration works here, its numbers, and the five bugs worth keeping |
-| `docs/13-m2-detection.md` | M2: detection, why the false-positive gate is deferred to M3, and what the misses are |
+| `docs/13-m2-detection.md` | M2: detection, why its false-positive gate had to be deferred, and what the misses are |
+| `docs/14-m3.md` | M3: team assignment, the referee test that is *not* the one predicted, and a sigma that was 46 % honest |
 
 ## What already exists
 
-*End of M2, 2026-09-13. M0, M1 and M2 are built; M3 is next. `HANDOFF.md` is the cold-start
-document and carries the current numbers and open items.*
+*End of M3, 2026-09-13. M0–M3 are built; M4, the tracker, is next. `HANDOFF.md` is the
+cold-start document and carries the current numbers and open items.*
 
 **Pipeline**
 
@@ -53,22 +54,32 @@ document and carries the current numbers and open items.*
   `ur.calibrate.verify` renders the line overlay; `ur.calibrate.accept` runs the gate.
 - **`ur/detect/`** — M2. D-FINE (Apache-2.0 code *and* weights), person class only, whole
   frame, no fine-tune, no SAHI. Writes `detections.json` with field positions, a per-detection
-  sigma, and an explicit in/out-of-bounds decision. Recall **0.9873**.
+  sigma, and an explicit in/out-of-bounds decision. Recall **0.9873**. Its `sigma_yd` is now
+  built on a *measured* 5.83 px of foot error, not M2's assumed 3.
+- **`ur/team.py`** — M3. Fits the two kits per possession by deterministic 2-means on torso
+  L\*, then rejects referees on stripe periodicity and camera crew on position *and*
+  appearance. Team accuracy **0.9957**; false positives **1.15 → 0.30 per frame** with zero
+  real players lost, which closes the gate M2 had to defer.
+- **`ur/standin.py`** — M3. A deliberately crude greedy nearest-neighbour stand-in for the
+  tracker, so the clip could be watched before M4 exists. Writes `possession.json` with
+  `stand_in: true` and a notice saying its slot identities must not be quoted. **M4 deletes
+  it.**
 
 **Possessions on disk** (all gitignored; regenerate per `HANDOFF.md`)
 
 - `work/p0001/` — the working possession. 24.0 s, 360 frames, one camera shot.
-  `clip.json` + `calibration.json` + `detections.json`.
+  `clip.json` + `calibration.json` + `detections.json` + `possession.json`.
 - `work/p0002/` — the pull before p0001, cut as calibration reconnaissance.
 - `work/p0003/` — endzone-framed, 26.0 s. Cut to settle the 120-vs-110 yd question and to be
   M7's second possession. **Its calibration is deliberately near-useless** (confidence ≥ 0.5
   on 1 % of frames) because the honesty guards correctly refuse to fit a shot with no
   exactly-specified geometry in view. That is the intended behaviour, not a regression.
 
-**Evidence and labels** — `eval/m0/`, `eval/m1/`, `eval/m2/`, all committed. Includes the
-acceptance JSON for each gate, the verification videos, and the two hand-label sets
-(`eval/m0/visibility_counts.json`, `eval/m2/labels.json`), which are the most expensive
-artefacts here and the hardest to regenerate.
+**Evidence and labels** — `eval/m0/` … `eval/m3/`, all committed. Includes the acceptance
+JSON for each gate, the verification videos, and the four hand-label sets
+(`eval/m0/visibility_counts.json`, `eval/m2/labels.json`, `eval/m3/team_labels.json`,
+`eval/m3/foot_labels.json`), which are the most expensive artefacts here and the hardest to
+regenerate.
 
 **Measurement tools** — `tools/`: seeded still extraction, paint detection, whole-game
 scene-change scan, contact sheets, gridded crops, plus two checks worth knowing about.
@@ -76,7 +87,11 @@ scene-change scan, contact sheets, gridded crops, plus two checks worth knowing 
 cross-checks the calibration's camera motion against an independent measurement that shares
 no code with it.
 
-**For the viewer, not yet built** — `fixtures/possession_demo.json` is a synthetic 7v7
+**For the viewer** — `viewer/live.html` plays the real clip with the overlay and radar on
+it, driven by `calibration.json`. It opens from `file://` with no build step once
+`tools/make_view.py` has written `live-data.js`. It is **not** the M6 viewer;
+`docs/06-viewer.md` governs that and the prototype below is its design reference.
+`fixtures/possession_demo.json` is a synthetic 7v7
 possession in the real schema, with a camera that sees ~10 of 14 players, ghosts that drift,
 and a deliberate identity swap; `tools/make_demo_possession.py` generates it and is the
 easiest way to learn the schema by example. `viewer/prototype.html` is the M6 design target —
@@ -94,7 +109,8 @@ ultimate-radar/
     ingest.py      video -> frames + clip metadata                        [built]
     calibrate/     world model, camera, mask, paint, fit, venue, verify   [built]
     detect/        detector wrapper + bounds and size filters             [built]
-    team.py        jersey-colour team assignment, plus the referee test
+    team.py        kit-colour team assignment, plus the referee test       [built]
+    standin.py     greedy stand-in for the tracker; M4 deletes it          [built]
     track/         field-space Kalman + slot-locked association
     identify/      jersey OCR, tracklet voting
     events.py      human event tagging + heuristics
@@ -117,11 +133,17 @@ python -m ur.calibrate.verify work/p0001 --video    # the line-overlay render
 python -m ur.calibrate.accept work/p0001        # the M1 gate
 python -m ur.detect.run       work/p0001        # -> detections.json
 python -m ur.detect.overlay   work/p0001        # boxes burned onto the clip
-python -m tools.m2_label      score work/p0001  # the M2 gate
+python -m tools.m2_label      score work/p0001  # the M2 recall gate
+python -m ur.team             work/p0001        # fills team / team_score in detections.json
+python -m tools.m3_label      score work/p0001  # the team gate, and M2's deferred FP gate
+python -m tools.m3_foot       score work/p0001  # the foot-point gate
+python -m ur.standin          work/p0001        # -> possession.json  (STAND-IN, not a tracker)
+python -m tools.m3_render     work/p0001        # the round-trip video
+python -m tools.make_view     work/p0001        # then open viewer/live.html
 ```
 
-Not built yet: `ur.team`, `ur.project`, `ur.track`, `ur.identify`, `ur.events`, `ur.resolve`,
-`ur.derive`, and the real viewer. The prototype opens standalone:
+Not built yet: `ur.track`, `ur.identify`, `ur.events`, `ur.resolve`, `ur.derive`, and the
+M6 viewer. The design-reference prototype opens standalone:
 
 ```bash
 python -m http.server -d viewer 8080     # then open prototype.html
