@@ -4,6 +4,13 @@ Written after watching `eval/m4/p0001_tracks.mp4` twice, before computing any ga
 Nothing here is a measurement against an acceptance criterion. Where a number appears it
 is there to pin down something I had already seen, or to say how big it was.
 
+> **The committed video is the one this document describes, and it predates the reach-gate
+> fix that this document's own findings prompted.** It is kept as rendered rather than
+> re-rendered, because a write-up of what was watched should point at what was watched. The
+> differences are small — `observed` 67.5 % against 67.9 % now, 428 interpolated samples
+> against 348 — and none of the findings below changes. Re-render with
+> `python -m tools.m4_render work/p0001` for the current tracker.
+
 The render is two panes: the broadcast with each slot drawn as a ring on the ground, sized
 to its sigma in real yards, and the same fourteen slots overhead with the camera's footprint
 on the field. Below the overhead view is a strip per slot showing its evidence state across
