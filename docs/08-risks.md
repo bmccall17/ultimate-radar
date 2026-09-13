@@ -113,10 +113,20 @@ by face or name; any tactical judgement the tool would be asserting rather than 
    110–120 yd, so this is a live possibility rather than a technicality. The broadcast camera
    never frames both endzones at once, and the venue publishes no dimensions.
    **This is now the highest-leverage unknown in the project: every field coordinate depends
-   on it.** Resolve it in M1 the first time a homography exists — the soccer centre circle
-   gives absolute scale (radius 9.15 m = 10.006 yd), so measuring goal-line separation is
-   then a one-line check. Until then `clip.json` carries the rulebook default, 120 yd, which
-   may be wrong.
+   on it.**
+   **M1 attempted it and could not settle it — see `docs/12-m1-calibration.md`.** With every
+   frame calibrated to 0.15 yd, all the paint in the possession was back-projected into one
+   pooled map (413 529 pixels from 169 frames). Its x marginal is a single spike at the
+   halfway line and noise either side: the camera in p0001 never looks far enough down the
+   field to see a goal line at all. The three bumps present (x = +12.05, +38.25, +43.35 yd)
+   each carry under 3 % of the halfway line's support and the nearest sits 1.75 yd from
+   where a 120 yd field's goal line would be, against a calibration good to 0.15 yd — so
+   they are noise, and the decision tolerance was tightened so they cannot vote.
+   **Next step: calibrate a second possession framed near an endzone**;
+   `survey/random/010_t1615.7.png` is such a shot. Until then `clip.json` carries the
+   rulebook default, 120 yd, which may be wrong, and the *along-pitch* half of the venue
+   transform is an assumption. The *across-pitch* half is now measured: one ultimate
+   sideline at soccer y = −25.95 yd, 0.72 yd off centred.
 6. **Is the field frame possession-relative or venue-fixed?** `calibration.json` stores a
    homography into "field yards", but the field frame's origin and `+x` are defined by the
    direction of attack, so the same physical shot means two different things in two

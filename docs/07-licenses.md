@@ -60,6 +60,12 @@ Verified against each project's own LICENSE file, not PyPI metadata.
 | Reading the UFA rulebook PDF (M0 only, not a pipeline dependency) | **pypdf** | 6.18.1 | BSD-3-Clause | `py-pdf/pypdf/LICENSE` |
 | Interpreter and venv management (a tool, not a dependency) | **uv** | 0.12.13 | MIT **or** Apache-2.0 | `astral-sh/uv/LICENSE-MIT` |
 
+### Added in M1 (2026-09-12)
+
+| Use | Package | Version | Licence | URL checked |
+|---|---|---|---|---|
+| Non-linear least squares for the per-frame camera fit; `linear_sum_assignment` later in M4 | **scipy** | 1.17.1 | BSD-3-Clause | `scipy/scipy/LICENSE.txt` |
+
 **On the ffmpeg build.** The installed binary is the gyan.dev *full* build, which bundles
 GPL components (libx264 among them) and is therefore **GPL-3.0**, not LGPL. This project
 invokes it as a **separate process** via `subprocess`, passing file paths — no linking, no

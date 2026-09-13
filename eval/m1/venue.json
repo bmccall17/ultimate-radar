@@ -1,0 +1,95 @@
+{
+  "field_length": {
+    "field_length_yd": null,
+    "verdict": "unresolved",
+    "why": "no line of constant x was found at a plausible goal-line distance from the halfway line. In this possession the camera never looks far enough down the field to see one: the x marginal is a single spike at the halfway line and noise either side of it.",
+    "candidates": [
+      {
+        "which_goal_line": "far",
+        "measured_dist_to_halfway_yd": 12.05,
+        "expected_120_yd": 40.0,
+        "err_if_120_yd": 27.95,
+        "expected_110_yd": 35.0,
+        "err_if_110_yd": 22.95,
+        "verdict": "inconclusive",
+        "assumes": "the ultimate field is centred on the soccer pitch along its length",
+        "count": 1260.0,
+        "prominence": 4.51,
+        "rejected": "under 5% of the halfway line's support"
+      },
+      {
+        "which_goal_line": "far",
+        "measured_dist_to_halfway_yd": 38.25,
+        "expected_120_yd": 40.0,
+        "err_if_120_yd": 1.75,
+        "expected_110_yd": 35.0,
+        "err_if_110_yd": 3.25,
+        "verdict": "inconclusive",
+        "assumes": "the ultimate field is centred on the soccer pitch along its length",
+        "count": 659.0,
+        "prominence": 4.83,
+        "rejected": "under 5% of the halfway line's support"
+      },
+      {
+        "which_goal_line": "far",
+        "measured_dist_to_halfway_yd": 43.25,
+        "expected_120_yd": 40.0,
+        "err_if_120_yd": 3.25,
+        "expected_110_yd": 35.0,
+        "err_if_110_yd": 8.25,
+        "verdict": "inconclusive",
+        "assumes": "the ultimate field is centred on the soccer pitch along its length",
+        "count": 575.6666666666666,
+        "prominence": 4.68,
+        "rejected": "under 5% of the halfway line's support"
+      }
+    ],
+    "all_x_peaks": [
+      {
+        "x_yd": -0.05,
+        "count": 51533.7,
+        "prominence": 19.37
+      },
+      {
+        "x_yd": 12.05,
+        "count": 1260.0,
+        "prominence": 4.51
+      },
+      {
+        "x_yd": 38.25,
+        "count": 659.0,
+        "prominence": 4.83
+      },
+      {
+        "x_yd": 43.25,
+        "count": 575.7,
+        "prominence": 4.68
+      }
+    ]
+  },
+  "transform": {
+    "x_sign": 1,
+    "y_sign": 1,
+    "x_offset": 60.0,
+    "y_offset": 25.95,
+    "source": "one ultimate sideline measured at y = -25.95 yd (0.72 yd from where a field centred across the pitch would put it); the opposite sideline is out of usable range, and the x offset still assumes the field is centred along the pitch",
+    "residual_yd": 0.7167,
+    "measured": true
+  },
+  "y_peaks": [
+    {
+      "bin": 172,
+      "x_yd": -32.74999999999976,
+      "count": 1034.6666666666665,
+      "prominence": 6.807570465437414
+    },
+    {
+      "bin": 240,
+      "x_yd": -25.94999999999966,
+      "count": 701.0,
+      "prominence": 5.015841700774417
+    }
+  ],
+  "n_points": 412982,
+  "n_frames": 169
+}

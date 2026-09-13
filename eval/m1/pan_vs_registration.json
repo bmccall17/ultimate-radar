@@ -1,0 +1,195 @@
+{
+  "step_frames": 15,
+  "n_pairs": 23,
+  "n_pairs_with_usable_peak": 6,
+  "correlation": 0.9462,
+  "mean_abs_diff_px": 6.89,
+  "best_fit_scale": 0.939,
+  "note": "predicted = focal * delta_pan from calibration.json; measured = masked phase correlation on grass texture. These share no code and no inputs beyond the frames themselves.",
+  "pairs": [
+    {
+      "a": 0,
+      "b": 15,
+      "predicted_px": 188.96,
+      "measured_px": 0.39,
+      "diff_px": -188.58,
+      "peak": 0.0312
+    },
+    {
+      "a": 15,
+      "b": 30,
+      "predicted_px": 47.17,
+      "measured_px": -0.28,
+      "diff_px": -47.45,
+      "peak": 0.0234
+    },
+    {
+      "a": 30,
+      "b": 45,
+      "predicted_px": 35.4,
+      "measured_px": -1.02,
+      "diff_px": -36.42,
+      "peak": 0.0274
+    },
+    {
+      "a": 45,
+      "b": 60,
+      "predicted_px": 52.32,
+      "measured_px": 0.05,
+      "diff_px": -52.27,
+      "peak": 0.0356
+    },
+    {
+      "a": 60,
+      "b": 75,
+      "predicted_px": 59.13,
+      "measured_px": 0.03,
+      "diff_px": -59.1,
+      "peak": 0.0306
+    },
+    {
+      "a": 75,
+      "b": 90,
+      "predicted_px": -2.96,
+      "measured_px": -1.5,
+      "diff_px": 1.46,
+      "peak": 0.3741
+    },
+    {
+      "a": 90,
+      "b": 105,
+      "predicted_px": -12.38,
+      "measured_px": 0.82,
+      "diff_px": 13.2,
+      "peak": 0.0681
+    },
+    {
+      "a": 105,
+      "b": 120,
+      "predicted_px": -78.08,
+      "measured_px": 0.2,
+      "diff_px": 78.28,
+      "peak": 0.0269
+    },
+    {
+      "a": 120,
+      "b": 135,
+      "predicted_px": -102.95,
+      "measured_px": 0.15,
+      "diff_px": 103.1,
+      "peak": 0.0291
+    },
+    {
+      "a": 135,
+      "b": 150,
+      "predicted_px": 21.86,
+      "measured_px": 0.04,
+      "diff_px": -21.82,
+      "peak": 0.0658
+    },
+    {
+      "a": 150,
+      "b": 165,
+      "predicted_px": 181.3,
+      "measured_px": -0.41,
+      "diff_px": -181.7,
+      "peak": 0.0229
+    },
+    {
+      "a": 165,
+      "b": 180,
+      "predicted_px": 115.07,
+      "measured_px": 0.29,
+      "diff_px": -114.77,
+      "peak": 0.0298
+    },
+    {
+      "a": 180,
+      "b": 195,
+      "predicted_px": 71.91,
+      "measured_px": -0.21,
+      "diff_px": -72.12,
+      "peak": 0.0346
+    },
+    {
+      "a": 195,
+      "b": 210,
+      "predicted_px": 93.59,
+      "measured_px": 0.23,
+      "diff_px": -93.36,
+      "peak": 0.0344
+    },
+    {
+      "a": 210,
+      "b": 225,
+      "predicted_px": -4.58,
+      "measured_px": 0.25,
+      "diff_px": 4.83,
+      "peak": -0.069
+    },
+    {
+      "a": 225,
+      "b": 240,
+      "predicted_px": -58.4,
+      "measured_px": -0.44,
+      "diff_px": 57.95,
+      "peak": 0.0315
+    },
+    {
+      "a": 240,
+      "b": 255,
+      "predicted_px": -198.9,
+      "measured_px": 0.47,
+      "diff_px": 199.37,
+      "peak": 0.0423
+    },
+    {
+      "a": 255,
+      "b": 270,
+      "predicted_px": -72.04,
+      "measured_px": 0.4,
+      "diff_px": 72.45,
+      "peak": 0.0279
+    },
+    {
+      "a": 270,
+      "b": 285,
+      "predicted_px": -79.41,
+      "measured_px": -80.4,
+      "diff_px": -0.99,
+      "peak": 0.3274
+    },
+    {
+      "a": 285,
+      "b": 300,
+      "predicted_px": -42.79,
+      "measured_px": -40.63,
+      "diff_px": 2.15,
+      "peak": 0.3346
+    },
+    {
+      "a": 300,
+      "b": 315,
+      "predicted_px": -33.24,
+      "measured_px": -34.93,
+      "diff_px": -1.7,
+      "peak": 0.3971
+    },
+    {
+      "a": 315,
+      "b": 330,
+      "predicted_px": 137.89,
+      "measured_px": 0.03,
+      "diff_px": -137.86,
+      "peak": 0.028
+    },
+    {
+      "a": 330,
+      "b": 345,
+      "predicted_px": 262.09,
+      "measured_px": 0.21,
+      "diff_px": -261.88,
+      "peak": 0.0316
+    }
+  ]
+}
