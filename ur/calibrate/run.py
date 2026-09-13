@@ -8,7 +8,11 @@ The pass in order:
 2. **Anchor.** One frame with a clean centre circle. RANSAC the conic, grid the
    camera centre, seed each pose from the ellipse, refine in world coordinates.
 3. **Camera centre.** Bundled over frames spread across the pan. One centre has
-   to explain all of them, which is what a single frame cannot pin down.
+   to explain all of them, which is what a single frame cannot pin down. The
+   bundle is then **accepted or rejected on evidence**: the possession is solved
+   with both the bundled centre and the anchor's own, and whichever produces the
+   higher mean per-frame confidence wins. The bundle helps p0001 and destroys
+   p0003, and it reports success either way - see the note at the decision.
 4. **Sequential pass.** Walk outward from the anchor, initialising each frame
    from its neighbour and re-associating paint pixels to the model at every
    step. Association is model-guided rather than re-detected per frame: once the
@@ -161,6 +165,49 @@ def choose_anchor(frames: list[Frame], region: np.ndarray, rng) -> tuple[int, ob
     return best[0], best[1]
 
 
+def sequential_pass(cam: FixedCamera, frame_paths, a_idx: int, anchor_pose: Pose,
+                    region: np.ndarray, rng, *, verbose: bool = True,
+                    label: str = "") -> list[Frame]:
+    """Solve every frame, walking outward from the anchor in both directions.
+
+    Each frame is initialised from its neighbour's answer rather than from the
+    anchor's, because over a long pan the anchor's pose is a bad starting guess
+    and ICP will happily converge to a self-consistent wrong one.
+    """
+    frames = [Frame(index=i, path=p) for i, p in enumerate(frame_paths)]
+    frames[a_idx].pose = anchor_pose
+    order = ([a_idx] + list(range(a_idx + 1, len(frames)))
+             + list(range(a_idx - 1, -1, -1)))
+    prev_pose = anchor_pose
+    tag = f"[{label}] " if label else ""
+    for k, i in enumerate(order):
+        f = frames[i]
+        if i in (a_idx, a_idx + 1, a_idx - 1):
+            prev_pose = anchor_pose
+        b = cv2.imread(str(f.path))
+        f.paint_px, _ = paint_pixels(b, region, rng=rng)
+        pose, res = icp(cam, prev_pose, f.paint_px, rng)
+        if res is None:
+            f.note = "too little paint to fit"
+            f.confidence = 0.0
+            f.pose = prev_pose
+        else:
+            f.pose = pose
+            f.rms_yd, f.p95_yd = res.rms_yd, res.p95_yd
+            f.n_circle, f.n_line = res.n_circle, res.n_line
+            f.confidence = confidence_of(res)
+            # _summarise already worked out WHY a fit is not ok, and the run used
+            # to throw that away - so a possession that scored 0.00 everywhere
+            # gave no clue which of the four failures it was. Keep it.
+            f.note = res.reason
+            prev_pose = pose
+        if verbose and k % 40 == 0:
+            print(f"[calib] {tag}frame {i:4d}  rms {f.rms_yd:7.4f} yd  "
+                  f"conf {f.confidence:.2f}  circle {f.n_circle:4d} line {f.n_line:4d}"
+                  + (f"  [{f.note}]" if f.note else ""))
+    return frames
+
+
 def calibrate(work: Path, *, anchor_stride: int = 20, bundle_n: int = 9,
               verbose: bool = True) -> dict:
     rng = np.random.default_rng(SEED)
@@ -215,43 +262,74 @@ def calibrate(work: Path, *, anchor_stride: int = 20, bundle_n: int = 9,
         bundle_idx.append(i)
         obs.append((cpx, lpx))
         poses.append(pose_i)
+    cam_anchor = cam
+    cam_bundled = None
     if len(obs) >= 3:
-        cam, _ = fit.bundle_world(cam, poses, obs)
+        cam_bundled, _ = fit.bundle_world(cam_anchor, poses, obs)
         if verbose:
-            print(f"[calib] bundled over {len(obs)} frames -> C={np.round(cam.C, 2)}")
+            print(f"[calib] bundled over {len(obs)} frames -> "
+                  f"C={np.round(cam_bundled.C, 2)}")
     elif verbose:
         print(f"[calib] only {len(obs)} frames usable for the bundle; centre left "
               "at the anchor's estimate")
 
-    # --- sequential pass, outward from the anchor --------------------------- #
-    frames[a_idx].pose = anchor_res.pose
-    order = ([a_idx] + list(range(a_idx + 1, len(frames)))
-             + list(range(a_idx - 1, -1, -1)))
-    prev_pose = anchor_res.pose
-    for k, i in enumerate(order):
-        f = frames[i]
-        if i == a_idx + 1 or i == a_idx:
-            prev_pose = anchor_res.pose
-        elif i == a_idx - 1:
-            prev_pose = anchor_res.pose
-        b = cv2.imread(str(f.path))
-        f.paint_px, _ = paint_pixels(b, rm.mask, rng=rng)
-        pose, res = icp(cam, prev_pose, f.paint_px, rng)
-        if res is None:
-            f.note = "too little paint to fit"
-            f.confidence = 0.0
-            f.pose = prev_pose
-        else:
-            f.pose = pose
-            f.rms_yd, f.p95_yd = res.rms_yd, res.p95_yd
-            f.n_circle, f.n_line = res.n_circle, res.n_line
-            f.confidence = confidence_of(res)
-            prev_pose = pose
-        if verbose and k % 40 == 0:
-            print(f"[calib] frame {i:4d}  rms {f.rms_yd:7.4f} yd  conf {f.confidence:.2f}  "
-                  f"circle {f.n_circle:4d} line {f.n_line:4d}")
+    # --- which camera centre, decided rather than assumed -------------------- #
+    #
+    # The bundle returns a camera whatever happens, and nothing used to ask
+    # whether it had helped. On p0001 it does: mean confidence 0.694 against the
+    # anchor centre's 0.591, and the venue transform's residual 0.0 yd against
+    # 2.7. On p0003 it moved the centre to (-11.6, -24.2, 3.5) - three metres up
+    # and *inside* the pitch - and every frame after it collapsed: mean
+    # confidence 0.000 against the anchor centre's 0.420, 0 % of frames usable
+    # against 54 %. The bundle reported success both times. HANDOFF § 8 again.
+    #
+    # Both bundle inputs and outputs look healthy when this happens - the ten
+    # probe frames each fitted at rms 0.11-0.42 yd - so there is no local check
+    # on the bundle that would catch it. The thing that can contradict it is the
+    # only thing that matters: solve the whole possession with each centre and
+    # keep the one the frames prefer.
+    #
+    # Mean confidence is the score because it is already the project's own
+    # measure of a trustworthy frame (AD-1), and because it is immune to the two
+    # ways a collapsed fit flatters itself - confidence_of() returns 0.0 for a
+    # fit `_summarise` rejects, so the rms 0.0000 of a collapsed solve scores
+    # nothing rather than scoring perfectly. There is no threshold here: it is
+    # an argmax over two candidates, so it needs no tuning and no per-possession
+    # constant.
+    choice = {"candidates": []}
+    passes = [("anchor", cam_anchor)]
+    if cam_bundled is not None:
+        passes.append(("bundled", cam_bundled))
+    scored = []
+    for k, (name, c) in enumerate(passes):
+        # Each pass gets its own deterministic stream rather than continuing the
+        # shared one. Sharing would make every pass depend on how many passes ran
+        # before it - so a possession where the bundle was skipped and one where
+        # it was rejected would solve the same camera differently, and a re-run
+        # would stop being byte-identical. The seed is derived from the run's
+        # seed and the pass index, so it is fixed regardless of that ordering.
+        fr = sequential_pass(c, frame_paths, a_idx, anchor_res.pose, rm.mask,
+                             np.random.default_rng([SEED, k]),
+                             verbose=verbose, label=name if len(passes) > 1 else "")
+        conf = np.array([f.confidence for f in fr])
+        scored.append((float(conf.mean()), name, c, fr))
+        choice["candidates"].append(
+            {"centre": name, "position_yd_soccer": [round(float(v), 4) for v in c.C],
+             "mean_confidence": round(float(conf.mean()), 4),
+             "frac_confident": round(float((conf >= 0.5).mean()), 4)})
+        if verbose and len(passes) > 1:
+            print(f"[calib] {name} centre C={np.round(c.C, 2)}: mean confidence "
+                  f"{conf.mean():.4f}, {(conf >= 0.5).mean():.0%} of frames >= 0.5")
+    scored.sort(key=lambda t: t[0], reverse=True)
+    _, chosen_name, cam, frames = scored[0]
+    choice["chosen"] = chosen_name
+    choice["why"] = ("highest mean per-frame confidence over the whole possession; "
+                     "the bundle is accepted only when the frames say it helped")
+    if verbose and len(passes) > 1:
+        print(f"[calib] using the {chosen_name} centre")
 
-    return {"camera": cam, "frames": frames, "mask": rm, "anchor": a_idx}
+    return {"camera": cam, "frames": frames, "mask": rm, "anchor": a_idx,
+            "centre_choice": choice}
 
 
 # --------------------------------------------------------------------------- #
@@ -309,6 +387,7 @@ def write_calibration(work: Path, res: dict, venue_info: dict) -> dict:
             "residual_units": "yards on the ground plane, in the soccer frame",
             "registration_mask": res["mask"].to_dict(),
             "anchor_frame": res["anchor"],
+            "centre_choice": res.get("centre_choice"),
             "seed": SEED,
         },
         "camera": cam.to_dict(),
@@ -316,8 +395,11 @@ def write_calibration(work: Path, res: dict, venue_info: dict) -> dict:
         "field_length": venue_info["length"],
         "anchors": [{"shot": 0, "frame": res["anchor"],
                      "correspondences": "none clicked - the anchor was solved from "
-                                        "the detected conic, then bundled over "
-                                        "frames spread across the pan"}],
+                                        "the detected conic, then the camera centre "
+                                        "was chosen between the anchor's own estimate "
+                                        "and a bundle over frames spread across the "
+                                        "pan, by whichever solved the possession with "
+                                        "the higher mean confidence"}],
         "frames": out_frames,
     }
     (work / "calibration.json").write_text(json.dumps(doc, indent=1) + "\n",
@@ -329,6 +411,11 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="ur.calibrate.run")
     p.add_argument("work", help="possession working directory, e.g. work/p0001")
     p.add_argument("--eval-dir", default="eval/m1")
+    p.add_argument("--bundle-n", type=int, default=9,
+                   help="frames to bundle the camera centre over. 0 skips the "
+                        "bundle and leaves the centre at the anchor's estimate - "
+                        "a diagnostic, since the bundle is the step that can move "
+                        "a good anchor solve to a camera that does not exist.")
     p.add_argument("--near-sideline", type=float, default=None,
                    help="soccer-frame y of the near ultimate sideline. Defaults to "
                         "the evidenced value for this venue; pass a value for a "
@@ -338,7 +425,7 @@ def main(argv: list[str] | None = None) -> int:
     ev = Path(args.eval_dir)
     ev.mkdir(parents=True, exist_ok=True)
 
-    res = calibrate(work)
+    res = calibrate(work, bundle_n=args.bundle_n)
     cam, frames = res["camera"], res["frames"]
     conf = np.array([f.confidence for f in frames])
     rms = np.array([f.rms_yd for f in frames])

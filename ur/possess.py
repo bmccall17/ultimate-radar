@@ -109,6 +109,13 @@ def build(work: Path, *, verbose: bool = True) -> dict:
         "gates_measured": True,
         "gates": {
             "document": "docs/17-m4-tracking.md",
+            # These are literals, measured once, on p0001, against hand labels
+            # that exist only for p0001. Every possession used to emit them as
+            # its own - so p0003's viewer announced "tracker recall 88 %, sigma
+            # containment 80 %" over footage on which neither has ever been
+            # measured. Naming the possession they came from is what lets a
+            # reader, and the viewer, tell the difference.
+            "measured_on": "p0001",
             "per_player_recall": 0.8846,
             "identity_switches_caught": "2 of 2 (ur.issues contested_reacquisition, "
                                         "docs/18)",

@@ -1215,6 +1215,22 @@ document.getElementById("lgD").textContent = teams[DEF].name + " (defence)";
 const prov=document.getElementById("provenance");
 function provenance(){
   // Reverted entries stay in the log as history but no longer count as applied,
+  // Recall and sigma containment were measured once, against hand labels that
+  // exist for exactly one possession. Printing them unqualified on a second
+  // possession tells a coach the tracker has been checked on the footage they
+  // are looking at, when it has not - the one thing docs/05 says the page must
+  // never do. Say which possession the number came from whenever it is not this
+  // one, and say plainly that this one is unmeasured.
+  function gateSentence(g, id){
+    const r = `${Math.round(g.per_player_recall*100)} % of player-frames`;
+    const s = `sigma containment ${Math.round(g.sigma_containment*100)} %`;
+    if(!g.measured_on || g.measured_on===id)
+      return `Tracker recall ${r}, ${s} (docs/17). `;
+    return `<b>Accuracy on this possession is unmeasured.</b> Recall ${r} and ${s} ` +
+           `were measured on <code>${g.measured_on}</code> (docs/17), against hand ` +
+           `labels that do not exist for this one. Treat them as a prior, not a ` +
+           `result. `;
+  }
   // which is the same rule ur/resolve.py::active() uses.
   const undone = new Set(LOG.filter(c=>c.op==="revert").map(c=>c.target));
   const corrected = LOG.filter(c=>c.op!=="revert" && !undone.has(c.id)).length;
@@ -1233,9 +1249,7 @@ function provenance(){
         ? "This file predates the gate measurements in docs/17 — rebuild it before " +
           "you quote a number. "
         : D.gates
-          ? `Tracker recall ${Math.round(D.gates.per_player_recall*100)} % of ` +
-            "player-frames, sigma containment " +
-            `${Math.round(D.gates.sigma_containment*100)} % (docs/17). `
+          ? gateSentence(D.gates, D.possession.id)
           : "") + human;
   }
 }
@@ -1271,19 +1285,39 @@ function draw(){
    in the page rather than in a console nobody has open. */
 function radarContradiction(){
   const A=[FL/2, FW*0.15], B=[FL/2, FW*0.85];   // differ only in y
+  const dRadar = ry(A[1])-ry(B[1]);             // + means A is lower on radar
+  const votes=[], bad=[];
   for(let f=0; f<NF; f++){
     const P=projector(f); if(!P) continue;
+    // Skip frames the calibration itself does not stand behind. p0003's first
+    // build of this page passed the check on frame 56 with an image delta of
+    // 1.2e11 px - a collapsed homography, where a sign comparison is luck
+    // rather than evidence. A check that can pass on nonsense is not a check.
+    if(P.conf!==undefined && P.conf<0.5) continue;
     const qa=P.project(A[0],A[1],0), qb=P.project(B[0],B[1],0);
     if(!qa||!qb) continue;
-    const dImage = qa[1]-qb[1];                  // + means A is lower in frame
-    const dRadar = ry(A[1])-ry(B[1]);            // + means A is lower on radar
-    if(Math.abs(dImage)<1e-6||Math.abs(dRadar)<1e-6) continue;
-    return {ok: Math.sign(dImage)===Math.sign(dRadar), f,
-            dImage:+dImage.toFixed(2), dRadar:+dRadar.toFixed(2),
-            why:"field y increases upward in the image, so it must increase "+
-                "upward on the overhead view too"};
+    const sane = q => Number.isFinite(q[0]) && Number.isFinite(q[1]) &&
+                      Math.abs(q[0])<10*IW && Math.abs(q[1])<10*IH;
+    if(!sane(qa)||!sane(qb)){ bad.push(f); continue; }
+    const dImage = qa[1]-qb[1];                 // + means A is lower in frame
+    if(Math.abs(dImage)<1) continue;            // the two are the same row
+    votes.push({f, dImage:+dImage.toFixed(2),
+                agrees: Math.sign(dImage)===Math.sign(dRadar)});
+    if(votes.length>=25) break;
   }
-  return {ok:null, why:"no frame projected both probe points; check not run"};
+  const why = "field y increases upward in the image, so it must increase "+
+              "upward on the overhead view too";
+  if(!votes.length)
+    return {ok:null, why, checked:0, degenerate:bad.length,
+            note:"no frame both cleared confidence 0.5 and projected the probe "+
+                 "points to plausible pixels; the check did not run"};
+  const disagree = votes.filter(v=>!v.agrees);
+  // Every usable frame has to agree. One frame agreeing is an accident; the
+  // whole possession agreeing is the property.
+  return {ok: disagree.length===0, why, checked:votes.length,
+          degenerate:bad.length, disagreed:disagree.length,
+          f:votes[0].f, dImage:votes[0].dImage, dRadar:+dRadar.toFixed(2),
+          worst: disagree.length?disagree[0]:null};
 }
 const selfCheck = radarContradiction();
 window.__urSelfCheck = selfCheck;

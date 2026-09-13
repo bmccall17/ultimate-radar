@@ -1,0 +1,63 @@
+{
+  "what": "M7 - p0003 run end to end on footage the code had never seen, beside p0001",
+  "date": "2026-09-13",
+  "note": "p0001 numbers are from its COMMITTED calibration, deliberately left in place so its detections, tracks and gates stay internally consistent. The current M1 reproduces its camera centre exactly and moves the median fit residual 0.1490 -> 0.1498 yd, which is the per-pass reseeding rather than a change of answer. See docs/23-m7.md.",
+  "determinism": {
+    "claim": "two full calibration runs of p0003 produce a byte-identical calibration.json",
+    "sha256": "8a104765c0f467833b9015e0d2f0dfa1abfc6c98d51babfdc4e8becc4d3ea97f",
+    "why_p0003": "it is the clip that exercises both the bundled and the anchor pass"
+  },
+  "constants_changed_for_p0003": "none",
+  "possessions": {
+    "p0001": {
+      "duration_s": 24.007,
+      "frames": 360,
+      "start_s": 7264.023,
+      "centre_chosen": null,
+      "camera_position_yd_soccer": [
+        0.4658,
+        -50.2128,
+        6.9763
+      ],
+      "frac_frames_conf_ge_0p5": 0.9389,
+      "mean_confidence": 0.694,
+      "median_fit_residual_yd": 0.149,
+      "venue_transform_residual_yd": 0.0,
+      "detections": 6801,
+      "detections_per_frame": 18.89,
+      "in_bounds": 4201,
+      "in_bounds_per_frame": 11.67,
+      "kit_separation_L": 41.82,
+      "tracker_observed_fraction": 0.6786,
+      "interpolated_samples": 348,
+      "weak_team_skipped": 341,
+      "detections_unassigned": 226,
+      "open_issues": 20
+    },
+    "p0003": {
+      "duration_s": 37.004,
+      "frames": 555,
+      "start_s": 1580.028,
+      "centre_chosen": "anchor",
+      "camera_position_yd_soccer": [
+        -19.5,
+        -41.25,
+        6.0
+      ],
+      "frac_frames_conf_ge_0p5": 0.5333,
+      "mean_confidence": 0.4186,
+      "median_fit_residual_yd": 0.208,
+      "venue_transform_residual_yd": 6.0,
+      "detections": 15378,
+      "detections_per_frame": 27.71,
+      "in_bounds": 3523,
+      "in_bounds_per_frame": 6.35,
+      "kit_separation_L": 48.19,
+      "tracker_observed_fraction": 0.3466,
+      "interpolated_samples": 859,
+      "weak_team_skipped": 361,
+      "detections_unassigned": 445,
+      "open_issues": 52
+    }
+  }
+}
