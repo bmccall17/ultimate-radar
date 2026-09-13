@@ -61,7 +61,7 @@ def line_ellipse_intersections(line, ell) -> np.ndarray:
                      line.p0 + ((-B + s) / (2 * A)) * line.d])
 
 
-def run_accept(work: Path, *, n_holdout: int = 10, seed: int = 20260827,
+def run_accept(work: Path, *, n_holdout: int = 20, seed: int = 20260827,
                eval_dir: Path | None = None) -> dict:
     cam, poses, cal = load(work)
     paths = sorted((work / "frames").glob("*.jpg"))
@@ -152,7 +152,11 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="ur.calibrate.accept")
     p.add_argument("work")
     p.add_argument("--eval-dir", default="eval/m1")
-    p.add_argument("-n", type=int, default=10)
+    p.add_argument("-n", type=int, default=20,
+                   help="held-out frames. 20 is what eval/m1/m1_acceptance.json "
+                        "records; docs/04 asks for at least 10. The default "
+                        "matches the committed evidence so the plain command "
+                        "reproduces the number in the write-up.")
     a = p.parse_args(argv)
     work, ev = Path(a.work), Path(a.eval_dir)
     ev.mkdir(parents=True, exist_ok=True)

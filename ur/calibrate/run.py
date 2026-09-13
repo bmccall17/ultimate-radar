@@ -329,6 +329,10 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="ur.calibrate.run")
     p.add_argument("work", help="possession working directory, e.g. work/p0001")
     p.add_argument("--eval-dir", default="eval/m1")
+    p.add_argument("--near-sideline", type=float, default=None,
+                   help="soccer-frame y of the near ultimate sideline. Defaults to "
+                        "the evidenced value for this venue; pass a value for a "
+                        "different venue, or 'auto' behaviour by passing nan.")
     args = p.parse_args(argv)
     work = Path(args.work)
     ev = Path(args.eval_dir)
@@ -351,7 +355,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"        x peak {c['x_yd']:+8.2f} yd  count {c['count']:8.0f}  "
               f"prominence {c['prominence']:.2f}")
     flen = length["field_length_yd"] or 120.0
-    vt = V.measure_transform(pm, flen)
+    near = (V.BREESE_STEVENS_NEAR_SIDELINE_Y if args.near_sideline is None
+            else args.near_sideline)
+    if near is not None and np.isnan(near):
+        near = None
+    vt = V.measure_transform(pm, flen, near_sideline_y=near)
+    print(f"[venue] near sideline: "
+          f"{'unconstrained (peak pair)' if near is None else f'{near:+.2f} soccer y'}")
     print(f"[venue] transform: {vt.to_dict()}")
 
     doc = write_calibration(work, res, {"transform": vt, "length": length})

@@ -203,6 +203,21 @@ def render_map(pm: PaintMap, path) -> None:
     cv2.imwrite(str(path), img)
 
 
+# The near ultimate sideline at Breese Stevens, in soccer-frame yards.
+#
+# This is a measured venue fact for THIS broadcast, not a general constant, and it
+# is here rather than left to the peak finder because the paint map genuinely
+# cannot settle it: it offers two candidate near-side lines ~7 yd apart and both
+# are real paint. What settles it is where the players go, which only exists once
+# M2 has run - see the note inside measure_transform.
+#
+# It lives in code because M2's correction was first applied by editing
+# calibration.json by hand, which left `H` computed from the superseded offset and
+# made `ur.calibrate.run` silently undo the correction on any re-run. A number
+# that a re-run destroys is not a measurement, it is a note.
+BREESE_STEVENS_NEAR_SIDELINE_Y = -32.75
+
+
 def measure_transform(pm: PaintMap, field_length: float,
                       near_sideline_y: float | None = None) -> W.VenueTransform:
     """Place the ultimate field on the pitch using the sideline peaks.
