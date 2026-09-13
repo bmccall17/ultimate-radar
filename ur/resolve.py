@@ -221,7 +221,15 @@ def main(argv: list[str] | None = None) -> int:
     log = load_log(work)
 
     if a.verify_revert:
-        base = json.dumps(load_uncorrected(work), indent=1, sort_keys=True)
+        # The baseline is resolve() over an EMPTY log, not the raw rebuild. resolve
+        # annotates the document it returns (`notice`, `corrections_applied`), so
+        # comparing against the rebuild would test those annotations rather than
+        # the revert - and would report a failure that is not one. Same baseline
+        # as tools/m5_resolve.py, because two checks of one property that
+        # disagree are worse than one check.
+        base = json.dumps(resolve(load_uncorrected(work),
+                                  empty_log(log["possession_id"]), verbose=False),
+                          indent=1, sort_keys=True)
         allrev = dict(log)
         allrev["corrections"] = list(log["corrections"]) + [
             {"id": f"r-{c['id']}", "op": "revert", "target": c["id"]}
@@ -229,8 +237,9 @@ def main(argv: list[str] | None = None) -> int:
         got = json.dumps(resolve(load_uncorrected(work), allrev, verbose=False),
                          indent=1, sort_keys=True)
         same = base == got
-        print(f"[resolve] revert-everything reproduces the uncorrected file: "
-              f"{'YES, byte for byte' if same else 'NO'}")
+        n = len([c for c in log["corrections"] if c["op"] != "revert"])
+        print(f"[resolve] reverting all {n} correction(s) reproduces the "
+              f"uncorrected output: {'YES, byte for byte' if same else 'NO'}")
         return 0 if same else 1
 
     n = len(active(log))
