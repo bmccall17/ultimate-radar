@@ -1,4 +1,4 @@
-# Handoff — M4 in progress, 2026-09-13
+# Handoff — M4 in progress, reviewed 2026-09-13
 
 Pick this up cold. Read this, then `docs/04-milestones.md` § M4, then AD-1, AD-2, AD-3 and
 `docs/05-uncertainty.md`. The spec in `docs/` still governs; where a milestone changed it,
@@ -9,6 +9,11 @@ Working directory: `E:\dev\playertrackerultimate\ultimate-radar`
 > **M4 is half-built and none of its gates are measured yet.** The tracker exists and runs;
 > the ground truth it must be scored against does not exist. Everything below marked
 > *unmeasured* is exactly that. Do not quote any M4 number as a result.
+>
+> **Reviewed — `docs/15-m4-review.md`.** The motion model was re-derived from first
+> principles and holds. The escalated decision in § 3 is **resolved**: keep excluding
+> `weak_team`, and re-specify the gate, which was the actual fault. § 4 is re-ordered as a
+> result — the render comes first.
 
 ---
 
@@ -20,7 +25,7 @@ Working directory: `E:\dev\playertrackerultimate\ultimate-radar`
 | **M1** | Calibration | **Done**, acceptance passed (`docs/12-m1-calibration.md`) |
 | **M2** | Detection | **Done.** Recall passed here; its false-positive gate passed in M3 (`docs/13-m2-detection.md`) |
 | **M3** | Team assignment + projection | **Done**, both gates passed (`docs/14-m3.md`) |
-| **M4** | Tracking | **In progress.** Tracker built and committed; **gates unmeasured** |
+| **M4** | Tracking | **In progress.** Tracker built, committed and reviewed; **gates unmeasured, and nothing has been rendered** |
 | M5 | Identity, events, corrections | Not started |
 | M6 | Viewer | Not started; `viewer/prototype.html` is the design target, `viewer/live.html` is M3's working page |
 | M7 | Sharing + a second possession | `p0003` is already cut for it |
@@ -72,63 +77,79 @@ tool differences over a range of baselines, subtracts the foot noise M3 measured
 inverts the integrated-OU displacement variance. The estimate settles at 2.50 / 2.64 / 2.63
 for baselines of 0.8 / 1.3 / 2.0 s. Fed back and re-measured: 2.635 / 2.623. It converged.
 
-## 3. The decision a reviewer should weigh in on
+## 3. The decision, resolved
 
-**The `observed` fraction gate is currently failing, and the reason is a choice, not a bug.**
+The `observed` fraction gate was failing, and the question was whether to admit `weak_team`
+detections — the ones whose torso matches neither kit, where the three uncaught referees
+live — to close a 10.7-point gap.
 
-Compared like for like on the 20 hand-labelled frames:
+**Answer: keep excluding them. The gate was the fault, not the tracker.** Full reasoning in
+`docs/15-m4-review.md`; the short version:
 
-| | per frame |
-|---|---|
-| Visible players (hand-labelled, M3) | **11.85 / 14 = 84.6 %** |
-| Detections offered to the tracker | 11.05 |
-| …of those, unassigned | 0.70 |
-| `weak_team` excluded before association | **1.10** |
-| **Tracker `observed`** | **10.35 / 14 = 73.9 %** |
+The gate as written compares two *counts* — observed slot-frames against visible players —
+and a count comparison can be satisfied by counting the wrong objects. Admitting `weak_team`
+adds ~1.10 detections per frame that are mostly referees, buying ~7.9 points of "observed" by
+putting non-players into player slots. The number would pass and the product would be worse.
+Options (b) and (c) as framed were both ways of paying for a metric.
 
-The gate wants the observed fraction within 5 points of the visible fraction, so 79.6–89.6 %.
-It is at **73.9 %**, about **10.7 points short**. Note the detector is not the problem: it
-finds 12.15 player-classified detections per frame against 11.85 visible, i.e. slightly more,
-because a few non-players survive M3's filters.
+**The replacement gate is recall on players, position-matched:**
 
-Essentially all of the shortfall is the two sinks above, and the larger one is a deliberate
-choice: **`ur/track/run.py` excludes `weak_team` detections from association.** Those are the
-detections whose torso matches neither kit, which is where M3's three uncaught referees end
-up. Admitting them would add up to 1.10 observations per frame — about 7.9 points, enough to
-pass the gate — at the cost of letting a referee occupy a defender's slot.
+> For each of the 20 labelled frames, take every detection a human labelled `sol` or `chill`.
+> Project its foot point to field coordinates. Ask whether a slot **of that team** is
+> `observed` within 1.5 yd. Report the fraction over all labelled player-boxes, and also at
+> 1.0 and 2.0 yd so the threshold's contribution is visible.
 
-I have not made that trade, for two reasons. It cannot be evaluated without the identity
-ground truth, which does not exist yet; and `docs/04` M4 lists "phantom or missing slots:
-zero, always" alongside the observed fraction, so buying coverage with referees trades one
-gate against another. **This is the open question for the review.** The options are:
+This asks what the old gate was trying to ask — *did the tracker see the players who were
+there* — and a referee cannot improve it, because referees are not in the denominator. The
+perverse incentive disappears, and "zero phantom slots" stops being traded against it.
 
-- **(a) Keep excluding.** Honest, fails the observed-fraction gate, and the write-up says so.
-- **(b) Admit `weak_team` but down-weight it** — inflate R rather than drop the detection, so
-  a referee competes weakly instead of not at all. Not tried.
-- **(c) Admit them and let the tracklet-level team vote clean up afterwards.** This is what
-  `HANDOFF` §6 of the M3 handoff proposed; the vote is not built yet.
-- **(d) Re-measure the visible fraction properly.** The gate's "≈ 88 %" comes from three
-  hand-counted M0 frames; M3's 20-frame labels say **84.6 %**, which is the better number and
-  is what the table above uses.
+**It needs no jersey identity labels.** It is a positional match, not an identity match, and
+`eval/m3/team_labels.json` already labels every in-bounds box on those 20 frames. This gate
+is unblocked today. The 1 Hz jersey labelling is still required, but only for the ID-switch
+gate — a different question that should no longer block this one.
+
+Two things to state when reporting it: the denominator is *detected and labelled* players, so
+a player the detector missed entirely is invisible to it — bound that with M2's recall
+(0.9873), or report the hand-counted 11.85/frame as a second denominator.
+
+**Expectation, recorded before the measurement.** Given that only 9 of 245 unassigned
+detections cost a real observation, per-player recall should come out **at or above 0.90**,
+in which case the tracker is fine and the old gate was the whole problem. If it lands near
+0.75 there is a real coverage gap, and *then* option (b) — inflate R rather than drop the
+detection, so a weak-team detection competes weakly instead of not at all — is worth trying,
+because it would be buying real players rather than referees.
+
+Also settled: the visible fraction is **84.6 %** from 20 labelled frames, not the 88 % from
+three hand-counted M0 frames. `docs/04` and `docs/05` should carry the measured number.
 
 ## 4. What M4 still needs, in order
 
-1. **The 1 Hz identity ground truth. It does not exist and nothing can be scored without it.**
-   `tools/m4_label.py` is written and renders the sheets; the labels are not made.
+**The order changed after review.** The render moved from fifth to first. A tracker is the
+first stage whose failures are *temporal* — a slot that swaps, a ghost that drifts somewhere
+absurd, a referee quietly holding a defender's slot for six seconds. None of those appear in
+a per-frame statistic, and all are obvious within thirty seconds of watching. Measuring a
+tracker nobody has looked at is the wrong order of operations.
+
+1. **Render the tracker.** Rewire `possession.json` to come from `tracks.json` instead of
+   `ur/standin.py`, regenerate `viewer/live.html`, and produce an `eval/m4/` video the way
+   M1, M2 and M3 each did. Evidence state rendered per `docs/05`: solid observed, dashed
+   predicted, sigma disc sized in real yards. Then watch all 24 seconds before doing anything
+   else, and write down what you see.
+2. **Score the re-specified `observed` gate** (§ 3). No new labels needed; it runs against
+   `eval/m3/team_labels.json` today.
+3. **A fresh foot-point sample for the position and sigma gates**, disjoint from the 50 in
+   `eval/m3/foot_labels.json`. Re-using those would be circular: `FOOT_UNCERTAINTY_PX` was
+   fitted on them, and the sigma-calibration gate would be scoring a constant against its own
+   training data.
+4. **The 1 Hz identity ground truth**, for the ID-switch gate only — it no longer blocks the
+   others. `tools/m4_label.py` is written and renders the sheets; the labels are not made.
    The approach was measured before being relied on: jersey numbers are readable on **about
    half** the crops (UFA §3.2.3 numbers the back *and* the front, so a side-on player shows
    neither), which is enough, because a switch is a change in which number a slot holds and
    an unlabelled observation simply contributes no evidence.
-2. **A fresh foot-point sample for the position and sigma gates**, disjoint from the 50 in
-   `eval/m3/foot_labels.json`. Re-using those would be circular: `FOOT_UNCERTAINTY_PX` was
-   fitted on them, and the sigma-calibration gate would be scoring a constant against its own
-   training data.
-3. **Score all five gates**, and expect the `observed` fraction one to fail as above.
-4. **The tracklet-level team vote**, which is what closes the last of the referee leak.
-5. **Rewire `possession.json` to come from `tracks.json`** instead of `ur/standin.py`, then
-   regenerate the viewer. **Right now `viewer/live.html` still shows M3 stand-in data** — the
-   tracker's output is not on screen anywhere yet.
-6. `ur/standin.py` is then dead and should be deleted.
+5. **Score the remaining gates.**
+6. **The tracklet-level team vote**, which closes the last of the referee leak.
+7. `ur/standin.py` is then dead and should be deleted.
 
 ## 5. Environment
 
@@ -179,6 +200,17 @@ Decisions worth not re-litigating:
 - **The venue transform lives in code**, `venue.BREESE_STEVENS_NEAR_SIDELINE_Y`, after M3
   found M2's correction had been hand-edited into `calibration.json` and would have been
   silently reverted by any re-run.
+- **`SIGMA_V_INF = 2.6 yd/s` is a measured sport constant, not a tuning knob.** It belongs in
+  `docs/02` § AD-1 with its method and baseline curve. Note the foot-noise figure it was
+  derived against (1.183 yd displacement rms) is ~10 % above the 1.076 implied by M3's
+  measured 0.761 yd per-detection rms, which biases σ_v slightly low — conservative, but say
+  so in the code.
+- **Overlay drawing must be clipped to the registration mask.** M3's render puts projected
+  field lines across the sponsor banner. Cosmetic now; misleading once an overlay element
+  lands on a graphic and reads as a detection.
+- **Add a `.gitattributes` with `* text=auto eol=lf`.** Running git against this checkout
+  from a Linux environment reports all 51 source files modified; the diff is a pure CRLF/LF
+  flip and the tree is genuinely clean. Worth removing the phantom.
 
 ## 7. On disk
 
