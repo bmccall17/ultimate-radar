@@ -10,18 +10,26 @@ anticipated was not needed: a 1080p60 avc1 stream is offered.
 
 ## State at handoff
 
-*Updated 2026-09-12, after M0.*
+*Updated 2026-09-13, after M6. `HANDOFF.md` is the operational version of this; what follows
+is the one-paragraph shape of it.*
 
-- **Ten docs, the data contracts, a synthetic possession fixture, a working prototype viewer,
-  and `ur/ingest.py` plus the M0 measurement tools in `tools/`.** No pipeline code beyond
-  ingest.
-- **M0 is done and the assumptions have been checked against real frames.** Read
-  `docs/00-footage-report.md` before M1 — it changes the detection plan (players are twice
-  the assumed size), the calibration plan (soccer markings, not gridiron), and the shot model
-  (one shot per possession, not three). The corrections it made to the other docs are listed
-  at its foot.
-- **One possession is cut and verified**: `work/p0001/`, broadcast 7264.023–7288.014 s, 24.0 s,
-  360 frames at 15 fps, deterministic across runs.
+- **M0 to M6 are built.** Ingest, calibration, detection, team assignment, tracking, identity
+  and corrections, and the viewer. M7 — sharing and a second possession — is not started.
+- **Three results are not clean, and all three are recorded rather than hidden.** M5's jersey
+  gate gets 3 of 7 against a gate of 5, and fails on the footage rather than on the plumbing.
+  M4's per-player recall is 0.8846 with its threshold deliberately unset, because closing the
+  gap means readmitting the detections that keep referees out of player slots — a product
+  decision, not a tuning one. M6's `file://` criterion and its comprehension test both need a
+  human and are unrun.
+- **Everything else passes its gate**, and every number in `HANDOFF.md` § 1 has a committed
+  acceptance file under `eval/`.
+- **One possession is cut and fully processed**: `work/p0001/`, broadcast 7264.023–7288.014 s,
+  24.0 s, 360 frames at 15 fps, deterministic across runs. `p0002` and `p0003` are cut but
+  carry pre-M3 calibration.
+- **The original M0 reading still governs the plan.** `docs/00-footage-report.md` changed the
+  detection plan (players are twice the assumed size), the calibration plan (soccer markings,
+  not gridiron) and the shot model (one shot per possession, not three); read it before
+  touching any of those.
 
 ## The two product commitments
 

@@ -8,3 +8,6 @@ __pycache__/
 
 # Viewer data, regenerated from work/ by tools/make_view.py
 viewer/live-data.js
+
+# Local preview convenience; the viewer itself needs no server.
+.claude/launch.json

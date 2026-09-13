@@ -109,7 +109,14 @@ def draw_frame(img, P, n):
 
     cv2.putText(img, f"f{n:04d}   {cov}/14 slots observed   calib {pf['confidence']:.2f}",
                 (18, 44), cv2.FONT_HERSHEY_SIMPLEX, 0.95, (255, 255, 255), 2, cv2.LINE_AA)
-    cv2.putText(img, "positions measured; SLOT IDENTITY IS A STAND-IN (ur.standin)",
+    # The caption is taken from the file rather than assumed: this tool was written
+    # against ur/standin.py, which M4 replaced and M6 deleted, and a render that
+    # still shouted STAND-IN over the tracker's real output would be the wrong
+    # kind of wrong.
+    note = ("positions measured; SLOT IDENTITY IS A STAND-IN"
+            if P.get("stand_in") else
+            "positions and slot identities are the M4 tracker (ur.track.run)")
+    cv2.putText(img, note,
                 (18, 76), cv2.FONT_HERSHEY_SIMPLEX, 0.62, WARN, 2, cv2.LINE_AA)
     return img
 

@@ -215,4 +215,16 @@ object form triples the file size for no benefit, and the viewer wants columnar 
 
 For real footage the viewer plays `clip.mp4` behind an overlay canvas instead of rendering a
 camera view; the projection math is identical, sourced from `calibration.json` rather than
-the synthetic `camera` block.
+the synthetic `camera` block. Concretely, `camera.per_frame[i]` then carries `H` (image pixel
+-> ultimate field yard, homogeneous) instead of `aim` and `focal_px`, and `ur/possess.py`
+writes both plus a `frame` note. `viewer/index.html` reads whichever is present.
+
+Two fields added after M4 and M6, both because something downstream was about to be misled:
+
+- **`gates`** — the measured acceptance numbers for the tracker that produced this file, and a
+  `note` naming the one that is marginal. A position without the recall beside it is a number
+  waiting to be over-trusted; the viewer prints them in its provenance banner.
+- **`camera.position_yd` is ULTIMATE-frame yards**, converted through `venue_transform`. The
+  soccer-frame value `calibration.json` solves in is kept beside it as `position_yd_soccer`.
+  Before M6 this key carried the soccer value in a file whose every other coordinate was
+  ultimate-frame. Nothing had read it yet, which is exactly why it was worth fixing.

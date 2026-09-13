@@ -14,11 +14,11 @@ are applied by `ur/resolve.py`, which does not exist yet.
 
 **What is honest about this file and what is not.** The positions and the
 evidence states are the tracker's real output, including `predicted` samples that
-are dead reckoning and are allowed to be wrong. What is *not* established is
-whether any of it passes M4's gates — none of them are measured at the time of
-writing — so the file carries `gates_measured: false` and a notice saying so.
-That is the same discipline `ur/standin.py` used with `stand_in: true`: a file
-that will be read by something downstream has to say what it is.
+are dead reckoning and are allowed to be wrong. M4's five gates have since been
+measured (`docs/17-m4-tracking.md`), so the file now carries the numbers rather
+than a warning that there are none — including the one that falls short, because
+a file that will be read by something downstream has to say what it is. Anything
+reading this should quote `gates.note` before quoting a position.
 """
 
 from __future__ import annotations
@@ -28,6 +28,15 @@ import json
 from pathlib import Path
 
 import numpy as np
+
+
+def _to_ultimate(C, vt):
+    """The camera centre in the ultimate frame, the one everything else uses."""
+    if not vt:
+        return C
+    return [round(C[0] * vt["x_sign"] + vt["x_offset"], 4),
+            round(C[1] * vt["y_sign"] + vt["y_offset"], 4),
+            round(C[2], 4)]
 
 
 def build(work: Path, *, verbose: bool = True) -> dict:
@@ -97,15 +106,27 @@ def build(work: Path, *, verbose: bool = True) -> dict:
     doc = {
         "schema": "ultimate-radar/possession@0.2",
         "stand_in": False,
-        "gates_measured": False,
+        "gates_measured": True,
+        "gates": {
+            "document": "docs/17-m4-tracking.md",
+            "per_player_recall": 0.8846,
+            "identity_switches_caught": "2 of 2 (ur.issues contested_reacquisition, "
+                                        "docs/18)",
+            "sigma_containment": 0.80,
+            "note": "Four of M4's five gates pass. Per-player recall is 0.8846 "
+                    "against a threshold left deliberately unset - reaching 0.90 "
+                    "needs the weak_team detections readmitted, and those are "
+                    "mostly referees. Sigma containment is 32 of 40, Wilson 95 % "
+                    "CI 65.2-89.5 %, so it passes marginally.",
+        },
         "notice": (
             "Positions, evidence states and sigmas are the M4 tracker's real "
-            "output (ur.track.run). NONE of M4's acceptance gates have been "
-            "measured yet, so nothing in this file is established: identity "
-            "switches, position error and sigma calibration are all unknown. "
-            "`predicted` samples are dead reckoning and are allowed to be wrong "
-            "by design - docs/05-uncertainty.md explains why a ghost that drifts "
-            "and snaps back is more honest than one frozen in place."
+            "output (ur.track.run), and M4's gates are measured - see `gates` "
+            "above and docs/17. `predicted` samples are dead reckoning and are "
+            "allowed to be wrong by design: docs/05-uncertainty.md explains why a "
+            "ghost that drifts and snaps back is more honest than one frozen in "
+            "place. No per-player number here is better than the recall in "
+            "`gates`."
         ),
         "possession": {
             "id": clip["possession_id"],
@@ -133,7 +154,12 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             "model": "pinhole, fixed position, per-frame pan/tilt/roll/focal (M1)",
             "image_w": cam["image_w"],
             "image_h": cam["image_h"],
-            "position_yd": cam["position_yd"],
+            # Every other coordinate in this file is ultimate-frame yards, so the
+            # camera centre is converted to match. calibration.json keeps it in
+            # the soccer frame because that is where the venue was solved; a file
+            # that mixes the two frames under one key is a trap.
+            "position_yd": _to_ultimate(cam["position_yd"], cal.get("venue_transform")),
+            "position_yd_soccer": cam["position_yd"],
             "frame": "H maps image pixel -> ultimate field yard, homogeneous. "
                      "Invert it to draw on the video; the inverse's w is NEGATIVE "
                      "in front of the camera on this footage, so take the sign "

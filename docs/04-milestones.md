@@ -221,7 +221,7 @@ at the right frame and the right pair; `resolve.py` applied to an anchor produce
 continuous at both ends; `revert` restores byte-identical output; and jersey numbers are
 correct for **≥ 5 of 7** players on at least one team, with the rest honestly `null`.
 
-## M6 — Viewer ·  three days ·  buildable now
+## M6 — Viewer ·  built, one criterion open ·  `docs/19-m6-viewer.md`
 
 Static page reading `possession.json`. Spec in `docs/06-viewer.md`. The published prototype
 is the behavioural reference — match what it does, write better code than it has.
@@ -231,6 +231,27 @@ driven by `calibration.json`. The projection math does not change.
 
 **Accept when:** it runs from `file://` with no build step; it renders the fixture correctly;
 and it passes the comprehension test in `docs/01-brief.md` with a real person.
+
+**Result:** `viewer/index.html`, one file, no build step, no framework, no dependency. The
+fixture renders identically to the prototype and the real possession renders through the same
+code by way of a second projector backend. A full redraw with every layer on takes **10.6 ms**
+against a 66 ms budget.
+
+Two criteria are open, and neither can be closed by the thing that wrote the page:
+
+- **`file://` is unverified.** It was verified over `http://localhost` instead, because the
+  browser available at the time renders local files as static snapshots. This costs a human
+  about one minute: double-click `viewer/index.html` and see whether it draws.
+- **The comprehension test needs a person**, and it should be run **on the fixture**, not on
+  p0001. Questions 2 and 4 ask about the disc and about the receiver at the last throw; nothing
+  in this pipeline has seen the disc (AD-7) and no throw on p0001 carries a tagged target, so
+  the viewer correctly answers "I cannot tell you" to two of the five. That measures the
+  pipeline's known gap, not the viewer.
+
+One consequence worth carrying forward: **the Mark and Separation cards are the two readouts
+that real footage cannot currently feed.** Four of the six work on p0001 today. If disc
+detection stays a stretch goal, hand-tagging a throw and its receiver in `events.json` is what
+turns Separation at release back on, and it is cheap.
 
 ## M7 — Sharing and a second possession ·  one day
 
