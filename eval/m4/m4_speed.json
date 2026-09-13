@@ -1,0 +1,78 @@
+{
+  "schema": "ultimate-radar/m4-speed@1",
+  "possession": "p0001",
+  "method": "displacement of the raw detection foot point between two frames linked by the same slot, with the measured foot-point noise subtracted in quadrature",
+  "note": "short baselines are noise-dominated, long ones understate because a player changes velocity within them; take the value where the curve flattens",
+  "by_baseline": [
+    {
+      "baseline_frames": 2,
+      "baseline_s": 0.1333,
+      "n": 3128,
+      "T_over_tau": 0.051,
+      "rms_displacement_yd": 0.656,
+      "noise_rms_yd": 1.183,
+      "sigma_v_naive_yd_s": 0.0,
+      "sigma_v_yd_s": 0.0
+    },
+    {
+      "baseline_frames": 3,
+      "baseline_s": 0.2,
+      "n": 3061,
+      "T_over_tau": 0.077,
+      "rms_displacement_yd": 0.87,
+      "noise_rms_yd": 1.183,
+      "sigma_v_naive_yd_s": 0.0,
+      "sigma_v_yd_s": 0.0
+    },
+    {
+      "baseline_frames": 5,
+      "baseline_s": 0.3333,
+      "n": 2967,
+      "T_over_tau": 0.128,
+      "rms_displacement_yd": 1.302,
+      "noise_rms_yd": 1.184,
+      "sigma_v_naive_yd_s": 1.148,
+      "sigma_v_yd_s": 1.172
+    },
+    {
+      "baseline_frames": 8,
+      "baseline_s": 0.5333,
+      "n": 2874,
+      "T_over_tau": 0.205,
+      "rms_displacement_yd": 2.004,
+      "noise_rms_yd": 1.186,
+      "sigma_v_naive_yd_s": 2.142,
+      "sigma_v_yd_s": 2.216
+    },
+    {
+      "baseline_frames": 12,
+      "baseline_s": 0.8,
+      "n": 2759,
+      "T_over_tau": 0.308,
+      "rms_displacement_yd": 2.931,
+      "noise_rms_yd": 1.187,
+      "sigma_v_naive_yd_s": 2.368,
+      "sigma_v_yd_s": 2.49
+    },
+    {
+      "baseline_frames": 20,
+      "baseline_s": 1.3333,
+      "n": 2548,
+      "T_over_tau": 0.513,
+      "rms_displacement_yd": 4.73,
+      "noise_rms_yd": 1.192,
+      "sigma_v_naive_yd_s": 2.427,
+      "sigma_v_yd_s": 2.635
+    },
+    {
+      "baseline_frames": 30,
+      "baseline_s": 2.0,
+      "n": 2381,
+      "T_over_tau": 0.769,
+      "rms_displacement_yd": 6.686,
+      "noise_rms_yd": 1.196,
+      "sigma_v_naive_yd_s": 2.326,
+      "sigma_v_yd_s": 2.623
+    }
+  ]
+}
