@@ -1,0 +1,8 @@
+# Git runs against this checkout from both Windows and Linux. Without this, a
+# Linux-side `git status` reports every source file modified on a pure CRLF flip.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.mp4 binary
+*.npz binary
