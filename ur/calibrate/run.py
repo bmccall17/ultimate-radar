@@ -126,6 +126,10 @@ def confidence_of(res: fit.WorldFit | None) -> float:
     line being absent, which leaves the circle alone and the rotation about its
     axis barely constrained.
     """
+    # res.ok already rejects the two failures that produce a *smaller* residual
+    # than a good fit: a collapsed solve and a fit to too short an arc. Without
+    # that, an rms of exactly 0.0000 scores a perfect quality term - which is
+    # what p0003 did before this check existed.
     if res is None or not res.ok:
         return 0.0
     quality = float(np.exp(-max(res.rms_yd, 0.0) / 0.45))

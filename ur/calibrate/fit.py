@@ -363,6 +363,12 @@ def bootstrap(dist: np.ndarray, w: int, h: int, features: list[W.Feature], ell,
 # unmatched model points to invent error, and the answer comes out in yards -
 # the unit M1's acceptance gate is written in.
 
+# Paint is about four inches wide and the encode is lossy, so a genuine fit on
+# this footage lands around 0.1-0.3 yd. A residual far below that is not a better
+# fit, it is a collapsed one - see the note on circle_span_deg below.
+MIN_PLAUSIBLE_RMS_YD = 0.02
+
+
 @dataclass
 class WorldFit:
     pose: Pose
@@ -373,6 +379,7 @@ class WorldFit:
     n_circle: int
     n_line: int
     ok: bool
+    circle_span_deg: float = 0.0
     reason: str = ""
 
     def to_dict(self) -> dict:
@@ -382,6 +389,7 @@ class WorldFit:
                 "rms_yd": round(float(self.rms_yd), 4),
                 "p95_yd": round(float(self.p95_yd), 4),
                 "n_circle": int(self.n_circle), "n_line": int(self.n_line),
+                "circle_span_deg": round(float(self.circle_span_deg), 1),
                 "ok": bool(self.ok), **({"reason": self.reason} if self.reason else {})}
 
 
@@ -426,16 +434,56 @@ def world_residuals(cam: FixedCamera, pose: Pose, circle_px: np.ndarray,
 
 
 def _summarise(res: np.ndarray, tags: np.ndarray, pose: Pose,
-               min_pts: int = 120) -> WorldFit:
+               min_pts: int = 120, circle_span_deg: float = 0.0) -> WorldFit:
+    """Turn residuals into a verdict, including the ways a small residual lies.
+
+    Two failures produce a *better*-looking number than a good fit does, and both
+    were seen on real footage (p0003, the endzone shot):
+
+    - **A collapsed fit.** Back-projection near the horizon is so ill-conditioned
+      that the optimiser can drive every associated pixel exactly onto the model
+      and report rms 0.0000 while describing no camera at all.
+    - **A fit to an arc.** If the associated pixels cover only a small sector of
+      the circle, almost any ellipse through them satisfies them. The residual is
+      tiny and the pose is unconstrained in every direction the arc does not see.
+
+    Both are reported as failures with a reason, never as high-quality fits.
+    """
     c, ln = res[tags == 0], res[tags == 1]
     rms = lambda a: float(np.sqrt(np.mean(a ** 2))) if len(a) else float("nan")
     all_abs = np.abs(res)
-    ok = len(res) >= min_pts
+    value = rms(res)
+
+    ok, reason = True, ""
+    if len(res) < min_pts:
+        ok, reason = False, f"only {len(res)} feature pixels"
+    elif not np.isfinite(value):
+        ok, reason = False, "residual is not finite"
+    elif value < MIN_PLAUSIBLE_RMS_YD:
+        ok, reason = False, (f"residual {value:.5f} yd is below what painted lines "
+                             f"physically allow - the fit has collapsed, not converged")
+    elif len(c) >= min_pts and circle_span_deg < 90.0:
+        ok, reason = False, (f"circle pixels span only {circle_span_deg:.0f} deg of arc; "
+                             "an arc that short constrains almost nothing")
+
     return WorldFit(pose=pose, circle_rms_yd=rms(c), line_rms_yd=rms(ln),
-                    rms_yd=rms(res),
+                    rms_yd=value,
                     p95_yd=float(np.percentile(all_abs, 95)) if len(res) else float("nan"),
-                    n_circle=int(len(c)), n_line=int(len(ln)), ok=ok,
-                    reason="" if ok else f"only {len(res)} feature pixels")
+                    n_circle=int(len(c)), n_line=int(len(ln)),
+                    circle_span_deg=float(circle_span_deg), ok=ok, reason=reason)
+
+
+def circle_angular_span(cam: FixedCamera, pose: Pose, circle_px: np.ndarray) -> float:
+    """How much of the circle the associated pixels actually cover, in degrees."""
+    if len(circle_px) < 8:
+        return 0.0
+    w, ok = backproject(cam, pose, circle_px)
+    good = ok & np.isfinite(w).all(axis=1)
+    if good.sum() < 8:
+        return 0.0
+    th = np.arctan2(w[good, 1], w[good, 0])
+    bins = np.unique(((th + np.pi) / (2 * np.pi) * 36).astype(int) % 36)
+    return float(len(bins)) * 10.0
 
 
 def refine_world(cam: FixedCamera, pose: Pose, circle_px: np.ndarray,
@@ -459,7 +507,8 @@ def refine_world(cam: FixedCamera, pose: Pose, circle_px: np.ndarray,
                         x_scale=[0.02, 0.02, 0.02] + ([0.01] if with_roll else []))
     best = unpack(sol.x)
     res, tags = world_residuals(cam, best, circle_px, line_px)
-    return _summarise(res, tags, best)
+    span = circle_angular_span(cam, best, circle_px)
+    return _summarise(res, tags, best, circle_span_deg=span)
 
 
 def bundle_world(cam: FixedCamera, poses: list[Pose],

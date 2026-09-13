@@ -66,6 +66,29 @@ Verified against each project's own LICENSE file, not PyPI metadata.
 |---|---|---|---|---|
 | Non-linear least squares for the per-frame camera fit; `linear_sum_assignment` later in M4 | **scipy** | 1.17.1 | BSD-3-Clause | `scipy/scipy/LICENSE.txt` |
 
+### Added in M2 (2026-09-12) — detection
+
+**Code and weights checked separately**, as this register insists. This is the case the
+"weights carry their own terms" warning was written for: a permissive repo tells you nothing
+about the checkpoint someone published from it.
+
+| Use | Package / weights | Version | Licence | What was checked |
+|---|---|---|---|---|
+| Detector, reference implementation | **D-FINE** — `Peterande/D-FINE` | — | **Apache-2.0** | the repo's own `LICENSE` file |
+| Detector **weights**, COCO-pretrained | `ustc-community/dfine-*-coco` | — | **Apache-2.0** | the model card's `license:` field on HuggingFace |
+| Model runtime | **transformers** | pinned at install | Apache-2.0 | `huggingface/transformers/LICENSE` |
+| Tensors, autograd, CUDA | **torch** | cu128 build | BSD-3-Clause | `pytorch/pytorch/LICENSE` |
+| Backbone utilities (transitive) | **timm** | pinned at install | Apache-2.0 | `huggingface/pytorch-image-models/LICENSE` |
+| Checkpoint format (transitive) | **safetensors** | pinned at install | Apache-2.0 | `huggingface/safetensors/LICENSE` |
+
+Still out, and worth restating because it is the default everyone reaches for: **Ultralytics
+YOLO in every version is AGPL-3.0**, as is anything built on it. Not used here.
+
+**SAHI is not installed.** M0 measured players at 50–130 px rather than the 25–45 px the
+architecture assumed, so tiled inference is measure-first rather than required
+(`docs/04-milestones.md` M2). If whole-frame recall misses the gate, add SAHI (MIT) then and
+add its row here.
+
 **On the ffmpeg build.** The installed binary is the gyan.dev *full* build, which bundles
 GPL components (libx264 among them) and is therefore **GPL-3.0**, not LGPL. This project
 invokes it as a **separate process** via `subprocess`, passing file paths — no linking, no

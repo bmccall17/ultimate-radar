@@ -7,3 +7,4 @@ opencv-python==5.0.0.93
 pillow==12.3.0
 yt-dlp==2026.8.19
 pypdf==6.18.1
+scipy==1.17.1

@@ -1,0 +1,8 @@
+# M2 detection. Licences in docs/07-licenses.md - code AND weights checked.
+# torch/torchvision come from the CUDA 12.8 index:
+#   uv pip install --python .venv/Scripts/python.exe torch torchvision \
+#       --index-url https://download.pytorch.org/whl/cu128
+#   uv pip install --python .venv/Scripts/python.exe -r requirements-m2.txt
+transformers==5.17.0
+timm==1.0.29
+safetensors==0.8.0
