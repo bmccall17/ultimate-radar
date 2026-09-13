@@ -90,6 +90,35 @@ INTERP_MAX_S = 0.5        # observations within this on BOTH sides -> interpolat
 UNKNOWN_SIGMA_MIN = 3.0   # docs/05
 UNKNOWN_SIGMA_MAX = 16.0
 
+# What the `sigma` written into tracks.json MEANS.
+#
+# docs/05-uncertainty.md says the viewer draws a disc of this radius and gates on
+# ">= 80 % of truths inside" it. Those two statements are only consistent if sigma
+# is a containment radius, not a per-axis standard deviation: for a 2-D Gaussian
+# with per-axis sigma_p, the disc of radius sigma_p contains just 39.3 %, so a
+# per-axis value cannot reach 80 % however well calibrated it is.
+#
+# M3 already settled this for detections - `sigma_yd` is the rms of the measured
+# 2-D offset, which contains 94 % - and the tracker was the inconsistent one.
+# Measured before this change: 57.5 % containment, which is *better* than a
+# perfectly calibrated per-axis sigma would give, because the filter's covariance
+# is conservative by about 31 %. The gate was failing on a definition, not on the
+# filter being wrong.
+#
+# 1.794 = sqrt(-2 ln 0.2), the radius in per-axis sigmas that contains 80 % of a
+# 2-D Gaussian. The filter's internal covariance is untouched; only the number
+# reported downstream changes.
+SIGMA_CONTAINMENT_K = 1.7941
+
+
+def reported_sigma(track: Track) -> float:
+    """The radius docs/05 wants drawn, from the filter's per-axis covariance.
+
+    Association never uses this - it uses the covariance directly, where a
+    per-axis sigma is the correct quantity. Only what is written out is scaled.
+    """
+    return SIGMA_CONTAINMENT_K * track.position_sigma()
+
 
 class Slot:
     def __init__(self, name: str, team: str):
@@ -258,7 +287,7 @@ def track(work: Path, *, verbose: bool = True) -> dict:
                 s.samples.append({
                     "f": f, "xy": [round(float(v), 3) for v in s.track.position],
                     "state": "observed",
-                    "sigma": round(s.track.position_sigma(), 3),
+                    "sigma": round(reported_sigma(s.track), 3),
                     "det": di,
                     "v": [round(float(v), 3) for v in s.track.velocity],
                 })
@@ -273,13 +302,13 @@ def track(work: Path, *, verbose: bool = True) -> dict:
                     s.samples.append({
                         "f": f, "xy": [round(float(v), 3) for v in s.track.position],
                         "state": "predicted",
-                        "sigma": round(s.track.position_sigma(), 3),
+                        "sigma": round(reported_sigma(s.track), 3),
                         "det": None,
                         "v": [round(float(v), 3) for v in s.track.velocity],
                     })
                 else:
                     sig = min(UNKNOWN_SIGMA_MAX,
-                              max(UNKNOWN_SIGMA_MIN, s.track.position_sigma()))
+                              max(UNKNOWN_SIGMA_MIN, reported_sigma(s.track)))
                     s.samples.append({
                         "f": f, "xy": [round(float(v), 3) for v in s.track.position],
                         "state": "unknown", "sigma": round(sig, 3), "det": None,
@@ -397,6 +426,11 @@ def write_tracks(work: Path, clip: dict, det: dict, slots: list[Slot],
                      "live one.",
             "measurement_noise": "sigma_yd (measured foot-point term) and the "
                                  "frame's calibration residual, in quadrature (AD-1)",
+            "sigma_means": ("the radius of a disc intended to contain the truth "
+                            "about 80 % of the time (docs/05), not a per-axis "
+                            f"standard deviation. It is {SIGMA_CONTAINMENT_K} x the "
+                            "filter's per-axis position sigma. Association uses the "
+                            "covariance directly and is unaffected."),
             "states": "docs/05-uncertainty.md. predicted while the gap is under "
                       f"{PREDICT_MAX_S} s, then unknown; interpolated assigned "
                       f"retrospectively when observations sit within {INTERP_MAX_S} s "

@@ -128,6 +128,27 @@ correction dataset needs image space.
 Exactly 14 slots, each with a sample for **every** frame — no gaps, because a gap is a
 decision the viewer would have to re-make. `det` indexes back into `detections.json`.
 
+**What `sigma` means, because it is easy to get wrong.** It is the **radius of a disc intended
+to contain the truth**, not a per-axis standard deviation. `docs/05-uncertainty.md` draws a
+disc of this radius and gates on ≥ 80 % of truths falling inside it, and those two statements
+are only consistent under the containment reading: for a 2-D Gaussian with per-axis σ, the
+disc of radius σ contains just **39.3 %**, so a per-axis value cannot reach 80 % however well
+calibrated the filter is. M4 shipped a per-axis σ at first and failed the gate at 57.5 % while
+its covariance was, if anything, 31 % *conservative* — the number was right and the units were
+wrong.
+
+Two producers, and they do not use the same containment level:
+
+| Field | Producer | Definition | Containment |
+|---|---|---|---|
+| `detections[].sigma_yd` | `ur.detect.run` | rms of the measured 2-D foot-point offset × local scale | ~94 % |
+| `tracks.slots[].samples[].sigma` | `ur.track.run` | 1.794 × the filter's per-axis position σ | ~80 % |
+
+Both are radii; neither is a per-axis σ. The difference in level is not principled, it is
+history — M3 chose the rms because it is a definition rather than a number chosen to clear a
+gate, and M4 chose the level the gate actually asks for. **If they are ever unified, unify on
+the containment level `docs/05` gates, and re-measure both.**
+
 Nothing downstream may write to this file. See AD-6.
 
 ## identities.json

@@ -61,6 +61,15 @@ Each slot, each frame, carries exactly one state.
 | `unknown` | No detection for > 2.2 s, or never observed. | ≥ 3 yd, capped at 16 | Faint hatched disc; the dot is nearly gone |
 | `confirmed` | A human placed this player here. Outranks everything. | 0.3 yd | Solid dot with a distinct ring |
 
+> **The sigma column is a containment radius, not a per-axis standard deviation.**
+> *Clarified 2026-09-13.* The gate below asks that ≥ 80 % of truths fall inside the drawn
+> disc, which fixes the meaning: a per-axis σ would contain 39.3 % and could never pass.
+> `docs/03-data-contracts.md` records which producer uses which level. **The figures in the
+> table are the spec's original estimates and M4 measured higher** — an `observed` sample's
+> radius comes out at 0.75 yd against the ~0.3 quoted, because the measured position error is
+> 0.37 yd median and most of that is a systematic foot-point offset a Kalman filter cannot
+> model. The table should be re-based on measurement rather than left as written.
+
 Transitions are mechanical: `observed` on a match; on a miss, walk `interpolated →
 predicted → unknown` by elapsed time; a human anchor writes `confirmed` and re-fits the
 surrounding span. The one subtlety is that `interpolated` can only be assigned

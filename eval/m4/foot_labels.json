@@ -1,0 +1,274 @@
+{
+ "schema": "ultimate-radar/m4-foot-labels@1",
+ "possession": "p0001",
+ "labelled_by": "claude-opus-5, 2026-09-13",
+ "frames_source": "tools.m4_foot render work/p0001 (seed 20260828, 40 of 3382 eligible observed slot-samples, disjoint from eval/m3/foot_labels.json by construction)",
+ "convention": "Identical to eval/m3/foot_labels.json so the two are comparable. Ground position is the point midway between where the two feet touch the ground; with one foot down it is the point under that foot; with neither down it is the point under the hips. dx positive right, dy positive DOWNWARD, both in source pixels, both measured from the drawn crosshair at the box bottom centre.",
+ "why_a_fresh_sample": [
+  "M3 set FOOT_UNCERTAINTY_PX from its 50 hand-checked detections. sigma_yd is",
+  "derived from that constant, the tracker's measurement noise is derived from",
+  "sigma_yd, and the tracker's reported sigma comes out of the filter that uses",
+  "it. Scoring the sigma-calibration gate on M3's 50 would be asking a constant",
+  "whether it fits its own training data. It would say yes."
+ ],
+ "caveats": [
+  "These are the agent's own readings, not an independent human's.",
+  "",
+  "Reading noise is roughly +/-1.5 px per sample on a clean crop, and worse on",
+  "the two marked LOW CONFIDENCE - f301 #4 is a player laying out with no clear",
+  "ground contact, and f340 #12 is occluded at the edge of its crop. Both are",
+  "kept rather than dropped; dropping the hard ones is how an error budget comes",
+  "out flattering.",
+  "",
+  "Every observed sample cleared the 40 px readability floor, so unlike M3's",
+  "sample this one carries no near-player bias from that filter."
+ ],
+ "labels": [
+  {
+   "f": 21,
+   "i": 4,
+   "dx": -2,
+   "dy": -2
+  },
+  {
+   "f": 38,
+   "i": 0,
+   "dx": -8,
+   "dy": -1,
+   "note": "trailing foot airborne; supporting foot well left"
+  },
+  {
+   "f": 40,
+   "i": 4,
+   "dx": 2,
+   "dy": -4
+  },
+  {
+   "f": 44,
+   "i": 10,
+   "dx": -8,
+   "dy": -3
+  },
+  {
+   "f": 62,
+   "i": 4,
+   "dx": -1,
+   "dy": -2
+  },
+  {
+   "f": 63,
+   "i": 8,
+   "dx": -4,
+   "dy": -3
+  },
+  {
+   "f": 63,
+   "i": 12,
+   "dx": -2,
+   "dy": 0
+  },
+  {
+   "f": 85,
+   "i": 9,
+   "dx": -2,
+   "dy": -2
+  },
+  {
+   "f": 86,
+   "i": 5,
+   "dx": -1,
+   "dy": -3
+  },
+  {
+   "f": 97,
+   "i": 4,
+   "dx": -4,
+   "dy": -10,
+   "note": "box extends about ten pixels below the foot"
+  },
+  {
+   "f": 103,
+   "i": 11,
+   "dx": -2,
+   "dy": -2
+  },
+  {
+   "f": 113,
+   "i": 3,
+   "dx": -2,
+   "dy": -1
+  },
+  {
+   "f": 126,
+   "i": 8,
+   "dx": 1,
+   "dy": -1
+  },
+  {
+   "f": 132,
+   "i": 9,
+   "dx": -4,
+   "dy": 0
+  },
+  {
+   "f": 173,
+   "i": 6,
+   "dx": 2,
+   "dy": -3
+  },
+  {
+   "f": 178,
+   "i": 13,
+   "dx": -2,
+   "dy": -1
+  },
+  {
+   "f": 183,
+   "i": 4,
+   "dx": 0,
+   "dy": -3
+  },
+  {
+   "f": 183,
+   "i": 9,
+   "dx": 2,
+   "dy": -4
+  },
+  {
+   "f": 184,
+   "i": 7,
+   "dx": -1,
+   "dy": -3
+  },
+  {
+   "f": 190,
+   "i": 4,
+   "dx": 3,
+   "dy": -1
+  },
+  {
+   "f": 194,
+   "i": 10,
+   "dx": 0,
+   "dy": -6,
+   "note": "both feet well above the box bottom"
+  },
+  {
+   "f": 223,
+   "i": 2,
+   "dx": -2,
+   "dy": -3
+  },
+  {
+   "f": 225,
+   "i": 7,
+   "dx": -1,
+   "dy": -3
+  },
+  {
+   "f": 228,
+   "i": 4,
+   "dx": 0,
+   "dy": -3
+  },
+  {
+   "f": 229,
+   "i": 3,
+   "dx": 4,
+   "dy": -1
+  },
+  {
+   "f": 237,
+   "i": 11,
+   "dx": -2,
+   "dy": -2
+  },
+  {
+   "f": 239,
+   "i": 9,
+   "dx": -6,
+   "dy": -2
+  },
+  {
+   "f": 243,
+   "i": 6,
+   "dx": -2,
+   "dy": -3
+  },
+  {
+   "f": 243,
+   "i": 8,
+   "dx": -5,
+   "dy": -2
+  },
+  {
+   "f": 252,
+   "i": 1,
+   "dx": -2,
+   "dy": -2
+  },
+  {
+   "f": 259,
+   "i": 2,
+   "dx": -2,
+   "dy": -2,
+   "note": "legs wide; midpoint of the two contacts"
+  },
+  {
+   "f": 294,
+   "i": 6,
+   "dx": -1,
+   "dy": -2
+  },
+  {
+   "f": 301,
+   "i": 4,
+   "dx": -8,
+   "dy": 2,
+   "note": "LOW CONFIDENCE: player is laying out, no clear ground contact"
+  },
+  {
+   "f": 327,
+   "i": 2,
+   "dx": 1,
+   "dy": 0
+  },
+  {
+   "f": 335,
+   "i": 2,
+   "dx": 6,
+   "dy": 0
+  },
+  {
+   "f": 340,
+   "i": 12,
+   "dx": -4,
+   "dy": 0,
+   "note": "LOW CONFIDENCE: heavily occluded at the crop edge"
+  },
+  {
+   "f": 341,
+   "i": 7,
+   "dx": -2,
+   "dy": -2
+  },
+  {
+   "f": 346,
+   "i": 9,
+   "dx": -2,
+   "dy": -3
+  },
+  {
+   "f": 352,
+   "i": 2,
+   "dx": -1,
+   "dy": -2
+  },
+  {
+   "f": 355,
+   "i": 2,
+   "dx": -3,
+   "dy": -1
+  }
+ ]
+}

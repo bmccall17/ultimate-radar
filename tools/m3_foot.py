@@ -82,14 +82,18 @@ def sample(work: Path, n: int = N_SAMPLES, seed: int = SEED) -> list[tuple[int, 
     return sorted(pool[int(k)] for k in idx)
 
 
-def cmd_render(a) -> int:
-    work, out = Path(a.work), Path(a.out)
+def render_picks(work: Path, out: Path, picks, prefix: str = "foot") -> int:
+    """Draw the measurement grid for a given list of (frame, detection index).
+
+    Shared with `tools/m4_foot.py`, which measures the *tracker's* position
+    against the same kind of hand-read foot point on a disjoint sample. Same code
+    means the two measurements are comparable; a copy would drift.
+    """
     out.mkdir(parents=True, exist_ok=True)
     det = json.loads((work / "detections.json").read_text(encoding="utf-8"))
     by = {d["f"]: d["dets"] for d in det["frames"]}
     paths = sorted((work / "frames").glob("*.jpg"))
 
-    picks = sample(work, a.n)
     cells = []
     cur_f, img = None, None
     for f, i in picks:
@@ -157,13 +161,18 @@ def cmd_render(a) -> int:
             r, cc = divmod(k, COLS)
             sheet[r * (ch + 6):r * (ch + 6) + c.shape[0],
                   cc * (cw + 6):cc * (cw + 6) + c.shape[1]] = c
-        p = out / f"foot_{s:02d}.png"
+        p = out / f"{prefix}_{s:02d}.png"
         cv2.imwrite(str(p), sheet)
         print(f"[m3_foot] {p}  ({len(chunk)} crops)")
     print(f"[m3_foot] {len(cells)} detections -> {n_sheets} sheets. "
-          "Now write eval/m3/foot_labels.json: one {f, i, dx, dy} per crop, "
-          "in source pixels, dy positive downward.")
-    return 0
+          "Now record one {f, i, dx, dy} per crop, in source pixels, dy positive "
+          "downward.")
+    return n_sheets
+
+
+def cmd_render(a) -> int:
+    return 0 if render_picks(Path(a.work), Path(a.out),
+                             sample(Path(a.work), a.n)) >= 0 else 1
 
 
 def cmd_score(a) -> int:
