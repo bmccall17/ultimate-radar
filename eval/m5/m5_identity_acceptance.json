@@ -1,0 +1,211 @@
+{
+  "schema": "ultimate-radar/m5-identity-acceptance@1",
+  "possession": "p0001",
+  "gate": "jersey correct for >= 5 of 7 on at least one team, rest null",
+  "truth_source": "eval\\m4\\identity_labels.json",
+  "truth_caveats": [
+    "The truth is a modal jersey per slot from 48 hand readings at 1 Hz, not a team roster. Two slots had no readable number at all.",
+    "Two slots switched identity during the possession, so their modal number is the person they held longest, not a property of the slot.",
+    "The hand readings carry roughly 4 errors in 52 (M4), and duplicate modal numbers across slots are evidence at least one is wrong."
+  ],
+  "per_team": {
+    "sol": {
+      "correct": 3,
+      "wrong": 0,
+      "unverifiable": 2,
+      "null": 2
+    },
+    "chill": {
+      "correct": 2,
+      "wrong": 1,
+      "unverifiable": 0,
+      "null": 4
+    }
+  },
+  "best_team": "sol",
+  "best_team_correct": 3,
+  "pass": false,
+  "wrong_numbers_emitted": 1,
+  "slots": [
+    {
+      "slot": "O1",
+      "team": "sol",
+      "voted": null,
+      "hand_modal": 28,
+      "hand_readings": {
+        "28": 5
+      },
+      "verdict": "null",
+      "support": 20.439,
+      "margin": 0.232,
+      "why_null": "the top two candidates were too close to separate"
+    },
+    {
+      "slot": "O2",
+      "team": "sol",
+      "voted": 23,
+      "hand_modal": 23,
+      "hand_readings": {
+        "23": 3
+      },
+      "verdict": "correct",
+      "support": 5.34,
+      "margin": 0.556,
+      "why_null": null
+    },
+    {
+      "slot": "O3",
+      "team": "sol",
+      "voted": 3,
+      "hand_modal": 3,
+      "hand_readings": {
+        "3": 6
+      },
+      "verdict": "correct",
+      "support": 18.683,
+      "margin": 1.0,
+      "why_null": null
+    },
+    {
+      "slot": "O4",
+      "team": "sol",
+      "voted": 50,
+      "hand_modal": 50,
+      "hand_readings": {
+        "50": 6
+      },
+      "verdict": "correct",
+      "support": 32.836,
+      "margin": 0.858,
+      "why_null": null
+    },
+    {
+      "slot": "O5",
+      "team": "sol",
+      "voted": 5,
+      "hand_modal": null,
+      "hand_readings": {},
+      "verdict": "unverifiable",
+      "support": 28.101,
+      "margin": 0.917,
+      "why_null": null
+    },
+    {
+      "slot": "O6",
+      "team": "sol",
+      "voted": null,
+      "hand_modal": 28,
+      "hand_readings": {
+        "28": 1
+      },
+      "verdict": "null",
+      "support": 0.806,
+      "margin": 0.147,
+      "why_null": "no candidate cleared the support bar"
+    },
+    {
+      "slot": "O7",
+      "team": "sol",
+      "voted": null,
+      "hand_modal": null,
+      "hand_readings": {},
+      "verdict": "no truth",
+      "support": 0.0,
+      "margin": null,
+      "why_null": null
+    },
+    {
+      "slot": "D1",
+      "team": "chill",
+      "voted": 4,
+      "hand_modal": 5,
+      "hand_readings": {
+        "5": 4,
+        "4": 1
+      },
+      "verdict": "wrong",
+      "support": 8.244,
+      "margin": 0.779,
+      "why_null": null
+    },
+    {
+      "slot": "D2",
+      "team": "chill",
+      "voted": null,
+      "hand_modal": 23,
+      "hand_readings": {
+        "5": 1,
+        "23": 3
+      },
+      "verdict": "null",
+      "support": 3.258,
+      "margin": 0.267,
+      "why_null": "the top two candidates were too close to separate"
+    },
+    {
+      "slot": "D3",
+      "team": "chill",
+      "voted": null,
+      "hand_modal": 51,
+      "hand_readings": {
+        "51": 1
+      },
+      "verdict": "null",
+      "support": 0.532,
+      "margin": 1.0,
+      "why_null": "no candidate cleared the support bar"
+    },
+    {
+      "slot": "D4",
+      "team": "chill",
+      "voted": 5,
+      "hand_modal": 5,
+      "hand_readings": {
+        "5": 5
+      },
+      "verdict": "correct",
+      "support": 14.596,
+      "margin": 0.967,
+      "why_null": null
+    },
+    {
+      "slot": "D5",
+      "team": "chill",
+      "voted": 4,
+      "hand_modal": 4,
+      "hand_readings": {
+        "4": 7
+      },
+      "verdict": "correct",
+      "support": 9.394,
+      "margin": 1.0,
+      "why_null": null
+    },
+    {
+      "slot": "D6",
+      "team": "chill",
+      "voted": null,
+      "hand_modal": 51,
+      "hand_readings": {
+        "51": 1
+      },
+      "verdict": "null",
+      "support": 1.039,
+      "margin": 1.0,
+      "why_null": "no candidate cleared the support bar"
+    },
+    {
+      "slot": "D7",
+      "team": "chill",
+      "voted": null,
+      "hand_modal": 28,
+      "hand_readings": {
+        "28": 4
+      },
+      "verdict": "null",
+      "support": 1.201,
+      "margin": 0.635,
+      "why_null": "no candidate cleared the support bar"
+    }
+  ]
+}

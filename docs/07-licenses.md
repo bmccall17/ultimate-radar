@@ -107,6 +107,49 @@ Weights carry their own terms. Where a repo is permissive but the weights are di
 separately with no stated licence (DEIM is one), treat the weights as **unconfirmed** and
 either train your own or pick a model whose weights are covered.
 
+### Added in M5 (2026-09-13) — jersey OCR
+
+Verified by reading the LICENSE/COPYING files **inside the installed packages**, not
+PyPI metadata. `easyocr` was chosen over PaddleOCR — both are approved above — because
+torch is already installed and PaddlePaddle would be a second large runtime for one
+small job.
+
+| Use | Package | Version | Licence | What was checked |
+|---|---|---|---|---|
+| Jersey digit recognition | **easyocr** | 1.7.2 | Apache-2.0 | the wheel's own `LICENSE` |
+| Image ops (transitive) | **scikit-image** | 0.26.0 | BSD-3-Clause | `LICENSE.txt` in the dist-info |
+| Geometry (transitive) | **shapely** | 2.1.2 | BSD-3-Clause | `LICENSE.txt` |
+| Polygon offsetting (transitive) | **pyclipper** | 1.4.0 | MIT | `LICENSE` |
+| Build helper (transitive) | **ninja** | 1.13.2 | Apache-2.0 | `LICENSE` |
+| Lazy imports (transitive) | **lazy-loader** | 0.5 | BSD-3-Clause | `LICENSE` |
+| Headless OpenCV (transitive) | **opencv-python-headless** | 5.0.0.93 | Apache-2.0 | `LICENSE` |
+| TIFF I/O (transitive) | **tifffile** | 2026.3.3 | **BSD-3-Clause, unconfirmed locally** | no LICENSE file ships in the dist-info |
+| Bidirectional text (transitive) | **python-bidi** | 0.6.11 | **LGPL-3.0** | ships `COPYING` (GPLv3) and `COPYING.LESSER` (LGPLv3); metadata classifier says LGPL |
+
+**Two of these need calling out rather than filing.**
+
+**`python-bidi` is LGPL-3.0**, the first non-permissive dependency in this project. It is
+not AGPL, GPL or NC, and this register already treats LGPL as the acceptable option for
+linking (see the ffmpeg note). Python imports are dynamic linking and LGPL-3.0 §4 allows
+it provided the user can replace the library, which `uv pip install` satisfies trivially.
+So it passes the gate — but it passes as LGPL, not as permissive, and a release should say
+so. It arrives only because EasyOCR imports it unconditionally for right-to-left scripts;
+nothing here reads Arabic or Hebrew, so a leaner reader would drop it.
+
+**`tifffile` ships no LICENSE file** in its dist-info, so the licence could not be
+confirmed the way this register demands. It is BSD-3-Clause upstream, and it is pulled in
+by scikit-image rather than used directly. Recorded in `docs/08-risks.md` as unconfirmed
+rather than assumed.
+
+**The weights are a separate question and are not fully answered.** EasyOCR downloads its
+detection and recognition checkpoints from JaidedAI on first use. The repository is
+Apache-2.0; the checkpoints are distributed separately and their terms were not verifiable
+offline. By this register's own rule — "if you cannot confirm, do not use it, and note it
+in `docs/08-risks.md`" — that is a gap, and it is noted there. It does not affect the M5
+result, because **the OCR gate failed on accuracy anyway** (`docs/18-m5.md`); if jersey
+identity is ever made to work, confirm the checkpoint licence first or train a digit
+recogniser on this project's own crops, which would be cleaner in every respect.
+
 ## On re-identification — set expectations now
 
 Appearance re-ID cannot reliably tell teammates apart. The SoccerNet re-ID baseline says so

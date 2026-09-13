@@ -165,3 +165,21 @@ by face or name; any tactical judgement the tool would be asserting rather than 
    weak (0.008–0.468). Mown turf is close to featureless and its stripes give an aperture
    problem along their direction, so dense correlation is marginal on this footage and the
    painted lines, centre circle and pylons are carrying the information.
+
+## Unconfirmed licences, recorded rather than assumed (M5, 2026-09-13)
+
+`docs/07-licenses.md` says: if you cannot confirm a licence, do not use it, and note it
+here. Two items from the M5 OCR install fall short of confirmation:
+
+1. **EasyOCR's model checkpoints.** The repository is Apache-2.0 and was verified from the
+   installed LICENSE file. The detection and recognition weights are downloaded separately
+   from JaidedAI at first use and their terms could not be checked offline. This is exactly
+   the case the register's "code and weights checked separately" rule exists for. The M5
+   jersey gate failed on accuracy regardless, so nothing currently depends on these
+   weights — but they are on disk in the user's EasyOCR cache, and any future use must
+   confirm the licence or replace them.
+2. **`tifffile` 2026.3.3** ships no LICENSE file in its dist-info. It is BSD-3-Clause
+   upstream and arrives transitively via scikit-image; nothing in this project imports it
+   directly.
+
+Neither blocks anything today. Both would block a release.
