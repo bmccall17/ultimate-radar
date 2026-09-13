@@ -54,6 +54,7 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             "state": [r["state"] for r in smp],
             "sigma": [r["sigma"] for r in smp],
             "det": [r["det"] for r in smp],
+            "assoc": [r.get("assoc") for r in smp],
             "observed_frames": s["observed"],
             "state_counts": {k: s[k] for k in
                              ("observed", "interpolated", "predicted", "unknown")},

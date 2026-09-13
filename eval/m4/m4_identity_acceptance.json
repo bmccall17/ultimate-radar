@@ -75,7 +75,8 @@
       "to_jersey": 4,
       "from_frame": 240,
       "caught_by_identity_exchange": false,
-      "caught_by_long_blind_stretch": false
+      "caught_by_long_blind_stretch": false,
+      "caught_by_m5_contested_reacquisition": true
     },
     {
       "slot": "D2",
@@ -84,7 +85,8 @@
       "to_jersey": 23,
       "from_frame": 15,
       "caught_by_identity_exchange": false,
-      "caught_by_long_blind_stretch": false
+      "caught_by_long_blind_stretch": false,
+      "caught_by_m5_contested_reacquisition": true
     }
   ],
   "gate_second_clause": {
@@ -92,6 +94,8 @@
     "detectors_run": "docs/05 'identity exchange' and 'long blind stretch', implemented from their written specifications",
     "identity_exchange_fires_all_possession": 0,
     "long_blind_stretch_fires_all_possession": 3,
+    "switches_caught_by_m5_addition": 2,
+    "m5_detector_fires_all_possession": 16,
     "switches_caught": 0,
     "pass": false,
     "why": "The identity-exchange rule looks for a single-frame crossing - two slots exchanging position between f-1 and f while both move more than 3 yd. Both switches measured here happen across a DROPOUT instead: the slot stops being observed for 1.8 s and 3.3 s and re-acquires onto a different person, so there is no crossing frame to see. The blind-stretch rule misses them too, because it triggers on `unknown` and these gaps were spent mostly in `predicted`."

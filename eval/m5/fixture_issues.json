@@ -1,0 +1,209 @@
+{
+ "schema": "ultimate-radar/issues@1",
+ "possession": "demo-0001",
+ "method": {
+  "module": "ur.issues",
+  "specified_by": "docs/05-uncertainty.md",
+  "identity_exchange": {
+   "near_yd": 1.6,
+   "moved_yd": 3.0
+  },
+  "long_blind_stretch_s": 1.5,
+  "reacquire_surprise": {
+   "sigmas": 2.5,
+   "min_yd": 1.5,
+   "added_in": "M5",
+   "why": "M4 measured the two specified detectors catching 0 of 2 real identity switches, because both happened across a dropout rather than a single-frame crossing"
+  }
+ },
+ "counts": {
+  "cold_start": 1,
+  "long_blind_stretch": 7,
+  "identity_exchange": 1,
+  "reacquire_surprise": 1
+ },
+ "issues": [
+  {
+   "kind": "cold_start",
+   "frame": 0,
+   "t": 0.0,
+   "slots": [
+    "D5",
+    "D6",
+    "D7",
+    "O6",
+    "O7"
+   ],
+   "team": null,
+   "fix": {
+    "op": "anchor_group",
+    "slots": [
+     "D5",
+     "D6",
+     "D7",
+     "O6",
+     "O7"
+    ]
+   },
+   "why": "5 slots were never observed before their first appearance; the last of them arrives at frame 191. Their opening positions are a formation assumption, not an observation."
+  },
+  {
+   "kind": "long_blind_stretch",
+   "frame": 0,
+   "t": 0.0,
+   "slots": [
+    "D5"
+   ],
+   "team": "chill",
+   "frames": 64,
+   "seconds": 4.27,
+   "fix": {
+    "op": "anchor",
+    "slot": "D5",
+    "f": 32
+   },
+   "why": "D5 was unknown for 4.3 s from frame 0. Nothing observed it; its position there is not a measurement."
+  },
+  {
+   "kind": "long_blind_stretch",
+   "frame": 0,
+   "t": 0.0,
+   "slots": [
+    "D6"
+   ],
+   "team": "chill",
+   "frames": 83,
+   "seconds": 5.53,
+   "fix": {
+    "op": "anchor",
+    "slot": "D6",
+    "f": 41
+   },
+   "why": "D6 was unknown for 5.5 s from frame 0. Nothing observed it; its position there is not a measurement."
+  },
+  {
+   "kind": "long_blind_stretch",
+   "frame": 0,
+   "t": 0.0,
+   "slots": [
+    "D7"
+   ],
+   "team": "chill",
+   "frames": 156,
+   "seconds": 10.4,
+   "fix": {
+    "op": "anchor",
+    "slot": "D7",
+    "f": 78
+   },
+   "why": "D7 was unknown for 10.4 s from frame 0. Nothing observed it; its position there is not a measurement."
+  },
+  {
+   "kind": "long_blind_stretch",
+   "frame": 0,
+   "t": 0.0,
+   "slots": [
+    "O6"
+   ],
+   "team": "sol",
+   "frames": 73,
+   "seconds": 4.87,
+   "fix": {
+    "op": "anchor",
+    "slot": "O6",
+    "f": 36
+   },
+   "why": "O6 was unknown for 4.9 s from frame 0. Nothing observed it; its position there is not a measurement."
+  },
+  {
+   "kind": "long_blind_stretch",
+   "frame": 0,
+   "t": 0.0,
+   "slots": [
+    "O7"
+   ],
+   "team": "sol",
+   "frames": 191,
+   "seconds": 12.73,
+   "fix": {
+    "op": "anchor",
+    "slot": "O7",
+    "f": 95
+   },
+   "why": "O7 was unknown for 12.7 s from frame 0. Nothing observed it; its position there is not a measurement."
+  },
+  {
+   "kind": "identity_exchange",
+   "frame": 156,
+   "t": 10.4,
+   "slots": [
+    "D5",
+    "D7"
+   ],
+   "team": "chill",
+   "fix": {
+    "op": "swap",
+    "slots": [
+     "D5",
+     "D7"
+    ],
+    "from_f": 156
+   },
+   "why": "D5 and D7 traded places between frame 155 and 156; each ended within 1.6 yd of where the other just was."
+  },
+  {
+   "kind": "long_blind_stretch",
+   "frame": 156,
+   "t": 10.4,
+   "slots": [
+    "D5"
+   ],
+   "team": "chill",
+   "frames": 44,
+   "seconds": 2.93,
+   "fix": {
+    "op": "anchor",
+    "slot": "D5",
+    "f": 178
+   },
+   "why": "D5 was unknown for 2.9 s from frame 156. Nothing observed it; its position there is not a measurement."
+  },
+  {
+   "kind": "reacquire_surprise",
+   "frame": 156,
+   "t": 10.4,
+   "slots": [
+    "D7"
+   ],
+   "team": "chill",
+   "jump_yd": 27.62,
+   "sigma_yd": 6.0,
+   "sigmas": 4.6,
+   "gap_frames": 156,
+   "gap_s": 10.4,
+   "fix": {
+    "op": "confirm_or_swap",
+    "slot": "D7",
+    "f": 156
+   },
+   "why": "D7 was estimated for 10.4 s and came back 27.6 yd from where it was predicted \u2014 4.6x the sigma it was claiming. Either the dead reckoning was wrong or this is a different player."
+  },
+  {
+   "kind": "long_blind_stretch",
+   "frame": 202,
+   "t": 13.467,
+   "slots": [
+    "O6"
+   ],
+   "team": "sol",
+   "frames": 59,
+   "seconds": 3.93,
+   "fix": {
+    "op": "anchor",
+    "slot": "O6",
+    "f": 231
+   },
+   "why": "O6 was unknown for 3.9 s from frame 202. Nothing observed it; its position there is not a measurement."
+  }
+ ]
+}

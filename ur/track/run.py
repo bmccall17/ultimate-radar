@@ -169,7 +169,7 @@ def associate_team(slots: list[Slot], dets: list[tuple[int, np.ndarray, np.ndarr
     """
     live = [s for s in slots if s.live]
     if not live or not dets:
-        return {}, np.zeros(len(dets), bool)
+        return {}, np.zeros(len(dets), bool), {}
 
     BIG = 1e6
     cost = np.full((len(live), len(dets)), BIG)
@@ -188,13 +188,26 @@ def associate_team(slots: list[Slot], dets: list[tuple[int, np.ndarray, np.ndarr
             if d2 <= GATE_CHI2:
                 cost[i, j] = d2
     rows, cols = linear_sum_assignment(cost)
-    out = {}
+    out, amb = {}, {}
     for i, j in zip(rows, cols):
         if cost[i, j] < BIG:
             out[live[i].name] = j
+            # How contested was this assignment? A swap after a dropout is not
+            # statistically *surprising* - M5 measured the largest re-acquisition
+            # at 1.73 sigma, because an honest covariance after two seconds
+            # admits half the field. What distinguishes a swap is that more than
+            # one candidate was plausible. That is only knowable here, so it is
+            # recorded here.
+            row = np.sort(cost[i][cost[i] < BIG])
+            amb[live[i].name] = {
+                "alts": int(len(row)),
+                "margin": (None if len(row) < 2
+                           else round(float(row[1] - row[0]), 3)),
+                "chi2": round(float(cost[i, j]), 3),
+            }
     # Which detections were in *some* slot's gate, whether or not they won it.
     in_gate = (cost < BIG).any(axis=0)
-    return out, in_gate
+    return out, in_gate, amb
 
 
 def track(work: Path, *, verbose: bool = True) -> dict:
@@ -239,12 +252,14 @@ def track(work: Path, *, verbose: bool = True) -> dict:
                                  _measurement_noise(d, residuals.get(f))))
 
         assigned: dict[str, int] = {}
+        ambiguity: dict[str, dict] = {}
         for team in (offense, defense):
             group = by_team[team]
             gaps = {s.name: (f - s.last_obs_f) if s.last_obs_f is not None else 1
                     for s in group}
-            hit, in_gate = associate_team(group, cands[team], gaps, dt)
+            hit, in_gate, amb = associate_team(group, cands[team], gaps, dt)
             assigned.update(hit)
+            ambiguity.update(amb)
 
             # Leftovers seed slots that have NEVER been observed - the cold start
             # in docs/04 M4, one player at a time. They never take a live slot:
@@ -290,6 +305,7 @@ def track(work: Path, *, verbose: bool = True) -> dict:
                     "sigma": round(reported_sigma(s.track), 3),
                     "det": di,
                     "v": [round(float(v), 3) for v in s.track.velocity],
+                    **({"assoc": ambiguity[s.name]} if s.name in ambiguity else {}),
                 })
             else:
                 if not s.live:
@@ -384,7 +400,8 @@ def write_tracks(work: Path, clip: dict, det: dict, slots: list[Slot],
             "slot": s.name,
             "team": s.team,
             "samples": [{"f": smp["f"], "xy": smp["xy"], "state": smp["state"],
-                         "sigma": smp["sigma"], "det": smp["det"]}
+                         "sigma": smp["sigma"], "det": smp["det"],
+                         **({"assoc": smp["assoc"]} if "assoc" in smp else {})}
                         for smp in s.samples],
             "observed": states.count("observed"),
             "interpolated": states.count("interpolated"),
@@ -426,6 +443,12 @@ def write_tracks(work: Path, clip: dict, det: dict, slots: list[Slot],
                      "live one.",
             "measurement_noise": "sigma_yd (measured foot-point term) and the "
                                  "frame's calibration residual, in quadrature (AD-1)",
+            "assoc_means": ("per observed sample: `alts` is how many candidate "
+                            "detections were inside that slot's gate, `margin` the "
+                            "chi-square gap between the best and second-best, and "
+                            "`chi2` the cost of the one taken. Recorded because a "
+                            "re-acquisition swap is ambiguous rather than surprising "
+                            "- see ur/issues.py."),
             "sigma_means": ("the radius of a disc intended to contain the truth "
                             "about 80 % of the time (docs/05), not a per-axis "
                             f"standard deviation. It is {SIGMA_CONTAINMENT_K} x the "

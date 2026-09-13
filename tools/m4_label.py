@@ -227,6 +227,15 @@ def cmd_score(a) -> int:
     examined = int(truth_doc.get("detections_examined", len(labelled)))
 
     det5 = specified_detectors(trk)
+    # M5's added detector, run from the same possession file the viewer reads.
+    # Reported alongside rather than folded in: the gate asks about the detectors
+    # docs/05 specifies, and the answer to that is 0 of 2. What M5 added closes it.
+    m5 = []
+    poss_path = work / "possession.json"
+    if poss_path.exists():
+        from ur.issues import contested_reacquisition
+        poss = json.loads(poss_path.read_text(encoding="utf-8"))
+        m5 = contested_reacquisition(poss["players"], float(poss["possession"]["fps"]))
     # Would M5's specified detectors have caught the switches that happened?
     caught = []
     for sw in switches:
@@ -235,8 +244,10 @@ def cmd_score(a) -> int:
                           for e in det5["identity_exchange"])
         by_blind = any(x["slot"] == sw["slot"] and a <= x["from"] <= b
                        for x in det5["long_blind_stretch"])
+        by_m5 = any(x["slots"] == [sw["slot"]] and a <= x["frame"] <= b for x in m5)
         caught.append({**sw, "caught_by_identity_exchange": by_exchange,
-                       "caught_by_long_blind_stretch": by_blind})
+                       "caught_by_long_blind_stretch": by_blind,
+                       "caught_by_m5_contested_reacquisition": by_m5})
 
     res = {
         "schema": "ultimate-radar/m4-identity-acceptance@1",
@@ -261,6 +272,9 @@ def cmd_score(a) -> int:
                              "implemented from their written specifications",
             "identity_exchange_fires_all_possession": len(det5["identity_exchange"]),
             "long_blind_stretch_fires_all_possession": len(det5["long_blind_stretch"]),
+            "switches_caught_by_m5_addition": sum(
+                1 for c in caught if c["caught_by_m5_contested_reacquisition"]),
+            "m5_detector_fires_all_possession": len(m5),
             "switches_caught": sum(1 for c in caught
                                    if c["caught_by_identity_exchange"]
                                    or c["caught_by_long_blind_stretch"]),
@@ -299,6 +313,10 @@ def cmd_score(a) -> int:
           f"blind-stretch {g2['long_blind_stretch_fires_all_possession']}")
     print(f"  switches caught   : {g2['switches_caught']}/{len(caught)}   "
           f"(gate: all of them)  {'PASS' if g2['pass'] else 'FAIL'}")
+    if "switches_caught_by_m5_addition" in g2:
+        print(f"  ...with M5's contested-reacquisition detector added: "
+              f"{g2['switches_caught_by_m5_addition']}/{len(caught)} "
+              f"(it fires {g2['m5_detector_fires_all_possession']} times all possession)")
     if dupes:
         print(f"  same person in two slots at once: {len(dupes)}")
         for d in dupes[:10]:
