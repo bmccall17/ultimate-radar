@@ -147,6 +147,28 @@ positions — that is what the cold-start issue in M5 is for.
 That last row is the one people skip. A sigma that does not contain the truth is worse than
 no sigma, because the viewer's entire honesty argument rests on it.
 
+**Measured, 2026-09-13.** `docs/17-m4-tracking.md`. Four of five gates pass; the fifth passes
+its count and fails its second clause:
+
+| Gate | Measured | |
+|---|---|---|
+| Identity switches | **2** | pass |
+| …every one detected by the M5 swap detector | **0 of 2** | **fail** |
+| Position error, `observed` | **0.3698 yd** median, **1.0337** p95 | pass |
+| Per-player recall (replaces the count gate below) | **0.8846** | threshold unset |
+| Phantom or missing slots | **zero** | pass |
+| Sigma calibration | **80.0 %** (32/40) | pass, marginal |
+
+**The second clause is the finding worth carrying into M5.** Both detectors `docs/05`
+specifies were implemented from their written definitions and run: identity-exchange fires
+**zero times over the whole possession**, and long-blind-stretch fires three times for slots
+that did not switch. Both real switches happen across a *dropout* — the slot is unobserved for
+1.8 s and 3.3 s and re-acquires onto a different person — so there is no crossing frame to
+detect, and the gaps were spent in `predicted` rather than `unknown`. **M5's detectors are
+calibrated for the failure the fixture injects and miss the one real footage produces.** The
+tracker already computes the Mahalanobis distance at re-association, so a re-acquisition
+surprise detector needs no new machinery.
+
 ### The `observed` fraction gate was retired, and why
 
 *Replaced 2026-09-13, after `docs/15-m4-review.md`.* The original gate compared two **counts** —

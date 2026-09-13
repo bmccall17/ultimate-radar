@@ -25,7 +25,7 @@ Working directory: `E:\dev\playertrackerultimate\ultimate-radar`
 | **M1** | Calibration | **Done**, acceptance passed (`docs/12-m1-calibration.md`) |
 | **M2** | Detection | **Done.** Recall passed here; its false-positive gate passed in M3 (`docs/13-m2-detection.md`) |
 | **M3** | Team assignment + projection | **Done**, both gates passed (`docs/14-m3.md`) |
-| **M4** | Tracking | **In progress.** Four of five gates measured: structure **PASS**, position **PASS**, sigma **PASS (marginal)**, recall **0.8846**. Only the ID-switch gate is left, and it needs the 1 Hz jersey labels |
+| **M4** | Tracking | **All five gates measured** (`docs/17-m4-tracking.md`). Four pass; the identity gate passes its count (2 switches) and **fails its second clause — 0 of 2 would be caught by M5's specified detectors** |
 | M5 | Identity, events, corrections | Not started |
 | M6 | Viewer | Not started; `viewer/prototype.html` is the design target, `viewer/live.html` is M3's working page |
 | M7 | Sharing + a second possession | `p0003` is already cut for it |
