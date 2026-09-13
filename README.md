@@ -21,7 +21,7 @@ compromise the early docs anticipated is not needed; a 1080p60 H.264 stream is o
 
 | Read | For |
 |---|---|
-| `HANDOFF.md` | **Resuming work. Current state (end of M3), how to rebuild the environment, what M4 should do first. Read this first.** |
+| `HANDOFF.md` | **Resuming work. Current state (M4 in progress), the open decision it is blocked on, and what still has to be measured. Read this first.** |
 | `docs/09-decision-record.md` | One page: the commitments, the decisions, the state |
 | `docs/00-footage-report.md` | **What the real footage actually looks like, measured. It corrected several figures in the docs below; its foot lists every change.** |
 | `docs/01-brief.md` | What success means, and what this is not |
@@ -40,8 +40,10 @@ compromise the early docs anticipated is not needed; a 1080p60 H.264 stream is o
 
 ## What already exists
 
-*End of M3, 2026-09-13. M0–M3 are built; M4, the tracker, is next. `HANDOFF.md` is the
-cold-start document and carries the current numbers and open items.*
+*M4 in progress, 2026-09-13. M0–M3 are built and gated; the M4 tracker runs but **none of
+its gates are measured yet** — the 1 Hz ground truth they need does not exist. `HANDOFF.md`
+is the cold-start document; it carries the current numbers, what is still unmeasured, and
+the one open decision worth a second opinion.*
 
 **Pipeline**
 
@@ -63,12 +65,19 @@ cold-start document and carries the current numbers and open items.*
 - **`ur/standin.py`** — M3. A deliberately crude greedy nearest-neighbour stand-in for the
   tracker, so the clip could be watched before M4 exists. Writes `possession.json` with
   `stand_in: true` and a notice saying its slot identities must not be quoted. **M4 deletes
-  it.**
+  it** once the tracker's output is wired through to the viewer.
+- **`ur/track/`** — M4, *in progress*. A Kalman filter in field yards (AD-1), 14 slots never
+  created or destroyed (AD-2), per-team gated Hungarian association (AD-3), and the `docs/05`
+  evidence state machine. Writes `tracks.json`. Its motion model is an integrated
+  Ornstein-Uhlenbeck velocity whose one free constant is **measured** by `tools/m4_speed.py`
+  rather than chosen. **Its gates are not measured yet — do not quote its numbers.**
 
 **Possessions on disk** (all gitignored; regenerate per `HANDOFF.md`)
 
 - `work/p0001/` — the working possession. 24.0 s, 360 frames, one camera shot.
-  `clip.json` + `calibration.json` + `detections.json` + `possession.json`.
+  `clip.json` + `calibration.json` + `detections.json` + `tracks.json` + `possession.json`.
+  **`possession.json`, and so the viewer, still carries M3 stand-in data** — the tracker's
+  output is not on screen anywhere yet.
 - `work/p0002/` — the pull before p0001, cut as calibration reconnaissance.
 - `work/p0003/` — endzone-framed, 26.0 s. Cut to settle the 120-vs-110 yd question and to be
   M7's second possession. **Its calibration is deliberately near-useless** (confidence ≥ 0.5
@@ -111,7 +120,7 @@ ultimate-radar/
     detect/        detector wrapper + bounds and size filters             [built]
     team.py        kit-colour team assignment, plus the referee test       [built]
     standin.py     greedy stand-in for the tracker; M4 deletes it          [built]
-    track/         field-space Kalman + slot-locked association
+    track/         field-space Kalman + slot-locked association             [in progress]
     identify/      jersey OCR, tracklet voting
     events.py      human event tagging + heuristics
     derive.py      tactical metrics with provenance propagation
@@ -140,10 +149,12 @@ python -m tools.m3_foot       score work/p0001  # the foot-point gate
 python -m ur.standin          work/p0001        # -> possession.json  (STAND-IN, not a tracker)
 python -m tools.m3_render     work/p0001        # the round-trip video
 python -m tools.make_view     work/p0001        # then open viewer/live.html
+python -m ur.track.run        work/p0001        # -> tracks.json      (M4, gates unmeasured)
+python -m tools.m4_speed      work/p0001        # measures the motion model's velocity spread
 ```
 
-Not built yet: `ur.track`, `ur.identify`, `ur.events`, `ur.resolve`, `ur.derive`, and the
-M6 viewer. The design-reference prototype opens standalone:
+Not built yet: `ur.identify`, `ur.events`, `ur.resolve`, `ur.derive`, and the M6 viewer. The
+design-reference prototype opens standalone:
 
 ```bash
 python -m http.server -d viewer 8080     # then open prototype.html
