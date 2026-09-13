@@ -1,0 +1,154 @@
+{
+  "schema": "ultimate-radar/m3-team-acceptance@1",
+  "possession": "p0001",
+  "labelled_by": "claude-opus-5, 2026-09-13",
+  "caveats": [
+    "These are the agent's own labels, not an independent human's - the same",
+    "caveat as eval/m2/labels.json, and it binds harder here: a 99 % gate on",
+    "~235 items means two mistakes spends the whole budget.",
+    "",
+    "Two boxes (f327 #1 and #5) bound a thrower and the defender marking them in",
+    "one box. They are labelled unsure and excluded from the team gate, because",
+    "no team assignment for them can be right. They are counted and reported",
+    "rather than quietly dropped. M2 recorded the same pair as its only class of",
+    "miss.",
+    "",
+    "**These labels disagree with eval/m2/labels.json on three frames, and the",
+    "disagreement is not resolved in M2's favour.** M2 counted people per frame;",
+    "this pass judged every box individually at 2-8x with the box outline drawn",
+    "on it. On f194, f210 and f226 M2 counted one, two and one more non-player",
+    "respectively than this pass finds. Every f210 box was then re-examined at 7x",
+    "(zoom_d.png): all fourteen are players, four of them Chill players wearing",
+    "numbers 28, 23, 51 and 4. The far-side figures M2 may have read as crew sit",
+    "at soccer y = 11.6 to 16.0, several yards inside the far sideline at +20.58,",
+    "at height ratios 0.64 to 0.88. M2's own caveat allows about +/-1 per crowded",
+    "frame; this is that, plus one frame at +/-2.",
+    "",
+    "The consequence is that M2's measured false-positive rate of 1.35/frame was",
+    "slightly pessimistic. The honest reading of both passes together is that the",
+    "true in-bounds non-player count over these 20 frames is 23, not 27. M3's",
+    "reject gate is measured against 23 and says so."
+  ],
+  "n_frames": 20,
+  "n_labelled": 260,
+  "kits": {
+    "dark_L": 40.94,
+    "light_L": 82.76,
+    "separation_L": 41.82,
+    "midpoint_L": 61.85,
+    "neither_kit_band_L": [
+      51.39,
+      72.3
+    ],
+    "fitted_on_detections": 4198,
+    "separation_ok": true,
+    "min_separation_L": 20.0
+  },
+  "team_gate": {
+    "players_in_truth": 234,
+    "correct": 233,
+    "accuracy": 0.9957,
+    "gate": 0.99,
+    "pass": true,
+    "excluded_unsure": 3,
+    "unsure_note": "boxes bounding a Sol and a Chill player together; no team assignment for them can be right"
+  },
+  "reject_gate": {
+    "note": "M2 deferred its false-positive gate to M3. This is that gate, re-measured with appearance available. The denominator is this pass's per-box count of non-players, not M2's per-frame count; they differ by four and eval/m3/team_labels.json says why.",
+    "non_players_in_truth": 23,
+    "referees": {
+      "in_truth": 8,
+      "rejected": 5
+    },
+    "crew": {
+      "in_truth": 15,
+      "rejected": 12
+    },
+    "false_positives_per_frame_before": 1.15,
+    "false_positives_per_frame_after": 0.3,
+    "gate": 1.0,
+    "pass": true,
+    "real_players_wrongly_rejected": 0
+  },
+  "confusion": {
+    "sol": {
+      "sol": 116,
+      "chill": 0,
+      "ref": 0,
+      "crew": 0,
+      "unknown": 0
+    },
+    "chill": {
+      "sol": 1,
+      "chill": 117,
+      "ref": 0,
+      "crew": 0,
+      "unknown": 0
+    },
+    "ref": {
+      "sol": 0,
+      "chill": 3,
+      "ref": 5,
+      "crew": 0,
+      "unknown": 0
+    },
+    "crew": {
+      "sol": 0,
+      "chill": 3,
+      "ref": 0,
+      "crew": 12,
+      "unknown": 0
+    },
+    "unsure": {
+      "sol": 2,
+      "chill": 1,
+      "ref": 0,
+      "crew": 0,
+      "unknown": 0
+    }
+  },
+  "errors": [
+    {
+      "f": 95,
+      "i": 8,
+      "truth": "ref",
+      "pred": "chill"
+    },
+    {
+      "f": 95,
+      "i": 15,
+      "truth": "crew",
+      "pred": "chill"
+    },
+    {
+      "f": 103,
+      "i": 5,
+      "truth": "ref",
+      "pred": "chill"
+    },
+    {
+      "f": 103,
+      "i": 16,
+      "truth": "crew",
+      "pred": "chill"
+    },
+    {
+      "f": 115,
+      "i": 8,
+      "truth": "ref",
+      "pred": "chill"
+    },
+    {
+      "f": 245,
+      "i": 3,
+      "truth": "chill",
+      "pred": "sol"
+    },
+    {
+      "f": 289,
+      "i": 7,
+      "truth": "crew",
+      "pred": "chill"
+    }
+  ]
+}

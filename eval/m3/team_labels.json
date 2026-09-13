@@ -1,0 +1,1358 @@
+{
+ "schema": "ultimate-radar/m3-team-labels@1",
+ "possession": "p0001",
+ "labelled_by": "claude-opus-5, 2026-09-13",
+ "frames_source": "the same 20 held-out frames as eval/m2/labels.json (seed 20260827)",
+ "what_was_judged": [
+  "Every in-bounds box in those 20 frames, rendered by tools.m3_label render:",
+  "the whole figure with the detection box drawn on it and the surroundings",
+  "visible, so the label is attached to the person the box bounds rather than",
+  "to whoever happens to be in the crop.",
+  "",
+  "sol    = light kit (Austin Sol): white jersey, blue or pink shorts",
+  "chill  = dark kit (Minnesota Wind Chill): black jersey and shorts",
+  "ref    = on-field official, black and white vertically striped shirt",
+  "crew   = camera operator or photographer, almost always at the far boards",
+  "unsure = the box bounds a Sol player and a Chill player together, so there",
+  "         is no correct team for it",
+  "",
+  "35 close calls were settled by re-rendering them at 6-8x with more context",
+  "(tools.m3_label zoom); eval/m3/zoom_a.png .. zoom_d.png are those renders.",
+  "f37 #8 was corrected from chill to sol that way, and f210 #6 from a misread",
+  "'28' to '23' - two players on one team cannot wear the same number, which is",
+  "what prompted the second look.",
+  "",
+  "Corrected on a second look at 7x (zoom_e.png): f95 #12 is a Sol player with a",
+  "Chill player clipped at the box edge, not the other way round; f47 #4 spans a",
+  "Chill and a Sol player equally and became unsure."
+ ],
+ "caveats": [
+  "These are the agent's own labels, not an independent human's - the same",
+  "caveat as eval/m2/labels.json, and it binds harder here: a 99 % gate on",
+  "~235 items means two mistakes spends the whole budget.",
+  "",
+  "Two boxes (f327 #1 and #5) bound a thrower and the defender marking them in",
+  "one box. They are labelled unsure and excluded from the team gate, because",
+  "no team assignment for them can be right. They are counted and reported",
+  "rather than quietly dropped. M2 recorded the same pair as its only class of",
+  "miss.",
+  "",
+  "**These labels disagree with eval/m2/labels.json on three frames, and the",
+  "disagreement is not resolved in M2's favour.** M2 counted people per frame;",
+  "this pass judged every box individually at 2-8x with the box outline drawn",
+  "on it. On f194, f210 and f226 M2 counted one, two and one more non-player",
+  "respectively than this pass finds. Every f210 box was then re-examined at 7x",
+  "(zoom_d.png): all fourteen are players, four of them Chill players wearing",
+  "numbers 28, 23, 51 and 4. The far-side figures M2 may have read as crew sit",
+  "at soccer y = 11.6 to 16.0, several yards inside the far sideline at +20.58,",
+  "at height ratios 0.64 to 0.88. M2's own caveat allows about +/-1 per crowded",
+  "frame; this is that, plus one frame at +/-2.",
+  "",
+  "The consequence is that M2's measured false-positive rate of 1.35/frame was",
+  "slightly pessimistic. The honest reading of both passes together is that the",
+  "true in-bounds non-player count over these 20 frames is 23, not 27. M3's",
+  "reject gate is measured against 23 and says so."
+ ],
+ "labels": [
+  {
+   "f": 37,
+   "i": 0,
+   "cls": "sol"
+  },
+  {
+   "f": 37,
+   "i": 1,
+   "cls": "sol"
+  },
+  {
+   "f": 37,
+   "i": 2,
+   "cls": "chill"
+  },
+  {
+   "f": 37,
+   "i": 3,
+   "cls": "chill"
+  },
+  {
+   "f": 37,
+   "i": 4,
+   "cls": "chill"
+  },
+  {
+   "f": 37,
+   "i": 5,
+   "cls": "chill"
+  },
+  {
+   "f": 37,
+   "i": 6,
+   "cls": "chill"
+  },
+  {
+   "f": 37,
+   "i": 7,
+   "cls": "sol"
+  },
+  {
+   "f": 37,
+   "i": 8,
+   "cls": "sol"
+  },
+  {
+   "f": 37,
+   "i": 9,
+   "cls": "sol"
+  },
+  {
+   "f": 37,
+   "i": 10,
+   "cls": "sol"
+  },
+  {
+   "f": 37,
+   "i": 11,
+   "cls": "chill"
+  },
+  {
+   "f": 37,
+   "i": 12,
+   "cls": "crew"
+  },
+  {
+   "f": 37,
+   "i": 15,
+   "cls": "sol"
+  },
+  {
+   "f": 46,
+   "i": 0,
+   "cls": "sol"
+  },
+  {
+   "f": 46,
+   "i": 1,
+   "cls": "sol"
+  },
+  {
+   "f": 46,
+   "i": 2,
+   "cls": "sol"
+  },
+  {
+   "f": 46,
+   "i": 3,
+   "cls": "chill"
+  },
+  {
+   "f": 46,
+   "i": 4,
+   "cls": "sol"
+  },
+  {
+   "f": 46,
+   "i": 5,
+   "cls": "chill"
+  },
+  {
+   "f": 46,
+   "i": 6,
+   "cls": "chill"
+  },
+  {
+   "f": 46,
+   "i": 7,
+   "cls": "chill"
+  },
+  {
+   "f": 46,
+   "i": 8,
+   "cls": "sol"
+  },
+  {
+   "f": 46,
+   "i": 9,
+   "cls": "sol"
+  },
+  {
+   "f": 46,
+   "i": 10,
+   "cls": "chill"
+  },
+  {
+   "f": 46,
+   "i": 11,
+   "cls": "chill"
+  },
+  {
+   "f": 46,
+   "i": 12,
+   "cls": "sol"
+  },
+  {
+   "f": 46,
+   "i": 13,
+   "cls": "crew"
+  },
+  {
+   "f": 46,
+   "i": 17,
+   "cls": "chill"
+  },
+  {
+   "f": 47,
+   "i": 0,
+   "cls": "sol"
+  },
+  {
+   "f": 47,
+   "i": 1,
+   "cls": "sol"
+  },
+  {
+   "f": 47,
+   "i": 2,
+   "cls": "sol"
+  },
+  {
+   "f": 47,
+   "i": 3,
+   "cls": "chill"
+  },
+  {
+   "f": 47,
+   "i": 4,
+   "cls": "unsure"
+  },
+  {
+   "f": 47,
+   "i": 5,
+   "cls": "chill"
+  },
+  {
+   "f": 47,
+   "i": 6,
+   "cls": "sol"
+  },
+  {
+   "f": 47,
+   "i": 7,
+   "cls": "chill"
+  },
+  {
+   "f": 47,
+   "i": 8,
+   "cls": "sol"
+  },
+  {
+   "f": 47,
+   "i": 9,
+   "cls": "chill"
+  },
+  {
+   "f": 47,
+   "i": 10,
+   "cls": "sol"
+  },
+  {
+   "f": 47,
+   "i": 11,
+   "cls": "chill"
+  },
+  {
+   "f": 47,
+   "i": 12,
+   "cls": "chill"
+  },
+  {
+   "f": 47,
+   "i": 14,
+   "cls": "crew"
+  },
+  {
+   "f": 95,
+   "i": 0,
+   "cls": "chill"
+  },
+  {
+   "f": 95,
+   "i": 1,
+   "cls": "sol"
+  },
+  {
+   "f": 95,
+   "i": 2,
+   "cls": "sol"
+  },
+  {
+   "f": 95,
+   "i": 3,
+   "cls": "sol"
+  },
+  {
+   "f": 95,
+   "i": 4,
+   "cls": "sol"
+  },
+  {
+   "f": 95,
+   "i": 5,
+   "cls": "chill"
+  },
+  {
+   "f": 95,
+   "i": 6,
+   "cls": "chill"
+  },
+  {
+   "f": 95,
+   "i": 7,
+   "cls": "sol"
+  },
+  {
+   "f": 95,
+   "i": 8,
+   "cls": "ref"
+  },
+  {
+   "f": 95,
+   "i": 9,
+   "cls": "chill"
+  },
+  {
+   "f": 95,
+   "i": 10,
+   "cls": "sol"
+  },
+  {
+   "f": 95,
+   "i": 11,
+   "cls": "chill"
+  },
+  {
+   "f": 95,
+   "i": 12,
+   "cls": "sol"
+  },
+  {
+   "f": 95,
+   "i": 13,
+   "cls": "chill"
+  },
+  {
+   "f": 95,
+   "i": 15,
+   "cls": "crew"
+  },
+  {
+   "f": 95,
+   "i": 16,
+   "cls": "chill"
+  },
+  {
+   "f": 103,
+   "i": 0,
+   "cls": "sol"
+  },
+  {
+   "f": 103,
+   "i": 1,
+   "cls": "sol"
+  },
+  {
+   "f": 103,
+   "i": 2,
+   "cls": "chill"
+  },
+  {
+   "f": 103,
+   "i": 3,
+   "cls": "sol"
+  },
+  {
+   "f": 103,
+   "i": 4,
+   "cls": "chill"
+  },
+  {
+   "f": 103,
+   "i": 5,
+   "cls": "ref"
+  },
+  {
+   "f": 103,
+   "i": 6,
+   "cls": "chill"
+  },
+  {
+   "f": 103,
+   "i": 7,
+   "cls": "chill"
+  },
+  {
+   "f": 103,
+   "i": 8,
+   "cls": "sol"
+  },
+  {
+   "f": 103,
+   "i": 9,
+   "cls": "chill"
+  },
+  {
+   "f": 103,
+   "i": 10,
+   "cls": "sol"
+  },
+  {
+   "f": 103,
+   "i": 11,
+   "cls": "chill"
+  },
+  {
+   "f": 103,
+   "i": 12,
+   "cls": "sol"
+  },
+  {
+   "f": 103,
+   "i": 16,
+   "cls": "crew"
+  },
+  {
+   "f": 115,
+   "i": 0,
+   "cls": "sol"
+  },
+  {
+   "f": 115,
+   "i": 1,
+   "cls": "chill"
+  },
+  {
+   "f": 115,
+   "i": 2,
+   "cls": "sol"
+  },
+  {
+   "f": 115,
+   "i": 3,
+   "cls": "chill"
+  },
+  {
+   "f": 115,
+   "i": 4,
+   "cls": "chill"
+  },
+  {
+   "f": 115,
+   "i": 5,
+   "cls": "sol"
+  },
+  {
+   "f": 115,
+   "i": 6,
+   "cls": "sol"
+  },
+  {
+   "f": 115,
+   "i": 7,
+   "cls": "chill"
+  },
+  {
+   "f": 115,
+   "i": 8,
+   "cls": "ref"
+  },
+  {
+   "f": 115,
+   "i": 9,
+   "cls": "sol"
+  },
+  {
+   "f": 115,
+   "i": 10,
+   "cls": "chill"
+  },
+  {
+   "f": 115,
+   "i": 11,
+   "cls": "sol"
+  },
+  {
+   "f": 115,
+   "i": 13,
+   "cls": "crew"
+  },
+  {
+   "f": 130,
+   "i": 0,
+   "cls": "sol"
+  },
+  {
+   "f": 130,
+   "i": 1,
+   "cls": "chill"
+  },
+  {
+   "f": 130,
+   "i": 2,
+   "cls": "chill"
+  },
+  {
+   "f": 130,
+   "i": 3,
+   "cls": "ref"
+  },
+  {
+   "f": 130,
+   "i": 4,
+   "cls": "chill"
+  },
+  {
+   "f": 130,
+   "i": 5,
+   "cls": "sol"
+  },
+  {
+   "f": 130,
+   "i": 6,
+   "cls": "sol"
+  },
+  {
+   "f": 130,
+   "i": 7,
+   "cls": "chill"
+  },
+  {
+   "f": 130,
+   "i": 8,
+   "cls": "sol"
+  },
+  {
+   "f": 130,
+   "i": 9,
+   "cls": "chill"
+  },
+  {
+   "f": 130,
+   "i": 11,
+   "cls": "sol"
+  },
+  {
+   "f": 130,
+   "i": 13,
+   "cls": "crew"
+  },
+  {
+   "f": 175,
+   "i": 0,
+   "cls": "sol"
+  },
+  {
+   "f": 175,
+   "i": 1,
+   "cls": "chill"
+  },
+  {
+   "f": 175,
+   "i": 2,
+   "cls": "sol"
+  },
+  {
+   "f": 175,
+   "i": 3,
+   "cls": "sol"
+  },
+  {
+   "f": 175,
+   "i": 4,
+   "cls": "chill"
+  },
+  {
+   "f": 175,
+   "i": 5,
+   "cls": "sol"
+  },
+  {
+   "f": 175,
+   "i": 6,
+   "cls": "chill"
+  },
+  {
+   "f": 175,
+   "i": 7,
+   "cls": "chill"
+  },
+  {
+   "f": 175,
+   "i": 8,
+   "cls": "chill"
+  },
+  {
+   "f": 175,
+   "i": 9,
+   "cls": "sol"
+  },
+  {
+   "f": 175,
+   "i": 10,
+   "cls": "ref"
+  },
+  {
+   "f": 175,
+   "i": 11,
+   "cls": "sol"
+  },
+  {
+   "f": 175,
+   "i": 12,
+   "cls": "sol"
+  },
+  {
+   "f": 175,
+   "i": 13,
+   "cls": "chill"
+  },
+  {
+   "f": 175,
+   "i": 15,
+   "cls": "crew"
+  },
+  {
+   "f": 175,
+   "i": 18,
+   "cls": "chill"
+  },
+  {
+   "f": 184,
+   "i": 0,
+   "cls": "sol"
+  },
+  {
+   "f": 184,
+   "i": 1,
+   "cls": "chill"
+  },
+  {
+   "f": 184,
+   "i": 2,
+   "cls": "chill"
+  },
+  {
+   "f": 184,
+   "i": 3,
+   "cls": "sol"
+  },
+  {
+   "f": 184,
+   "i": 4,
+   "cls": "sol"
+  },
+  {
+   "f": 184,
+   "i": 5,
+   "cls": "chill"
+  },
+  {
+   "f": 184,
+   "i": 6,
+   "cls": "sol"
+  },
+  {
+   "f": 184,
+   "i": 7,
+   "cls": "chill"
+  },
+  {
+   "f": 184,
+   "i": 8,
+   "cls": "ref"
+  },
+  {
+   "f": 184,
+   "i": 9,
+   "cls": "chill"
+  },
+  {
+   "f": 184,
+   "i": 10,
+   "cls": "sol"
+  },
+  {
+   "f": 184,
+   "i": 11,
+   "cls": "sol"
+  },
+  {
+   "f": 184,
+   "i": 12,
+   "cls": "chill"
+  },
+  {
+   "f": 184,
+   "i": 13,
+   "cls": "sol"
+  },
+  {
+   "f": 184,
+   "i": 14,
+   "cls": "chill"
+  },
+  {
+   "f": 184,
+   "i": 18,
+   "cls": "crew"
+  },
+  {
+   "f": 190,
+   "i": 0,
+   "cls": "chill"
+  },
+  {
+   "f": 190,
+   "i": 1,
+   "cls": "sol"
+  },
+  {
+   "f": 190,
+   "i": 2,
+   "cls": "chill"
+  },
+  {
+   "f": 190,
+   "i": 3,
+   "cls": "sol"
+  },
+  {
+   "f": 190,
+   "i": 4,
+   "cls": "chill"
+  },
+  {
+   "f": 190,
+   "i": 5,
+   "cls": "sol"
+  },
+  {
+   "f": 190,
+   "i": 6,
+   "cls": "ref"
+  },
+  {
+   "f": 190,
+   "i": 7,
+   "cls": "chill"
+  },
+  {
+   "f": 190,
+   "i": 8,
+   "cls": "chill"
+  },
+  {
+   "f": 190,
+   "i": 9,
+   "cls": "sol"
+  },
+  {
+   "f": 190,
+   "i": 10,
+   "cls": "chill"
+  },
+  {
+   "f": 190,
+   "i": 11,
+   "cls": "chill"
+  },
+  {
+   "f": 190,
+   "i": 12,
+   "cls": "sol"
+  },
+  {
+   "f": 190,
+   "i": 13,
+   "cls": "sol"
+  },
+  {
+   "f": 190,
+   "i": 14,
+   "cls": "sol"
+  },
+  {
+   "f": 194,
+   "i": 0,
+   "cls": "chill"
+  },
+  {
+   "f": 194,
+   "i": 1,
+   "cls": "sol"
+  },
+  {
+   "f": 194,
+   "i": 2,
+   "cls": "sol"
+  },
+  {
+   "f": 194,
+   "i": 3,
+   "cls": "sol"
+  },
+  {
+   "f": 194,
+   "i": 4,
+   "cls": "chill"
+  },
+  {
+   "f": 194,
+   "i": 5,
+   "cls": "chill"
+  },
+  {
+   "f": 194,
+   "i": 6,
+   "cls": "ref"
+  },
+  {
+   "f": 194,
+   "i": 7,
+   "cls": "sol"
+  },
+  {
+   "f": 194,
+   "i": 8,
+   "cls": "chill"
+  },
+  {
+   "f": 194,
+   "i": 9,
+   "cls": "sol"
+  },
+  {
+   "f": 194,
+   "i": 10,
+   "cls": "chill"
+  },
+  {
+   "f": 194,
+   "i": 12,
+   "cls": "chill"
+  },
+  {
+   "f": 194,
+   "i": 13,
+   "cls": "sol"
+  },
+  {
+   "f": 194,
+   "i": 14,
+   "cls": "sol"
+  },
+  {
+   "f": 194,
+   "i": 15,
+   "cls": "chill"
+  },
+  {
+   "f": 210,
+   "i": 0,
+   "cls": "chill"
+  },
+  {
+   "f": 210,
+   "i": 1,
+   "cls": "sol"
+  },
+  {
+   "f": 210,
+   "i": 2,
+   "cls": "sol"
+  },
+  {
+   "f": 210,
+   "i": 3,
+   "cls": "chill"
+  },
+  {
+   "f": 210,
+   "i": 4,
+   "cls": "chill"
+  },
+  {
+   "f": 210,
+   "i": 5,
+   "cls": "sol"
+  },
+  {
+   "f": 210,
+   "i": 6,
+   "cls": "chill"
+  },
+  {
+   "f": 210,
+   "i": 7,
+   "cls": "chill"
+  },
+  {
+   "f": 210,
+   "i": 8,
+   "cls": "sol"
+  },
+  {
+   "f": 210,
+   "i": 9,
+   "cls": "sol"
+  },
+  {
+   "f": 210,
+   "i": 10,
+   "cls": "sol"
+  },
+  {
+   "f": 210,
+   "i": 11,
+   "cls": "chill"
+  },
+  {
+   "f": 210,
+   "i": 13,
+   "cls": "chill"
+  },
+  {
+   "f": 210,
+   "i": 14,
+   "cls": "sol"
+  },
+  {
+   "f": 213,
+   "i": 0,
+   "cls": "chill"
+  },
+  {
+   "f": 213,
+   "i": 1,
+   "cls": "sol"
+  },
+  {
+   "f": 213,
+   "i": 2,
+   "cls": "chill"
+  },
+  {
+   "f": 213,
+   "i": 3,
+   "cls": "chill"
+  },
+  {
+   "f": 213,
+   "i": 4,
+   "cls": "chill"
+  },
+  {
+   "f": 213,
+   "i": 5,
+   "cls": "sol"
+  },
+  {
+   "f": 213,
+   "i": 6,
+   "cls": "chill"
+  },
+  {
+   "f": 213,
+   "i": 7,
+   "cls": "sol"
+  },
+  {
+   "f": 213,
+   "i": 8,
+   "cls": "chill"
+  },
+  {
+   "f": 213,
+   "i": 9,
+   "cls": "sol"
+  },
+  {
+   "f": 213,
+   "i": 10,
+   "cls": "chill"
+  },
+  {
+   "f": 213,
+   "i": 11,
+   "cls": "sol"
+  },
+  {
+   "f": 213,
+   "i": 13,
+   "cls": "sol"
+  },
+  {
+   "f": 226,
+   "i": 0,
+   "cls": "sol"
+  },
+  {
+   "f": 226,
+   "i": 1,
+   "cls": "sol"
+  },
+  {
+   "f": 226,
+   "i": 2,
+   "cls": "chill"
+  },
+  {
+   "f": 226,
+   "i": 3,
+   "cls": "chill"
+  },
+  {
+   "f": 226,
+   "i": 4,
+   "cls": "sol"
+  },
+  {
+   "f": 226,
+   "i": 5,
+   "cls": "sol"
+  },
+  {
+   "f": 226,
+   "i": 7,
+   "cls": "sol"
+  },
+  {
+   "f": 226,
+   "i": 8,
+   "cls": "chill"
+  },
+  {
+   "f": 226,
+   "i": 9,
+   "cls": "chill"
+  },
+  {
+   "f": 226,
+   "i": 10,
+   "cls": "crew"
+  },
+  {
+   "f": 226,
+   "i": 11,
+   "cls": "sol"
+  },
+  {
+   "f": 226,
+   "i": 16,
+   "cls": "chill"
+  },
+  {
+   "f": 228,
+   "i": 0,
+   "cls": "chill"
+  },
+  {
+   "f": 228,
+   "i": 1,
+   "cls": "sol"
+  },
+  {
+   "f": 228,
+   "i": 2,
+   "cls": "sol"
+  },
+  {
+   "f": 228,
+   "i": 3,
+   "cls": "chill"
+  },
+  {
+   "f": 228,
+   "i": 4,
+   "cls": "sol"
+  },
+  {
+   "f": 228,
+   "i": 5,
+   "cls": "chill"
+  },
+  {
+   "f": 228,
+   "i": 6,
+   "cls": "sol"
+  },
+  {
+   "f": 228,
+   "i": 7,
+   "cls": "chill"
+  },
+  {
+   "f": 228,
+   "i": 8,
+   "cls": "chill"
+  },
+  {
+   "f": 228,
+   "i": 9,
+   "cls": "sol"
+  },
+  {
+   "f": 228,
+   "i": 11,
+   "cls": "crew"
+  },
+  {
+   "f": 230,
+   "i": 0,
+   "cls": "sol"
+  },
+  {
+   "f": 230,
+   "i": 1,
+   "cls": "sol"
+  },
+  {
+   "f": 230,
+   "i": 2,
+   "cls": "sol"
+  },
+  {
+   "f": 230,
+   "i": 3,
+   "cls": "chill"
+  },
+  {
+   "f": 230,
+   "i": 4,
+   "cls": "chill"
+  },
+  {
+   "f": 230,
+   "i": 5,
+   "cls": "chill"
+  },
+  {
+   "f": 230,
+   "i": 6,
+   "cls": "chill"
+  },
+  {
+   "f": 230,
+   "i": 7,
+   "cls": "sol"
+  },
+  {
+   "f": 230,
+   "i": 8,
+   "cls": "chill"
+  },
+  {
+   "f": 230,
+   "i": 9,
+   "cls": "sol"
+  },
+  {
+   "f": 230,
+   "i": 10,
+   "cls": "chill"
+  },
+  {
+   "f": 230,
+   "i": 12,
+   "cls": "crew"
+  },
+  {
+   "f": 245,
+   "i": 0,
+   "cls": "sol"
+  },
+  {
+   "f": 245,
+   "i": 1,
+   "cls": "sol"
+  },
+  {
+   "f": 245,
+   "i": 2,
+   "cls": "chill"
+  },
+  {
+   "f": 245,
+   "i": 3,
+   "cls": "chill"
+  },
+  {
+   "f": 245,
+   "i": 4,
+   "cls": "sol"
+  },
+  {
+   "f": 245,
+   "i": 5,
+   "cls": "chill"
+  },
+  {
+   "f": 245,
+   "i": 6,
+   "cls": "chill"
+  },
+  {
+   "f": 245,
+   "i": 7,
+   "cls": "chill"
+  },
+  {
+   "f": 245,
+   "i": 8,
+   "cls": "sol"
+  },
+  {
+   "f": 245,
+   "i": 10,
+   "cls": "chill"
+  },
+  {
+   "f": 245,
+   "i": 11,
+   "cls": "crew"
+  },
+  {
+   "f": 246,
+   "i": 0,
+   "cls": "sol"
+  },
+  {
+   "f": 246,
+   "i": 1,
+   "cls": "sol"
+  },
+  {
+   "f": 246,
+   "i": 2,
+   "cls": "chill"
+  },
+  {
+   "f": 246,
+   "i": 3,
+   "cls": "sol"
+  },
+  {
+   "f": 246,
+   "i": 4,
+   "cls": "chill"
+  },
+  {
+   "f": 246,
+   "i": 5,
+   "cls": "chill"
+  },
+  {
+   "f": 246,
+   "i": 6,
+   "cls": "chill"
+  },
+  {
+   "f": 246,
+   "i": 7,
+   "cls": "sol"
+  },
+  {
+   "f": 246,
+   "i": 8,
+   "cls": "chill"
+  },
+  {
+   "f": 246,
+   "i": 9,
+   "cls": "chill"
+  },
+  {
+   "f": 246,
+   "i": 11,
+   "cls": "crew"
+  },
+  {
+   "f": 246,
+   "i": 14,
+   "cls": "sol"
+  },
+  {
+   "f": 289,
+   "i": 0,
+   "cls": "sol"
+  },
+  {
+   "f": 289,
+   "i": 1,
+   "cls": "chill"
+  },
+  {
+   "f": 289,
+   "i": 2,
+   "cls": "sol"
+  },
+  {
+   "f": 289,
+   "i": 3,
+   "cls": "chill"
+  },
+  {
+   "f": 289,
+   "i": 4,
+   "cls": "sol"
+  },
+  {
+   "f": 289,
+   "i": 5,
+   "cls": "chill"
+  },
+  {
+   "f": 289,
+   "i": 7,
+   "cls": "crew"
+  },
+  {
+   "f": 289,
+   "i": 10,
+   "cls": "sol"
+  },
+  {
+   "f": 289,
+   "i": 11,
+   "cls": "chill"
+  },
+  {
+   "f": 327,
+   "i": 0,
+   "cls": "sol"
+  },
+  {
+   "f": 327,
+   "i": 1,
+   "cls": "unsure"
+  },
+  {
+   "f": 327,
+   "i": 2,
+   "cls": "sol"
+  },
+  {
+   "f": 327,
+   "i": 3,
+   "cls": "chill"
+  },
+  {
+   "f": 327,
+   "i": 4,
+   "cls": "chill"
+  },
+  {
+   "f": 327,
+   "i": 5,
+   "cls": "unsure"
+  }
+ ]
+}
