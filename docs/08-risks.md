@@ -131,3 +131,27 @@ by face or name; any tactical judgement the tool would be asserting rather than 
 8. **A possession containing a camera cut is rare** (Q7), so M1's multi-shot path will not be
    exercised by accident and needs a deliberately chosen second clip. Unverified candidates:
    the short shots interrupting long ones at t ≈ 2893.9–2901.2 and t ≈ 5645.5–5652.9.
+
+*Added by the M0 review (`docs/11-m0-review.md`), 2026-09-12:*
+
+9. **Are jersey numbers on the front as well as the back?** The footage report originally
+   concluded back-only from three crops. UFA §3.2.3 requires players to be "conspicuously
+   numbered on the back of the jersey **and the front of the uniform**" — *uniform*, so a
+   number on the shorts satisfies it. The claim is withdrawn pending a proper sample of 30–50
+   crops of players demonstrably facing the camera. **Settle before M5**, which would
+   otherwise plan around a halved OCR frame budget. Does not affect M1–M3.
+10. **Whole-frame image registration reports a static camera on this footage.** The rendered
+   score bug and sponsor banner occupy 12.6 % of the frame, move 0 px, and have phase
+   correlation peak response of 0.973 and 0.867 against 0.054 for the playing surface. They
+   win by more than an order of magnitude: whole-frame registration returned |dx| < 1 px on
+   **10 of 11** frame pairs two seconds apart, while the same method masked to the playing
+   surface recovered real pans of 38–360 px. This is not a crash — it is a confident,
+   plausible, wrong answer that every downstream number would inherit, and it hits AD-4's
+   mosaic, any GMC/ECC tracker fallback, and any homography fitted through the stands (which
+   are off the ground plane, so their motion is parallax, not camera motion).
+   **Mitigation: every registration, matching and motion-compensation step runs on a mask,
+   never the raw frame.** `tools/regcheck.py` reproduces the numbers.
+   *Second-order finding from the same measurement:* peak response on the masked surface is
+   weak (0.008–0.468). Mown turf is close to featureless and its stripes give an aperture
+   problem along their direction, so dense correlation is marginal on this footage and the
+   painted lines, centre circle and pylons are carrying the information.

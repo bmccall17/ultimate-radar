@@ -44,16 +44,19 @@ AD-1 makes everything downstream depend on calibration quality.
    cheap to settle in M1's first hour: the centre circle gives absolute scale, so measuring
    goal-line separation is a one-line check. Until then `clip.json` carries the rulebook
    default of 120 yd, **which may be wrong**.
-2. **Jersey numbers are on the back only**, both kits, and are illegible below ~85 px of
-   player height and at any size in side view. That halves the frames M5's OCR can ever
-   work on, and it matters more than resolution does.
+2. **Jersey numbers are illegible below ~85 px of player height and at any size in side
+   view.** That much is measured on 47 crops and stands. The stronger claim this file
+   originally made — *numbers are on the back only* — has been **withdrawn**: it rested on
+   three crops and contradicts UFA rule §3.2.3, "numbered on the back of the jersey **and
+   the front of the uniform**" (note: *uniform*, so the shorts count). Open question 9 in
+   `docs/08-risks.md`. Does not affect M1–M3; settle it before M5 sizes its frame budget.
 3. **Referees stand on the field in black-and-grey stripes**, two or three per frame, landing
    squarely in the Wind Chill colour cluster; Wind Chill's light-blue alternate (worn on the
    sideline) lands in the *Sol* cluster. Colour separation itself is a non-issue (ΔE 36.6) —
    **AD-3's out-of-bounds reject filter is doing more work than the colour gate**. Build and
    measure it first.
 
-Full open-question list: `docs/08-risks.md` § Open questions, items 5–8.
+Full open-question list: `docs/08-risks.md` § Open questions, items 5–10.
 
 ---
 

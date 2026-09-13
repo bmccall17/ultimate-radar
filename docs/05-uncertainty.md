@@ -32,6 +32,16 @@ dead reckoning.
 So: partial observability is the normal operating condition, not an edge case. Every layer
 has to carry it.
 
+**Which figure to design against: 8.3, not 10.4.** When sizing how much of the viewer's time
+is spent showing estimates rather than observations, use the all-live-play number. The 10.4
+applies only while the camera is wide, and it is wide for about a third of the broadcast.
+
+> **The state machine below is M4's, not M3's.** Walking `observed → interpolated →
+> predicted → unknown` by elapsed time presumes a motion model standing behind the estimate.
+> Until the M4 tracker exists there is none, so an earlier stage that loses a detection must
+> emit **`unknown`**, never `predicted` or `interpolated`. Producing plausible-looking dead
+> reckoning out of a greedy matcher is precisely the failure this project exists to avoid.
+
 ## The evidence state machine
 
 Each slot, each frame, carries exactly one state.

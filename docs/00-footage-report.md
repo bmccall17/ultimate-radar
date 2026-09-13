@@ -172,13 +172,31 @@ and are left in the sheet rather than quietly dropped.
 
 **Three findings, in order of importance:**
 
-**1. Numbers are on the back only.** Both kits. Confirmed on three clear front views: a Sol
-player facing the camera shows the "SOL" wordmark and no digits (t = 5307.7 s); a Wind Chill
-player in three-quarter front view shows only the "M" logo on the shorts
-(`eval/m0/q4_chill_front.png`). Back views on both kits carry large, high-contrast digits —
-Wind Chill white-on-black (`eval/m0/q4_front_chill.png`, #51), Sol navy-on-white
-(`eval/m0/q4_front_sol2.png`, #88). **This roughly halves the frames OCR can ever succeed
-on**, and it is the dominant constraint on M5, well ahead of resolution.
+**1. ~~Numbers are on the back only.~~ WITHDRAWN — see below.** Back views on both kits do
+carry large, high-contrast digits: Wind Chill white-on-black (`eval/m0/q4_front_chill.png`,
+#51), Sol navy-on-white (`eval/m0/q4_front_sol2.png`, #88). That part stands. The
+*back-only* conclusion does not.
+
+> **Correction, 2026-09-12, after the review in `docs/11-m0-review.md`.** The claim was
+> based on three front views and **contradicts the governing rule**. UFA Rule Book v13
+> **§3.2.3**, read from the same PDF this report cites elsewhere: *"Each player shall be
+> conspicuously numbered on the back of the jersey **and the front of the uniform**."*
+>
+> So either these kits do not comply, or my sample missed the front numbers — and three
+> crops cannot tell those apart. Note the rule says "front of the **uniform**", not "front
+> of the jersey", which permits the number to be on the **shorts**; both crops I read as
+> showing "only a logo on the shorts" need a second look with that in mind. Note also that
+> the two files cited as evidence of back numbering are named `q4_front_*` but show players
+> facing **away** from the camera — sloppy naming that helped the wrong conclusion stick.
+>
+> **Status: open.** It does not affect M1–M3, so it is deferred rather than resolved here.
+> **Settle it before M5 plans around a halved frame budget.** The re-check is cheap: sample
+> 30–50 crops of players demonstrably facing the camera — a mark on a thrower, players
+> walking back after a goal, the pull line-up — and look for a chest number *or* a number on
+> the shorts. Logged as `docs/08-risks.md` open question 9.
+
+What is **not** in doubt, because it rests on the full 47-crop sample rather than three
+frames: back numbers are legible, and the legibility threshold below is measured.
 
 **2. The legibility threshold is about 85–90 px of player height.**
 

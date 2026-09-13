@@ -70,6 +70,17 @@ reproject with **mean error < 0.75 yd and max < 1.5 yd**; the line-overlay rende
 painted lines through a full pan; and a cut is handled without manual intervention beyond
 one set of clicks per shot.
 
+*Added after the M0 review:*
+
+- **Also accept only when whole-frame and masked registration have been compared on at least
+  ten frame pairs, and the masked result recovers pans the whole-frame result misses.** Ten
+  minutes of work. Without it, the failure in `docs/08-risks.md` open question 10 reaches M4
+  disguised as a tracking problem. `tools/regcheck.py` is the check.
+- **Report two error budgets, not one.** On a soccer-marked pitch the points that can be
+  located precisely are *soccer* points, whose geometry is exact. Ultimate-frame error is that
+  plus the error in the one venue transform tying the soccer frame to the ultimate frame. A
+  single blended number hides which half is bad.
+
 ## M2 — Detection ·  two days
 
 `ur/detect/`: D-FINE or RT-DETRv2 (Apache-2.0). Person class only.
