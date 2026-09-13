@@ -14,8 +14,11 @@ than being filled in with something plausible.
 sharpened it: referees stand on the field in black-and-grey stripes, and
 photographers and camera operators sit on the grass just beyond the far
 touchline, inside the frame, in nearly every wide shot. The geometric filter
-catches the second group and cannot catch the first — that is M3's job, using
-luminance *variance*, since stripes have it and a flat kit does not.
+catches most of the second group and cannot catch the first — that is `ur.team`'s
+job, and the mechanism is not the one predicted here. The M0 review expected
+luminance *variance*; measured, a Chill jersey's light number and a box drawn
+round two overlapping players both have high torso variance too. What separates a
+referee is that stripes are periodic and vertically coherent. See `ur/team.py`.
 
 The bounds test runs in the **soccer** frame, not the ultimate frame. Across the
 pitch the venue transform is measured; along it the x offset is still an
@@ -51,7 +54,18 @@ MIN_BOX_H = 12                  # below this it is not a player at this framing
 # there, and the honest response is to refuse to state it rather than to state it
 # and filter on it.
 MAX_YD_PER_PX = 0.45
-FOOT_UNCERTAINTY_PX = 3.0       # bottom-of-box against a real foot; M3 measures this
+# Bottom-of-box against a real foot. M2 assumed 3.0 px and said so. M3 measured it
+# on 50 hand-checked detections (eval/m3/foot_labels.json): the 2-D offset has an
+# rms of 5.83 px, nearly twice the assumption, and at 3.0 px only 46 % of truths
+# fell inside the disc the viewer would draw - against the >= 80 % that
+# docs/05-uncertainty.md makes the product's honesty argument rest on. An
+# uncertainty disc that does not contain the truth is worse than no disc.
+#
+# The value is the rms of the measured offset, which is the ordinary definition of
+# a 1-sigma scale, and it delivers 94 % containment. 4.08 px would hit exactly
+# 80 %; the rms is preferred because it is a definition rather than a number
+# reverse-engineered from the gate it has to pass.
+FOOT_UNCERTAINTY_PX = 5.83
 
 # A standing adult, in yards. Used only to ask whether a box is the size a person
 # at the claimed distance would be - not to measure anybody.
@@ -221,7 +235,12 @@ def run(work: Path, *, threshold: float = 0.25, batch: int = 8,
             "foot_uncertainty_px": FOOT_UNCERTAINTY_PX,
             "sigma_note": "sigma_yd is foot_uncertainty_px multiplied by the local "
                           "ground-plane scale, so it grows with distance the way the "
-                          "real uncertainty does. M3 measures the foot-point term.",
+                          "real uncertainty does. foot_uncertainty_px is MEASURED "
+                          "(eval/m3/m3_foot_acceptance.json), not assumed: 5.83 px "
+                          "rms on 50 hand-checked detections, giving 94 % containment "
+                          "against the >= 80 % docs/05 requires. It covers the foot "
+                          "point ONLY - M1 calibration error is separate and adds in "
+                          "quadrature.",
             "bounds": bounds,
             "team_assignment": "not done here - M3 fills team and team_score",
             "seed": SEED,

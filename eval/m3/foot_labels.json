@@ -1,0 +1,352 @@
+{
+ "schema": "ultimate-radar/m3-foot-labels@1",
+ "possession": "p0001",
+ "labelled_by": "claude-opus-5, 2026-09-13",
+ "frames_source": "tools.m3_foot render work/p0001 (seed 20260827, 50 of 3987 positioned player detections)",
+ "convention": "Ground position is the point midway between where the two feet touch the ground; with one foot down it is the point under that foot; with neither down it is the point under the hips. dx is positive to the right, dy positive downward, both in source pixels, both measured from the drawn crosshair at the box bottom centre.",
+ "what_was_judged": [
+  "Each detection was rendered at 8x with the detection box drawn on it and a",
+  "grid in source pixels, labelled every 4 px, spanning +/-16 px around the",
+  "assumed foot point. The offset was read off the grid rather than estimated.",
+  "",
+  "The grid started at +/-10 px and had to be widened to +/-16: a box drawn",
+  "tight round a running body puts its bottom centre several pixels away from a",
+  "mid-stride foot, further than the first grid could show."
+ ],
+ "caveats": [
+  "These are the agent's own readings, not an independent human's.",
+  "",
+  "Reading noise is roughly +/-1.5 px per sample on a clean crop and worse on",
+  "the seven marked LOW CONFIDENCE, where a player in front, a pylon or a",
+  "painted line makes the feet ambiguous. Over 50 samples that noise averages",
+  "down in the mean but inflates the rms and the p95, so the spread reported is",
+  "if anything pessimistic.",
+  "",
+  "One sample (f205 #12) is CENSORED: the detection box ends at the player's",
+  "mid-back, so the true foot is below the grid entirely. It is recorded at the",
+  "floor of 16 px, which makes the reported maximum a lower bound rather than a",
+  "measurement. It is left in rather than dropped, because dropping the worst",
+  "case is how an error budget comes out flattering."
+ ],
+ "labels": [
+  {
+   "f": 26,
+   "i": 9,
+   "dx": -8,
+   "dy": -1,
+   "note": "left foot down at frame left; box bottom sits well right of it"
+  },
+  {
+   "f": 27,
+   "i": 12,
+   "dx": -2,
+   "dy": -2,
+   "note": "feet motion-blurred"
+  },
+  {
+   "f": 34,
+   "i": 5,
+   "dx": -5,
+   "dy": -3
+  },
+  {
+   "f": 39,
+   "i": 7,
+   "dx": -8,
+   "dy": -2,
+   "note": "both feet visible, midpoint well left of the box centre"
+  },
+  {
+   "f": 42,
+   "i": 9,
+   "dx": 0,
+   "dy": -1,
+   "note": "mid-stride, trailing foot airborne; lead foot down under the box centre"
+  },
+  {
+   "f": 43,
+   "i": 11,
+   "dx": -6,
+   "dy": -3
+  },
+  {
+   "f": 49,
+   "i": 16,
+   "dx": -3,
+   "dy": -2,
+   "note": "standing on a painted line"
+  },
+  {
+   "f": 64,
+   "i": 16,
+   "dx": 0,
+   "dy": 4,
+   "note": "LOW CONFIDENCE: bright region below the box could be shoe or paint"
+  },
+  {
+   "f": 84,
+   "i": 1,
+   "dx": -10,
+   "dy": -2,
+   "note": "running, trailing foot down at frame left"
+  },
+  {
+   "f": 92,
+   "i": 7,
+   "dx": 1,
+   "dy": -8,
+   "note": "box extends well below the feet"
+  },
+  {
+   "f": 99,
+   "i": 18,
+   "dx": -2,
+   "dy": 4,
+   "note": "LOW CONFIDENCE: legs occluded by a player in front"
+  },
+  {
+   "f": 99,
+   "i": 19,
+   "dx": 4,
+   "dy": 12,
+   "note": "box bottom cuts above the feet; legs continue below it"
+  },
+  {
+   "f": 102,
+   "i": 3,
+   "dx": -2,
+   "dy": -4
+  },
+  {
+   "f": 103,
+   "i": 9,
+   "dx": -2,
+   "dy": -2
+  },
+  {
+   "f": 107,
+   "i": 2,
+   "dx": 3,
+   "dy": -2
+  },
+  {
+   "f": 115,
+   "i": 3,
+   "dx": -1,
+   "dy": -2,
+   "note": "lunging, legs wide; midpoint near the box centre"
+  },
+  {
+   "f": 115,
+   "i": 6,
+   "dx": -4,
+   "dy": -2
+  },
+  {
+   "f": 131,
+   "i": 2,
+   "dx": -1,
+   "dy": -4
+  },
+  {
+   "f": 136,
+   "i": 7,
+   "dx": 0,
+   "dy": -3
+  },
+  {
+   "f": 148,
+   "i": 5,
+   "dx": -6,
+   "dy": -3
+  },
+  {
+   "f": 156,
+   "i": 0,
+   "dx": -5,
+   "dy": -5
+  },
+  {
+   "f": 160,
+   "i": 2,
+   "dx": -2,
+   "dy": -2
+  },
+  {
+   "f": 172,
+   "i": 8,
+   "dx": 0,
+   "dy": -3
+  },
+  {
+   "f": 173,
+   "i": 3,
+   "dx": 1,
+   "dy": -4
+  },
+  {
+   "f": 174,
+   "i": 11,
+   "dx": 0,
+   "dy": -2
+  },
+  {
+   "f": 177,
+   "i": 12,
+   "dx": 6,
+   "dy": -2
+  },
+  {
+   "f": 182,
+   "i": 1,
+   "dx": 0,
+   "dy": -3
+  },
+  {
+   "f": 183,
+   "i": 11,
+   "dx": 2,
+   "dy": -3
+  },
+  {
+   "f": 184,
+   "i": 2,
+   "dx": 3,
+   "dy": -1
+  },
+  {
+   "f": 188,
+   "i": 15,
+   "dx": -2,
+   "dy": -3
+  },
+  {
+   "f": 192,
+   "i": 5,
+   "dx": -3,
+   "dy": -3
+  },
+  {
+   "f": 193,
+   "i": 0,
+   "dx": 1,
+   "dy": -3
+  },
+  {
+   "f": 195,
+   "i": 10,
+   "dx": -3,
+   "dy": -2
+  },
+  {
+   "f": 196,
+   "i": 14,
+   "dx": 0,
+   "dy": -2
+  },
+  {
+   "f": 205,
+   "i": 12,
+   "dx": 0,
+   "dy": 16,
+   "note": "CENSORED: the box ends at mid-back, so the true foot is at least 16 px below and outside the grid. Recorded at the floor; the real error is larger."
+  },
+  {
+   "f": 209,
+   "i": 6,
+   "dx": -3,
+   "dy": -2
+  },
+  {
+   "f": 209,
+   "i": 11,
+   "dx": -8,
+   "dy": 6,
+   "note": "LOW CONFIDENCE: occluded by a white-kit player in front"
+  },
+  {
+   "f": 210,
+   "i": 5,
+   "dx": -6,
+   "dy": -3
+  },
+  {
+   "f": 211,
+   "i": 10,
+   "dx": -2,
+   "dy": -4
+  },
+  {
+   "f": 224,
+   "i": 5,
+   "dx": -1,
+   "dy": -4
+  },
+  {
+   "f": 224,
+   "i": 8,
+   "dx": -6,
+   "dy": -3,
+   "note": "crouched, both feet left of the box centre"
+  },
+  {
+   "f": 235,
+   "i": 2,
+   "dx": -2,
+   "dy": -3
+  },
+  {
+   "f": 238,
+   "i": 13,
+   "dx": -2,
+   "dy": -4,
+   "note": "LOW CONFIDENCE: several players' feet in the box"
+  },
+  {
+   "f": 267,
+   "i": 9,
+   "dx": 3,
+   "dy": -1
+  },
+  {
+   "f": 277,
+   "i": 4,
+   "dx": 0,
+   "dy": -2,
+   "note": "LOW CONFIDENCE: a pylon crosses the box"
+  },
+  {
+   "f": 283,
+   "i": 0,
+   "dx": 8,
+   "dy": -3,
+   "note": "sprinting, lead foot down well right of the box centre"
+  },
+  {
+   "f": 286,
+   "i": 3,
+   "dx": 0,
+   "dy": -3,
+   "note": "laying out"
+  },
+  {
+   "f": 291,
+   "i": 10,
+   "dx": -8,
+   "dy": -4,
+   "note": "LOW CONFIDENCE: the pylon is inside the box"
+  },
+  {
+   "f": 294,
+   "i": 2,
+   "dx": 0,
+   "dy": -3
+  },
+  {
+   "f": 338,
+   "i": 2,
+   "dx": 5,
+   "dy": -2
+  }
+ ]
+}
