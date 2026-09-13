@@ -1,0 +1,59 @@
+{
+  "schema": "ultimate-radar/m5-resolve-acceptance@1",
+  "possession": "p0001",
+  "anchor": {
+    "slot": "O6",
+    "frame": 270,
+    "span": [
+      210,
+      331
+    ],
+    "span_frames": 121,
+    "displacement_yd": 4.0,
+    "moved_yd": 4.0,
+    "states_in_span": [
+      "observed",
+      "predicted",
+      "unknown"
+    ]
+  },
+  "continuity_gate": {
+    "requirement": "a path continuous at both ends",
+    "bracketing_samples_untouched": true,
+    "anchor_frame_confirmed_sigma_0_3": true,
+    "join_step_change_yd": 0.0669,
+    "largest_frame_step_before_yd": 24.9682,
+    "largest_frame_step_after_yd": 24.904,
+    "allowed_extra_yd": 0.0992,
+    "pass": true
+  },
+  "revert_gate": {
+    "requirement": "revert restores byte-identical output",
+    "baseline": "resolve() over an empty log, so the comparison is the revert rather than resolve's own annotations",
+    "bytes_before": 860349,
+    "bytes_after": 860349,
+    "pass": true
+  },
+  "no_op_check": {
+    "requirement": "resolving an empty log changes nothing but its own annotations",
+    "top_level_keys_that_differ": [
+      "corrections_applied",
+      "notice"
+    ],
+    "pass": true
+  },
+  "corrections_log_used": [
+    {
+      "id": "c1",
+      "at": "2026-09-13T00:00:00Z",
+      "op": "anchor",
+      "slot": "O6",
+      "f": 270,
+      "xy": [
+        40.982,
+        25.082
+      ],
+      "note": "acceptance test: a deliberately large displacement"
+    }
+  ]
+}
