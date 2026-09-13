@@ -21,7 +21,7 @@ compromise the early docs anticipated is not needed; a 1080p60 H.264 stream is o
 
 | Read | For |
 |---|---|
-| `HANDOFF.md` | **Resuming work. Current state, how to rebuild the environment, what M1 should do first. Read this first.** |
+| `HANDOFF.md` | **Resuming work. Current state (end of M2), how to rebuild the environment, what M3 should do first. Read this first.** |
 | `docs/09-decision-record.md` | One page: the commitments, the decisions, the state |
 | `docs/00-footage-report.md` | **What the real footage actually looks like, measured. It corrected several figures in the docs below; its foot lists every change.** |
 | `docs/01-brief.md` | What success means, and what this is not |
@@ -36,7 +36,7 @@ compromise the early docs anticipated is not needed; a 1080p60 H.264 stream is o
 
 ## What already exists
 
-*Updated after M0, 2026-09-12.*
+*Updated after M2, 2026-09-13. Milestone write-ups: `docs/12-m1-calibration.md`, `docs/13-m2-detection.md`.*
 
 - **`ur/ingest.py` and `ur/ffprobe.py`** — M0's deliverable. Cuts a possession, emits 15 fps
   frames plus the native clip, writes `clip.json`. Deterministic (verified byte-identical

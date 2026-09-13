@@ -1,204 +1,166 @@
-# Handoff — end of M0, 2026-09-12
+# Handoff — end of M2, 2026-09-13
 
-Pick this up cold. Read this file, then `docs/00-footage-report.md`, then
-`docs/04-milestones.md` § M1. The nine-doc spec in `docs/` is still the spec and still
-governs; M0 corrected the figures in it that turned out to be wrong, and every correction is
-listed at the foot of the footage report.
+Pick this up cold. Read this, then the milestone write-ups it points at, then
+`docs/04-milestones.md` § M3. The spec in `docs/` still governs; where a milestone changed
+it, the change is recorded in that milestone's own document and in the commit message.
 
 Working directory: `E:\dev\playertrackerultimate\ultimate-radar`
+Git: five commits, clean tree, `29d2421` at HEAD.
 
 ---
 
 ## 1. Where the project is
 
-**M0 is complete.** `ur/ingest.py` exists, one possession is cut and verified on disk, and
-`docs/00-footage-report.md` answers all eight M0 questions from real frames. Nothing else in
-the pipeline is built — no calibration, no detection, no tracking.
+| | Milestone | Status |
+|---|---|---|
+| **M0** | Ingest + footage report | **Done**, independently reviewed (`docs/11-m0-review.md`) |
+| **M1** | Calibration | **Done**, acceptance passed (`docs/12-m1-calibration.md`) |
+| **M2** | Detection | **Recall passed; the false-positive gate is deferred to M3** (`docs/13-m2-detection.md`) |
+| **M3** | Team assignment + projection | **Next** |
+| M4 | Tracking | Not started |
+| M5 | Identity, events, corrections | Not started |
+| M6 | Viewer | Not started; the design-pass prototype is in `viewer/` |
+| M7 | Sharing + a second possession | `p0003` is already cut for it |
 
-**Next milestone is M1 (calibration).** Do not start M2 before M1's acceptance test passes;
-AD-1 makes everything downstream depend on calibration quality.
+Numbers that stand:
 
-### The four M0 findings that change the plan
+- **M1** — mean reprojection error **0.0996 yd** (gate 0.75), max **0.4096 yd** (gate 1.5),
+  on 34 held-out correspondences. Per-frame residual median **0.149 yd**, p95 0.190, max
+  0.249. Confidence ≥ 0.5 on **93.9 %** of frames. Poses reproduce identically across runs.
+- **M2** — recall **0.9873** (gate 0.95) on 236 players in 20 held-out frames. False
+  positives **1.35 / frame** (gate 1.0, **fail** — see below).
 
-1. **Breese Stevens Field is a soccer pitch.** No football yard lines, no hash marks. It
-   carries centre circle, halfway line, penalty and goal areas, corner arcs — plus the
-   temporary ultimate paint and orange pylons. This is *better* than gridiron lines: a centre
-   circle is a conic of exactly specified radius (9.15 m = 10.006 yd). **Plan: calibrate to
-   the soccer frame, then apply one fixed venue transform into the ultimate frame.**
-2. **Players are 50–130 px, not 25–45.** The camera never frames the whole field, so players
-   never get small. SAHI tiling is demoted from required to measure-first in M2.
-3. **A possession contains one camera shot, not three.** Every live-play shot sampled ran
-   36–174 s (median 96 s). AD-4's design holds but costs one set of human clicks per
-   possession, not three. Hard zooms *within* a shot are the real registration hazard and no
-   cut detector flags them.
-4. **Visibility is 10.4/14 in wide shots** — the fixture's modelled 10.1 was very nearly
-   right — **but 8.3/14 across all live play, with a worst frame of 1**, and ~48 % of the
-   broadcast is not a usable field shot at all.
+## 2. The three things carried forward
 
-### The three things I would not let slide
+**1. M2's false-positive gate is open, and M3 is where it closes.** About a third of the
+false positives are **referees, who stand on the field** — no geometric bounds test can
+reject someone who is inside the field. AD-3 already specifies the reject as position *and*
+appearance; the appearance half is the luminance-**variance** test (stripes have high torso
+variance, a flat kit does not). Build it in M3 and re-measure the FP rate then. **Do not let
+M4 build a tracker on detections that still contain a referee a third of the time.**
 
-1. **Is this a 120-yard field or a 110-yard one?** UFA rule §2.3.3 allows a 110 yd field by
-   venue exception, with the brick mark moving from 20 yd to 15 yd. Soccer pitches run
-   110–120 yd, so this is live. The broadcast never frames both endzones, and the venue
-   publishes nothing. **Every field coordinate in the system depends on the answer.** It is
-   cheap to settle in M1's first hour: the centre circle gives absolute scale, so measuring
-   goal-line separation is a one-line check. Until then `clip.json` carries the rulebook
-   default of 120 yd, **which may be wrong**.
-2. **Jersey numbers are illegible below ~85 px of player height and at any size in side
-   view.** That much is measured on 47 crops and stands. The stronger claim this file
-   originally made — *numbers are on the back only* — has been **withdrawn**: it rested on
-   three crops and contradicts UFA rule §3.2.3, "numbered on the back of the jersey **and
-   the front of the uniform**" (note: *uniform*, so the shorts count). Open question 9 in
-   `docs/08-risks.md`. Does not affect M1–M3; settle it before M5 sizes its frame budget.
-3. **Referees stand on the field in black-and-grey stripes**, two or three per frame, landing
-   squarely in the Wind Chill colour cluster; Wind Chill's light-blue alternate (worn on the
-   sideline) lands in the *Sol* cluster. Colour separation itself is a non-issue (ΔE 36.6) —
-   **AD-3's out-of-bounds reject filter is doing more work than the colour gate**. Build and
-   measure it first.
+**2. The field is still 120 yd by assumption** (`docs/08-risks.md` #5). p0001 cannot settle
+it — the camera never looks far enough down the field to see a goal line, and the pooled
+paint map's x marginal is one spike at the halfway line with noise either side. p0002 (the
+pull) is no better. **p0003 is framed on an endzone** — an ultimate corner with a pylon on it
+and two field lines are plainly visible — but the soccer centre circle is not, so the current
+calibrator has nothing exactly-specified to fit there. Settling it needs soccer penalty-area
+geometry (penalty area, goal area, penalty spot, arc — all exact in Law 1) added to
+`ur/calibrate/world.py`, plus the **fixed camera centre as a bridge** between the two frames:
+calibrate p0003 in a goal-line-anchored frame, and the offset between its camera centre and
+p0001's gives the pitch half-length. That bridge doubles as the check that it is the same
+camera.
 
-Full open-question list: `docs/08-risks.md` § Open questions, items 5–10.
+*What it does and does not block:* only **absolute** distance along the field — deep cover,
+the deep-deterrent boolean. Relative geometry — matchups, separation at release, person vs
+zone — is unaffected, so M3 and M4 are not blocked.
 
----
+**3. The along-pitch half of the venue transform is unmeasured**, same root cause. The
+across-pitch half *is* measured, and was corrected during M2 (see §4).
 
-## 2. Environment — rebuild it in two commands
+## 3. Environment
 
-Python **3.11**, not 3.13: PaddleOCR (needed in M5) has no 3.13 wheels, and D-FINE / LoFTR /
-SAHI are tested on 3.8–3.11.
+Unchanged from M0 apart from the M1/M2 additions. Python **3.11.16** in `.venv` (uv-managed).
 
 ```powershell
-# uv is already installed at $env:USERPROFILE\.local\bin\uv.exe (not on PATH by default)
 $env:Path = "$env:USERPROFILE\.local\bin;$env:Path"
 uv venv --python 3.11 .venv
 uv pip install --python .venv\Scripts\python.exe -r requirements-m0.txt
+uv pip install --python .venv\Scripts\python.exe torch torchvision --index-url https://download.pytorch.org/whl/cu128
+uv pip install --python .venv\Scripts\python.exe -r requirements-m2.txt
 ```
 
-Run everything as `.\.venv\Scripts\python.exe -m <module>`.
+torch **2.11.0+cu128** sees the RTX 4070 Ti SUPER. Detector runs ~30 fps batched. ffmpeg
+9.0.1 gyan **full** build (GPL — exec'd as a separate process, never linked, never vendored).
+Seed **20260827** everywhere. Licence register: `docs/07-licenses.md`; code *and* weights are
+checked separately, and **no Ultralytics anywhere**.
 
-| | |
-|---|---|
-| Interpreter | CPython 3.11.16, uv-managed, venv at `.venv/` (193 MB, not committed) |
-| M0 deps | numpy 2.4.6, opencv-python 5.0.0.93, pillow 12.3.0, yt-dlp 2026.8.19, pypdf 6.18.1 |
-| ffmpeg | 9.0.1 gyan.dev **full** build, on PATH. **This is a GPL build** — see the note in `docs/07-licenses.md`. We exec it as a separate process, never link it, never vendor it. |
-| GPU | RTX 4070 Ti SUPER, 16 GB, sm_89, driver 591.86 (CUDA 13.1 capable) |
-| torch | **Not installed yet.** Deferred to M2 deliberately. Intended: stable torch + `cu128` wheel; pin the exact version when M2 starts and verify the wheel exists then rather than inheriting a stale guess. |
-| Determinism | Seed `20260827` throughout. Ingest is verified byte-identical across two runs. |
-
----
-
-## 3. What is on disk, and what is not in the repo
+## 4. What exists, and the decisions embedded in it
 
 ```
-ultimate-radar/
-  raw/                     5.6 GB   GITIGNORED - the broadcast
-  work/p0001/              120 MB   GITIGNORED - the cut possession
-  survey/                  247 MB   GITIGNORED - 161 extracted stills
-  eval/                     33 MB   COMMITTED  - M0 evidence + the rulebook PDF
-  ur/, tools/, docs/, viewer/, fixtures/, schemas/
+ur/ingest.py            M0. Cuts a possession; source.start_s is measured, not assumed.
+ur/ffprobe.py           ffmpeg/ffprobe wrappers.
+ur/calibrate/           M1. world, camera, mask, paint, features, fit, run, venue,
+                        render, verify, accept.
+ur/detect/              M2. model (D-FINE + suppression), run, overlay.
+tools/                  survey, sheet, crop, measure, paint, cuts, fpscheck, heights,
+                        jerseysheet, teamcolour, regcheck, pancheck, m2_label.
 ```
 
-### Committed and worth knowing about
+Four decisions worth not re-litigating:
 
-| Path | What |
-|---|---|
-| `ur/ingest.py` | M0's deliverable. Cuts a possession, writes `clip.json`. Read its docstring before changing it — the start-offset measurement is load-bearing. |
-| `ur/ffprobe.py` | Thin ffmpeg/ffprobe wrappers. `frame_times()` has a `-read_intervals` gotcha documented in place. |
-| `tools/survey.py` | Seek-based still extraction (uniform / seeded-random / span / explicit). Writes **PNG**, deliberately. |
-| `tools/measure.py` | Green-segmentation blob finder. **M0-only, not a detector.** See the caution in `eval/m0/README.md`. |
-| `tools/paint.py` | Paint detector — the tool that answered "are there yard lines". Likely useful again in M1. |
-| `tools/cuts.py` | Whole-game scene-change scan with CUDA decode. Already run; results in `eval/m0/cuts_full/`. |
-| `tools/crop.py`, `tools/sheet.py`, `tools/jerseysheet.py` | Crop with pixel grid, contact sheet, fixed-magnification sheet. General-purpose; reuse them. |
-| `tools/fpscheck.py`, `tools/heights.py`, `tools/teamcolour.py` | One-question M0 tools. Keep for re-measurement, don't build on them. |
-| `eval/m0/` | Everything the footage report cites, with a README mapping file → report section. |
-| `eval/m0/visibility_counts.json` | **The hand counts themselves**, per frame, with the counting rules written down. This is a hand-label set; treat it as data, not as scratch. |
-| `eval/ufa-rulebook-2025-v13.pdf` | Primary source for the field dimensions. |
-| `requirements-m0.txt` | Pinned M0 deps. |
+- **AD-4 amended** (agreed before M1 started, recorded in `docs/02-architecture.md`): the
+  per-frame **3-DOF camera fit is primary**, the mosaic is the fallback. A free homography
+  needs 8 DOF; this footage offers 7 constraints (a conic and a line). The camera does not
+  translate, so 3 unknowns per frame against a shared centre makes 7 constraints redundant
+  rather than one short. Solved centre: **C = (0.47, −50.21, 6.98) yd**.
+- **Registration runs on a mask, never a raw frame.** Whole-frame phase correlation reports a
+  static camera on 10 of 11 pairs of this footage. `tools/regcheck.py` reproduces it.
+- **Evidence states:** until M4 exists there is no motion model, so a stage that loses a
+  detection emits **`unknown`**, never `predicted` or `interpolated`. Noted in
+  `docs/05-uncertainty.md`.
+- **The venue transform's y offset was corrected by M2's own output.** M1 had picked the near
+  sideline as the paint peak nearest a *centred* field (−25.95, far at +27.38). Confident
+  player-shaped detections taper out at +17, then there is an empty gap, then a stationary
+  cluster of 202 detections at +24..+26 — camera crew. The far sideline must be in that gap,
+  so the near sideline is the other peak, **−32.75**, far at **+20.58**. The calibration
+  could not distinguish two readings of its own paint; the detector could. Expect more of
+  this.
 
-### Not in the repo — regenerate if needed
+## 5. On disk
 
-```powershell
-# the broadcast (5.95 GB, format 299+140 = 1080p60 avc1 + m4a)
-.\.venv\Scripts\python.exe -m yt_dlp -f "299+140" --merge-output-format mp4 `
-    -o "raw/sol-vs-windchill-2026-semi.%(ext)s" "https://www.youtube.com/watch?v=IDnoyd4cKfM"
-
-# the possession (deterministic - reproduces byte-identically)
-.\.venv\Scripts\python.exe -m ur.ingest --source raw\sol-vs-windchill-2026-semi.mp4 `
-    --id p0001 --start 7264.0 --duration 24.0 --offense sol --defense chill
-
-# the survey stills (seeded)
-.\.venv\Scripts\python.exe -m tools.survey uniform --every 240 --out survey\uniform
-.\.venv\Scripts\python.exe -m tools.survey random --n 40 --seed 20260827 --out survey\random
+```
+raw/           5.6 GB   GITIGNORED   the broadcast (format 299+140, 1080p60 avc1)
+work/p0001/    24.0 s, 360 frames    clip.json, calibration.json, detections.json
+work/p0002/    18.0 s, 270 frames    the pull; clip.json, calibration.json
+work/p0003/    26.0 s, 390 frames    endzone-framed; clip.json, calibration.json
+survey/                 GITIGNORED   161 stills
+eval/m0/ m1/ m2/        COMMITTED    all evidence, hand labels, acceptance JSON, videos
 ```
 
----
+`p0001` is the working possession: broadcast 7264.023–7288.014 s, 4th quarter,
+ATX 20 – MIN 25, Sol on offence, Wind Chill defending, one camera shot, no cut.
+**p0003's calibration is deliberately near-useless** — confidence ≥ 0.5 on 1 % of frames —
+because the honesty guards correctly refuse to fit it. That is the intended behaviour, not a
+regression.
 
-## 4. The possession, `work/p0001/`
+Hand labels, which are the most expensive thing here and the hardest to regenerate:
+`eval/m0/visibility_counts.json`, `eval/m2/labels.json`.
 
-| | |
-|---|---|
-| Broadcast span | **7264.023 → 7288.014 s** (02:01:04 → 02:01:28), 24.0 s |
-| Output | `clip.mp4` (59.94 fps, CRF 16), `frames/000000.jpg … 000359.jpg` (15 fps), `clip.json` |
-| Game state | 4th quarter, ATX 20 – MIN 25, clock 7:31 → 7:07 |
-| Offence / defence | Austin Sol (light kit) / Minnesota Wind Chill (dark kit) |
-| Shot | Sits entirely inside one broadcast shot (7246.3 – 7350.5 s). **No cut.** |
-| Visible players | 11 / 14 / 12 at frames 0 / 180 / 345, hand counted → ≈ 88 % |
-| Calibration features | Soccer centre circle **and** halfway line in *every* frame; one ultimate line and one pylon at the far side |
+## 6. Where M3 starts
 
-**Two subtleties baked into `clip.json` — do not re-derive them by hand.**
+Per `docs/04-milestones.md` § M3, plus what M2 learned:
 
-- `source.start_s` is the **measured** source timestamp of `frames/000000.jpg`, not the value
-  passed to ffmpeg. ffmpeg's input seek keeps frames strictly *after* the seek timestamp, so
-  asking for a frame's exact pts silently drops it. Ingest proves which frame won by pixel
-  comparison and records the margin in `start_verification`.
-- `clip.mp4` and `frames/` do **not** index the same instants. ffmpeg's `fps` filter buckets
-  input frames into output slots and keeps the last in each, so `frames/n` is up to one source
-  frame behind a uniform `n/15` clock. The exact relation is in `clip_frames_sync`, asserted
-  against real pixels at two points in every clip. **The viewer's overlay depends on this** —
-  a silent one-frame offset would put the overlay on the wrong moment with nothing to signal
-  it.
+1. **Team assignment by torso colour.** M0 measured ΔE 36.6 between the kits — colour is not
+   the hard part. Build the **referee variance test alongside it**, not after; that is what
+   closes M2's FP gate.
+2. **Foot-point error on 50 hand-checked detections**, before trusting projection. Detection
+   already emits `yd_per_px` and a `sigma_yd` built on an *assumed* 3 px of foot error — M3
+   replaces that assumption with a measurement.
+3. **Then `possession.json` and the viewer.** Association for now is the crudest possible
+   stand-in — greedy nearest-neighbour in field space, team-gated, max-speed-gated — and it
+   must be **labelled as a stand-in in the code and in the output**. 14 slots, every frame,
+   `observed` when matched and `unknown` when not. Nothing else.
+4. The viewer swaps its synthetic camera for `<video>` plus an overlay canvas driven by
+   `calibration.json`. Mind `clip_frames_sync` in `clip.json`: `frames/n` is up to one source
+   frame behind a uniform `n/15` clock, and a silent one-frame offset puts the overlay on the
+   wrong moment with nothing to signal it.
 
-**One M0 criterion not met, stated rather than papered over:** M0 asks the chosen possession
-to contain "at least one scheme change or poach". The defence reads as a person look from
-stills at 1 Hz, but I did not watch the clip play and will not claim a poach I have not seen.
-**Play `work/p0001/clip.mp4` and confirm before committing M4's labelling effort to it.** If
-it turns out to be a flat person look with no poach, the point continues past the clip and
-ends in a Sol goal at ≈ 7330 s, so a longer or later cut is available from the same shot.
+## 7. Habits this project has earned
 
----
+Four bugs across M1 and M2 shared one shape: **something reported success while being wrong**,
+and only a check that could contradict it caught the problem.
 
-## 5. Where I would start M1
+- A chamfer objective sampled its distance field with integer indices, so the optimiser saw
+  zero gradient, stopped at its seed, and reported success.
+- An acceptance test called two well-calibrated frames 10 and 34 yards wrong because its own
+  RANSAC had fitted a needle-thin ellipse along the halfway line. *A test that fails for its
+  own reasons is worse than no test.*
+- A calibration reported `rms 0.0000 yd` at confidence 0.55 on a collapsed fit. Residuals far
+  below what painted lines physically allow are now rejected, as are fits to too short an arc.
+- "Longest straight line = halfway line" was wrong, quietly, because the longest line in a
+  wide shot is the *ultimate* sideline.
 
-Not instructions — my reading, for you to overrule.
-
-1. **Settle the 120 vs 110 yd question first.** It is an hour's work once any homography
-   exists, and it invalidates field coordinates if left. Use the centre circle for absolute
-   scale.
-2. **Build the verification render before the calibration.** `docs/04-milestones.md` calls it
-   "the only honest way to see whether calibration is working". It is also the fastest way to
-   discover the venue transform is wrong.
-3. **Decide the field-frame question** in `docs/08-risks.md` open question 6 — venue-fixed vs
-   possession-relative — *before* writing `calibration.json`, because it changes a data
-   contract. My recommendation is in there: venue-fixed frame in `calibration.json`, flip in
-   `derive`. I did not change it unilaterally.
-4. **Shot detection is already done for the whole game** — `eval/m0/cuts_full/events.json` has
-   every scene-change candidate with scores, threshold-validated at 0.35 against four
-   hand-checked cuts. M1 can read it rather than re-running the scan.
-5. **Reuse `tools/paint.py`** for the correspondence tool's line overlay. It already finds the
-   circle and the halfway line cleanly.
-6. **Find a multi-shot possession deliberately.** A cut inside live play is rare, so M1's
-   multi-shot path will not be exercised by accident. Unverified candidates: the short shots
-   interrupting long ones at t ≈ 2893.9–2901.2 and t ≈ 5645.5–5652.9.
-
----
-
-## 6. Housekeeping you may want to do first
-
-- **This is not a git repository.** `git rev-parse` fails; there is no `.git`. A `.gitignore`
-  exists and is correct (`raw/`, `work/`, `survey/`, `.venv/`). If you want history, `git
-  init` and commit before touching anything — M0's evidence in `eval/` is worth a baseline
-  commit, and `AGENTS.md` rule 2 (never mutate tracking output) is much easier to honour with
-  history behind you.
-- `schemas/` is still empty. `schemas/README.md` says to write the JSON Schemas in M1 as the
-  contracts stabilise, and `clip.schema.json` can be written now against a real `clip.json`.
-- `docs/00-footage-report.md` § "Corrections made to other documents" is the authoritative
-  list of what M0 changed and why. If something in the specs looks wrong, check there before
-  assuming it is stale.
+So: prefer a check that can contradict the thing it is checking. `tools/pancheck.py` is the
+model — it compares the calibration's pan against masked phase correlation on grass texture,
+sharing no code and no inputs (correlation 0.946, scale 0.939).
