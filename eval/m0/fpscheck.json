@@ -1,0 +1,57 @@
+{
+  "source": "sol-vs-windchill-2026-semi.mp4",
+  "container_fps": 59.94005994005994,
+  "window_s": 10.0,
+  "samples": [
+    {
+      "t": 900.0,
+      "expected": 599,
+      "kept": 599,
+      "kept_ratio": 1.0
+    },
+    {
+      "t": 1800.0,
+      "expected": 599,
+      "kept": 599,
+      "kept_ratio": 1.0
+    },
+    {
+      "t": 2700.0,
+      "expected": 599,
+      "kept": 547,
+      "kept_ratio": 0.9132
+    },
+    {
+      "t": 3600.0,
+      "expected": 599,
+      "kept": 599,
+      "kept_ratio": 1.0
+    },
+    {
+      "t": 4500.0,
+      "expected": 599,
+      "kept": 599,
+      "kept_ratio": 1.0
+    },
+    {
+      "t": 5400.0,
+      "expected": 599,
+      "kept": 599,
+      "kept_ratio": 1.0
+    },
+    {
+      "t": 6300.0,
+      "expected": 599,
+      "kept": 599,
+      "kept_ratio": 1.0
+    },
+    {
+      "t": 7200.0,
+      "expected": 599,
+      "kept": 599,
+      "kept_ratio": 1.0
+    }
+  ],
+  "mean_kept_ratio": 0.9891,
+  "verdict": "60 fps appears GENUINE (few duplicate frames)"
+}

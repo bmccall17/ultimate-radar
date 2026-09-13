@@ -1,0 +1,9 @@
+# M0 dependencies. Licences recorded in docs/07-licenses.md.
+# Python 3.11 (not 3.13 - PaddleOCR, needed in M5, has no 3.13 wheels).
+#   uv venv --python 3.11 .venv
+#   uv pip install --python .venv/Scripts/python.exe -r requirements-m0.txt
+numpy==2.4.6
+opencv-python==5.0.0.93
+pillow==12.3.0
+yt-dlp==2026.8.19
+pypdf==6.18.1

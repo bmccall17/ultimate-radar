@@ -1,0 +1,1047 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html{color-scheme:light dark}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Possession Radar</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+:root{
+  --bg:#EEF0EA; --surface:#FAFBF7; --surface-2:#E3E7DC; --sunk:#E8EBE2;
+  --line:#CDD3C4; --line-2:#B6BFAC;
+  --ink:#141A13; --ink-2:#49533F; --ink-3:#79836F;
+  --sol:#B86C0C; --sol-soft:#F0DCBC;
+  --chill:#1F6E9E; --chill-soft:#CFE2EE;
+  --flag:#A93A2F; --flag-soft:#F3DBD6;
+  --ok:#2F7350;
+  --focus:#6B4FD8;
+  --shadow:0 1px 2px rgba(20,26,19,.07), 0 6px 18px -10px rgba(20,26,19,.22);
+  --r:7px;
+  --f-disp:"Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D110C; --surface:#151A13; --surface-2:#1E251C; --sunk:#10150F;
+    --line:#2C3429; --line-2:#3C4738;
+    --ink:#E8ECE2; --ink-2:#A4AE9D; --ink-3:#6E7A69;
+    --sol:#E8A43F; --sol-soft:#3A2C13;
+    --chill:#63B6E2; --chill-soft:#13293A;
+    --flag:#E5786A; --flag-soft:#3A1D19;
+    --ok:#65B98A;
+    --focus:#A492F2;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 26px -14px rgba(0,0,0,.8);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D110C; --surface:#151A13; --surface-2:#1E251C; --sunk:#10150F;
+  --line:#2C3429; --line-2:#3C4738;
+  --ink:#E8ECE2; --ink-2:#A4AE9D; --ink-3:#6E7A69;
+  --sol:#E8A43F; --sol-soft:#3A2C13;
+  --chill:#63B6E2; --chill-soft:#13293A;
+  --flag:#E5786A; --flag-soft:#3A1D19;
+  --ok:#65B98A;
+  --focus:#A492F2;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 26px -14px rgba(0,0,0,.8);
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--f-body); font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1440px; margin:0 auto; padding-inline:18px; padding-block:0 40px}
+h1,h2,h3{margin:0; text-wrap:balance}
+button{font:inherit; color:inherit; cursor:pointer}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:4px}
+
+/* ---------- eyebrow / label type ---------- */
+.lbl{
+  font-family:var(--f-disp); font-weight:600; text-transform:uppercase;
+  letter-spacing:.09em; font-size:12px; color:var(--ink-3); line-height:1;
+}
+.num{font-family:var(--f-mono); font-variant-numeric:tabular-nums}
+
+/* ---------- header ---------- */
+header{
+  border-bottom:1px solid var(--line); background:var(--surface);
+  position:sticky; top:0; z-index:20;
+}
+.hrow{
+  max-width:1440px; margin:0 auto; padding:11px 18px;
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+}
+.mark{display:flex; align-items:baseline; gap:9px; margin-right:auto}
+.mark b{font-family:var(--f-disp); font-weight:700; font-size:21px; letter-spacing:.02em; text-transform:uppercase}
+.mark span{font-size:12.5px; color:var(--ink-2)}
+.score{display:flex; align-items:center; gap:10px; font-family:var(--f-disp); font-weight:600; font-size:15px; letter-spacing:.04em}
+.dot{width:9px; height:9px; border-radius:50%; display:inline-block}
+.ghostbtn{
+  background:transparent; border:1px solid var(--line-2); border-radius:var(--r);
+  padding:5px 11px; font-family:var(--f-disp); font-weight:600; font-size:13px;
+  letter-spacing:.05em; text-transform:uppercase; color:var(--ink-2);
+}
+.ghostbtn:hover{border-color:var(--ink-3); color:var(--ink)}
+
+/* ---------- synthetic banner ---------- */
+.banner{
+  display:flex; gap:10px; align-items:flex-start;
+  background:var(--flag-soft); border:1px solid color-mix(in srgb, var(--flag) 32%, transparent);
+  border-radius:var(--r); padding:9px 12px; margin-top:14px; font-size:12.5px; color:var(--ink);
+}
+.banner b{font-family:var(--f-disp); text-transform:uppercase; letter-spacing:.07em; font-size:12.5px}
+
+/* ---------- main stage ---------- */
+.stage{
+  display:grid; gap:14px; margin-top:14px;
+  grid-template-columns: minmax(0,1.45fr) minmax(0,1fr);
+}
+@media (max-width:980px){ .stage{grid-template-columns:minmax(0,1fr)} }
+.panel{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  overflow:hidden; display:flex; flex-direction:column; min-width:0;
+}
+.phead{
+  display:flex; align-items:center; gap:10px; padding:8px 11px;
+  border-bottom:1px solid var(--line); flex-wrap:wrap;
+}
+.phead .lbl{margin-right:auto}
+canvas{display:block; width:100%; max-width:100%}
+.cvwrap{position:relative; background:#0A0D0A}
+.cvwrap.radar{background:var(--sunk)}
+#video{aspect-ratio:16/9}
+#radar{aspect-ratio:1.92/1}
+.hint{
+  position:absolute; left:10px; bottom:9px; font-size:11px; letter-spacing:.03em;
+  color:#fff; background:rgba(8,12,8,.62); padding:3px 7px; border-radius:4px;
+  pointer-events:none; font-family:var(--f-mono);
+}
+.tog{
+  display:inline-flex; align-items:center; gap:5px; font-family:var(--f-disp); font-weight:600;
+  font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-2);
+  background:var(--surface-2); border:1px solid transparent; border-radius:5px; padding:4px 8px;
+}
+.tog[aria-pressed="true"]{background:var(--ink); color:var(--surface); border-color:var(--ink)}
+
+/* ---------- transport ---------- */
+.transport{
+  margin-top:12px; background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r); padding:11px 13px 13px; display:flex; flex-direction:column; gap:9px;
+}
+.trow{display:flex; align-items:center; gap:11px; flex-wrap:wrap}
+.play{
+  width:38px; height:38px; border-radius:50%; border:none; background:var(--ink); color:var(--surface);
+  display:grid; place-items:center; flex:none;
+}
+.play svg{width:15px; height:15px; fill:currentColor}
+.tbtn{
+  background:var(--surface-2); border:1px solid transparent; border-radius:5px; padding:5px 9px;
+  font-family:var(--f-mono); font-size:12px; color:var(--ink-2);
+}
+.tbtn:hover{color:var(--ink)}
+.clock{font-family:var(--f-mono); font-size:14px; font-weight:500; letter-spacing:-.01em; min-width:104px}
+.clock small{color:var(--ink-3)}
+.scrub{position:relative; height:34px; cursor:pointer; touch-action:none}
+.scrub .track{position:absolute; left:0; right:0; top:15px; height:5px; background:var(--surface-2); border-radius:3px}
+.scrub .fill{position:absolute; left:0; top:15px; height:5px; background:var(--ink-2); border-radius:3px}
+.scrub .head{position:absolute; top:9px; width:3px; height:17px; background:var(--ink); border-radius:2px; margin-left:-1.5px}
+.scrub .ev{position:absolute; top:3px; width:2px; height:9px; border-radius:1px}
+.scrub .evlab{
+  position:absolute; top:22px; font-family:var(--f-disp); font-size:10.5px; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--ink-3); transform:translateX(-50%); white-space:nowrap;
+}
+.covbar{position:absolute; left:0; right:0; top:0; height:3px; display:flex; border-radius:2px; overflow:hidden}
+.covbar i{flex:1 1 0}
+
+/* ---------- reads ---------- */
+.reads{display:grid; gap:10px; margin-top:12px; grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:790px){ .reads{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:520px){ .reads{grid-template-columns:minmax(0,1fr)} }
+.read{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  padding:10px 12px 11px; display:flex; flex-direction:column; gap:5px; min-width:0;
+}
+.read .top{display:flex; align-items:center; gap:7px}
+.read .v{font-family:var(--f-disp); font-weight:700; font-size:25px; line-height:1.05; letter-spacing:.01em}
+.read .v.sm{font-size:19px}
+.read p{margin:0; font-size:12px; color:var(--ink-2); line-height:1.42}
+.conf{
+  font-family:var(--f-disp); font-size:10.5px; font-weight:600; letter-spacing:.07em; text-transform:uppercase;
+  padding:2px 6px; border-radius:3px; white-space:nowrap;
+}
+.conf.good{background:color-mix(in srgb, var(--ok) 16%, transparent); color:var(--ok)}
+.conf.part{background:var(--sol-soft); color:var(--sol)}
+.conf.poor{background:var(--flag-soft); color:var(--flag)}
+.read.dim{opacity:.62}
+.spark{height:22px; width:100%}
+
+/* ---------- lower ---------- */
+.lower{display:grid; gap:12px; margin-top:12px; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
+@media (max-width:860px){ .lower{grid-template-columns:minmax(0,1fr)} }
+.tblwrap{overflow-x:auto}
+table{width:100%; border-collapse:collapse; font-size:12.5px}
+th{
+  font-family:var(--f-disp); font-weight:600; text-transform:uppercase; letter-spacing:.07em;
+  font-size:11px; color:var(--ink-3); text-align:left; padding:7px 10px; border-bottom:1px solid var(--line);
+  white-space:nowrap;
+}
+td{padding:5px 10px; border-bottom:1px solid color-mix(in srgb, var(--line) 55%, transparent); white-space:nowrap}
+tr.row{cursor:pointer}
+tr.row:hover td{background:var(--surface-2)}
+tr.row.sel td{background:var(--surface-2); box-shadow:inset 2px 0 0 var(--ink)}
+.pill{
+  display:inline-flex; align-items:center; gap:4px; font-family:var(--f-mono); font-size:10.5px;
+  padding:1px 6px; border-radius:3px; letter-spacing:.02em;
+}
+.pill.observed{background:color-mix(in srgb, var(--ok) 15%, transparent); color:var(--ok)}
+.pill.interpolated{background:var(--surface-2); color:var(--ink-2)}
+.pill.predicted{background:var(--sol-soft); color:var(--sol)}
+.pill.unknown{background:var(--flag-soft); color:var(--flag)}
+.pill.confirmed{background:color-mix(in srgb, var(--focus) 16%, transparent); color:var(--focus)}
+.mini{height:9px; width:78px; display:block}
+.issue{
+  display:flex; gap:10px; padding:10px 12px; border-bottom:1px solid color-mix(in srgb, var(--line) 55%, transparent);
+  align-items:flex-start;
+}
+.issue:last-child{border-bottom:none}
+.issue .sev{width:3px; align-self:stretch; border-radius:2px; flex:none; background:var(--flag)}
+.issue .sev.low{background:var(--ink-3)}
+.issue h4{margin:0 0 2px; font-size:13px; font-weight:600}
+.issue p{margin:0; font-size:12px; color:var(--ink-2)}
+.issue .act{margin-top:6px; display:flex; gap:6px; flex-wrap:wrap}
+.act button{
+  background:var(--surface-2); border:1px solid var(--line-2); border-radius:5px; padding:3px 9px;
+  font-size:11.5px; font-family:var(--f-disp); font-weight:600; letter-spacing:.05em; text-transform:uppercase;
+}
+.act button.primary{background:var(--ink); color:var(--surface); border-color:var(--ink)}
+.act button:disabled{opacity:.45; cursor:default}
+.logline{
+  display:flex; gap:8px; padding:6px 12px; font-size:12px; color:var(--ink-2);
+  border-bottom:1px solid color-mix(in srgb, var(--line) 45%, transparent); align-items:baseline;
+}
+.logline .num{color:var(--ink-3); font-size:11px; flex:none}
+.empty{padding:14px 12px; font-size:12.5px; color:var(--ink-3); font-style:italic}
+.legend{display:flex; gap:13px; flex-wrap:wrap; padding:9px 12px; border-top:1px solid var(--line); font-size:11.5px; color:var(--ink-2)}
+.legend span{display:inline-flex; align-items:center; gap:5px}
+.swatch{width:20px; height:11px; flex:none}
+footer{margin-top:22px; padding-top:14px; border-top:1px solid var(--line); font-size:12px; color:var(--ink-3)}
+footer a{color:var(--ink-2)}
+footer p{margin:0 0 7px; max-width:74ch}
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.01ms !important; transition-duration:.01ms !important} }
+</style>
+
+<header>
+  <div class="hrow">
+    <div class="mark">
+      <b>Possession Radar</b>
+      <span>Defensive film study &mdash; one possession at a time</span>
+    </div>
+    <div class="score">
+      <span><i class="dot" style="background:var(--sol)"></i> SOL <small style="color:var(--ink-3)">offence</small></span>
+      <span style="color:var(--ink-3)">vs</span>
+      <span><i class="dot" style="background:var(--chill)"></i> MIN <small style="color:var(--ink-3)">defence</small></span>
+    </div>
+    <button class="ghostbtn" id="themeBtn" aria-label="Switch colour theme">Theme</button>
+    <button class="ghostbtn" id="shareBtn">Copy link to this moment</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="banner">
+    <b>Synthetic</b>
+    <span>Every position on this page is invented. It is a design prototype for the viewer, built so the hard cases &mdash; players leaving the camera, drifting estimates, a mistaken identity &mdash; are present before any real tracking exists. The target footage is the UFA 2026 semifinal, Austin Sol vs Minnesota Wind Chill (27 Aug 2026, Breese Stevens Field); no frames from it appear here.</span>
+  </div>
+
+  <div class="stage">
+    <div class="panel">
+      <div class="phead">
+        <span class="lbl">Camera view</span>
+        <button class="tog" id="tgOverlay" aria-pressed="true">Overlay</button>
+        <button class="tog" id="tgMatch" aria-pressed="false">Matchups</button>
+        <button class="tog" id="tgEdge" aria-pressed="true">Off-frame arrows</button>
+      </div>
+      <div class="cvwrap"><canvas id="video"></canvas><div class="hint" id="videoHint"></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="phead">
+        <span class="lbl">Overhead</span>
+        <button class="tog" id="tgSpace" aria-pressed="false">Space</button>
+        <button class="tog" id="tgTrail" aria-pressed="true">Trails</button>
+        <button class="tog" id="tgPin" aria-pressed="false">Pin moment</button>
+      </div>
+      <div class="cvwrap radar"><canvas id="radar"></canvas><div class="hint" id="radarHint">Drag a ghost to correct it</div></div>
+      <div class="legend">
+        <span><svg class="swatch" viewBox="0 0 20 11"><circle cx="10" cy="5.5" r="4.2" fill="var(--chill)"/></svg> Seen now</span>
+        <span><svg class="swatch" viewBox="0 0 20 11"><circle cx="10" cy="5.5" r="4.2" fill="none" stroke="var(--chill)" stroke-width="1.5" stroke-dasharray="2.2 2"/></svg> Estimated</span>
+        <span><svg class="swatch" viewBox="0 0 20 11"><circle cx="10" cy="5.5" r="5" fill="var(--chill)" opacity=".14"/><circle cx="10" cy="5.5" r="2.6" fill="none" stroke="var(--chill)" stroke-width="1.2" stroke-dasharray="1.6 1.8" opacity=".8"/></svg> Off camera</span>
+        <span><svg class="swatch" viewBox="0 0 20 11"><rect x="1" y="1" width="18" height="9" fill="none" stroke="var(--ink-2)" stroke-width="1" stroke-dasharray="3 2"/></svg> What the camera sees</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="transport">
+    <div class="scrub" id="scrub" role="slider" aria-label="Possession timeline" aria-valuemin="0" aria-valuemax="21" aria-valuenow="0" tabindex="0">
+      <div class="covbar" id="covbar"></div>
+      <div class="track"></div><div class="fill" id="fill"></div><div class="head" id="head"></div>
+    </div>
+    <div class="trow">
+      <button class="play" id="playBtn" aria-label="Play"><svg id="playIcon" viewBox="0 0 16 16"><path d="M3 1.5 14 8 3 14.5z"/></svg></button>
+      <span class="clock"><span class="num" id="tNow">0.00</span><small class="num" id="tTot"> / 21.00 s</small></span>
+      <button class="tbtn" id="stepB" title="Back one frame">&#9664;&#9664;</button>
+      <button class="tbtn" id="stepF" title="Forward one frame">&#9654;&#9654;</button>
+      <button class="tbtn" id="rateBtn">1.0&times;</button>
+      <button class="tbtn" id="prevEv">&larr; throw</button>
+      <button class="tbtn" id="nextEv">throw &rarr;</button>
+      <span style="margin-left:auto" class="lbl" id="evNow"></span>
+    </div>
+  </div>
+
+  <div class="reads" id="reads"></div>
+
+  <div class="lower">
+    <div class="panel">
+      <div class="phead"><span class="lbl">On the field &mdash; 7 v 7</span><span class="lbl" id="rosterNote"></span></div>
+      <div class="tblwrap"><table id="roster"><thead><tr>
+        <th>Slot</th><th>#</th><th>Evidence now</th><th>Seen this possession</th><th>Speed</th><th>Guarding</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:12px; min-width:0">
+      <div class="panel">
+        <div class="phead"><span class="lbl">Needs a human</span><span class="lbl" id="issueCount"></span></div>
+        <div id="issues"></div>
+      </div>
+      <div class="panel">
+        <div class="phead"><span class="lbl">Corrections</span><button class="ghostbtn" id="undoBtn" style="padding:3px 9px">Undo last</button></div>
+        <div id="log"><div class="empty">Nothing corrected yet. Corrections are kept separately from the tracking output &mdash; the raw result is never overwritten.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p><strong>What this prototype is for.</strong> It settles the viewer &mdash; what a coach sees, how confidence is shown, how a mistake gets fixed &mdash; before a line of pipeline code is written. The camera view is a real pinhole projection of the synthetic positions through a simulated broadcast camera, so the overlay and the overhead view are genuinely two renderings of the same geometry, the way they will be with real footage.</p>
+    <p><strong>Read the shading, not just the dots.</strong> A solid dot is a player the camera can see right now. A dashed dot is the system&rsquo;s guess, and the faint ring around it is how wrong that guess could be. The dashed box on the overhead view is the slice of field the camera is actually pointed at. Anything outside it is inference, and the readouts above say so.</p>
+  </footer>
+</div>
+
+<script src="data.js"></script>
+<script>
+(function(){
+"use strict";
+const D = window.POSSESSION;
+const FPS=D.possession.fps, NF=D.possession.frames, DUR=D.possession.duration_s;
+const FL=D.field.length_yd, FW=D.field.width_yd, EZ=D.field.endzone_yd, BRICK=D.field.brick_yd;
+const IW=D.camera.image_w, IH=D.camera.image_h, C=D.camera.position_yd;
+const P = D.players, byId={}; P.forEach(p=>byId[p.id]=p);
+const OFF = P.filter(p=>p.team===D.possession.offense);
+const DEF = P.filter(p=>p.team===D.possession.defense);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ------------------------------------------------------------------ state */
+const S = {
+  f: Math.round(15.0*FPS), playing:false, rate:1, sel:null, hover:null,
+  overlay:true, matchups:false, edge:true, space:false, trails:true,
+  pin:null, drag:null, log:[], undo:[],
+};
+const hash = new URLSearchParams(location.hash.slice(1));
+if(hash.get('t')) S.f = clamp(Math.round(parseFloat(hash.get('t'))*FPS),0,NF-1);
+function clamp(v,a,b){return v<a?a:v>b?b:v}
+function lerp(a,b,u){return a+(b-a)*u}
+
+/* -------------------------------------------------------------- 3d camera */
+function sub(a,b){return [a[0]-b[0],a[1]-b[1],a[2]-b[2]]}
+function cross(a,b){return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]]}
+function dot3(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]}
+function unit(a){const m=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/m,a[1]/m,a[2]/m]}
+const camCache = new Map();
+function cam(i){
+  if(camCache.has(i)) return camCache.get(i);
+  const c=D.camera.per_frame[i];
+  const fwd=unit(sub([c.aim[0],c.aim[1],1.2],C));
+  const right=unit(cross(fwd,[0,0,1]));
+  const up=cross(right,fwd);
+  const R=[right,[-up[0],-up[1],-up[2]],fwd];
+  const o={R,f:c.focal_px};
+  camCache.set(i,o); return o;
+}
+/* world point -> image pixel (in the 1280x720 frame), null if behind camera */
+function proj(i,x,y,z){
+  const {R,f}=cam(i), d=sub([x,y,z],C);
+  const cz=dot3(R[2],d); if(cz<=0.35) return null;
+  return [dot3(R[0],d)/cz*f + IW/2, dot3(R[1],d)/cz*f + IH/2, cz];
+}
+/* image pixel -> ground point (z=0); clamps rays above the horizon to a far cap */
+function unproj(i,u,v){
+  const {R,f}=cam(i);
+  const cd=[(u-IW/2)/f, (v-IH/2)/f, 1];
+  const w=[ R[0][0]*cd[0]+R[1][0]*cd[1]+R[2][0]*cd[2],
+            R[0][1]*cd[0]+R[1][1]*cd[1]+R[2][1]*cd[2],
+            R[0][2]*cd[0]+R[1][2]*cd[1]+R[2][2]*cd[2] ];
+  let dz=w[2]; if(dz>-0.012) dz=-0.012;
+  const s=-C[2]/dz;
+  return [C[0]+w[0]*s, C[1]+w[1]*s];
+}
+function frustumPoly(i){
+  const pts=[], N=9;
+  for(let k=0;k<N;k++) pts.push(unproj(i, IW*k/(N-1), IH));          // bottom, left->right
+  for(let k=1;k<N;k++) pts.push(unproj(i, IW, IH*(N-1-k)/(N-1)));    // right edge up
+  for(let k=1;k<N;k++) pts.push(unproj(i, IW*(N-1-k)/(N-1), 0));     // top, right->left
+  for(let k=1;k<N-1;k++) pts.push(unproj(i, 0, IH*k/(N-1)));         // left edge down
+  return clipRect(pts, -2, -2, FL+2, FW+2);
+}
+function clipRect(poly,x0,y0,x1,y1){
+  const edges=[[p=>p[0]>=x0,(a,b)=>ix(a,b,0,x0)],[p=>p[0]<=x1,(a,b)=>ix(a,b,0,x1)],
+               [p=>p[1]>=y0,(a,b)=>ix(a,b,1,y0)],[p=>p[1]<=y1,(a,b)=>ix(a,b,1,y1)]];
+  function ix(a,b,ax,val){const t=(val-a[ax])/((b[ax]-a[ax])||1e-9);return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t]}
+  let out=poly;
+  for(const [inside,inter] of edges){
+    const src=out; out=[];
+    for(let k=0;k<src.length;k++){
+      const a=src[(k+src.length-1)%src.length], b=src[k];
+      const ia=inside(a), ib=inside(b);
+      if(ib){ if(!ia) out.push(inter(a,b)); out.push(b); }
+      else if(ia) out.push(inter(a,b));
+    }
+    if(!out.length) return [];
+  }
+  return out;
+}
+function inView(i,x,y){
+  const p=proj(i,x,y,0); if(!p) return false;
+  return p[0]>0 && p[0]<IW && p[1]>0 && p[1]<IH;
+}
+
+/* --------------------------------------------------------------- geometry */
+const at = (p,f)=>p.est[clamp(f,0,NF-1)];
+const stAt = (p,f)=>p.state[clamp(f,0,NF-1)];
+const truth = (p,f)=>p.truth[clamp(f,0,NF-1)];
+function dist(a,b){return Math.hypot(a[0]-b[0],a[1]-b[1])}
+function speed(p,f){ if(f<2) return 0; return dist(at(p,f),at(p,f-2))/(2/FPS); }
+function holderAt(t){ let h=D.events[0].player;
+  for(const e of D.events){ if((e.type==='catch'||e.type==='possession_start') && e.t<=t) h=e.player; } return h; }
+function assignment(f){ /* nearest offender for each defender */
+  const m={};
+  for(const d of DEF){ let best=null,bd=1e9;
+    for(const o of OFF){ const dd=dist(at(d,f),at(o,f)); if(dd<bd){bd=dd;best=o.id} }
+    m[d.id]={to:best, d:bd};
+  } return m;
+}
+const assignCache=[];
+let sparkMemo={};
+function assign(f){ if(!assignCache[f]) assignCache[f]=assignment(f); return assignCache[f]; }
+const stabCache=new Map();
+function stability(f,win){
+  const ck=f+':'+win; if(stabCache.has(ck)) return stabCache.get(ck);
+  const w=Math.round(win*FPS), lo=Math.max(0,f-w), out={};
+  for(const d of DEF){
+    const tally={}; for(let k=lo;k<=f;k++){ const a=assign(k)[d.id].to; tally[a]=(tally[a]||0)+1; }
+    let best=null,bc=0; for(const k in tally) if(tally[k]>bc){bc=tally[k];best=k}
+    out[d.id]={to:best, stab:bc/(f-lo+1)};
+  } stabCache.set(ck,out); return out;
+}
+function coverage(f){ let n=0; for(const p of P) if(stAt(p,f)==='observed'||stAt(p,f)==='confirmed') n++; return n; }
+
+/* ----------------------------------------------------------- canvas setup */
+function setup(cv){
+  const ctx=cv.getContext('2d');
+  function size(){
+    const r=cv.getBoundingClientRect(), dpr=Math.min(window.devicePixelRatio||1,2);
+    cv.width=Math.max(2,Math.round(r.width*dpr)); cv.height=Math.max(2,Math.round(r.height*dpr));
+    cv.__s=dpr; cv.__w=r.width; cv.__h=r.height;
+  }
+  size(); new ResizeObserver(()=>{size(); draw();}).observe(cv);
+  return ctx;
+}
+const vcv=document.getElementById('video'), vctx=setup(vcv);
+const rcv=document.getElementById('radar'), rctx=setup(rcv);
+
+/* --------------------------------------------------------- the video pane */
+const JERSEY={ sol:{top:'#EFF0E9', bot:'#2A2E33', skin:'#C99A73'},
+               chill:{top:'#18294B', bot:'#0F1728', skin:'#C99A73'} };
+function drawVideo(){
+  const ctx=vctx, W=vcv.width, H=vcv.height, k=W/IW, f=S.f;
+  ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,W,H);
+  ctx.save(); ctx.scale(k,k); // now draw in 1280x720 space
+  // sky / stands
+  const sky=ctx.createLinearGradient(0,0,0,IH); sky.addColorStop(0,'#0B1016'); sky.addColorStop(1,'#141B18');
+  ctx.fillStyle=sky; ctx.fillRect(0,0,IW,IH);
+  const gp=(x,y)=>proj(f,x,y,0);
+  function quad(pts,fill){
+    const q=pts.map(p=>gp(p[0],p[1])); if(q.some(p=>!p)) return;
+    ctx.beginPath(); ctx.moveTo(q[0][0],q[0][1]); for(let i=1;i<q.length;i++) ctx.lineTo(q[i][0],q[i][1]);
+    ctx.closePath(); ctx.fillStyle=fill; ctx.fill();
+  }
+  quad([[-40,-30],[FL+40,-30],[FL+40,FW+40],[-40,FW+40]],'#1B2A1B');            // surround
+  for(let x=0;x<FL;x+=5) quad([[x,0],[x+5,0],[x+5,FW],[x,FW]], (x/5)%2 ? '#31552F':'#365C33');
+  quad([[0,0],[EZ,0],[EZ,FW],[0,FW]],'rgba(20,60,90,.30)');
+  quad([[FL-EZ,0],[FL,0],[FL,FW],[FL-EZ,FW]],'rgba(120,70,20,.26)');
+  // lines
+  function line(a,b,w,col){
+    const p=gp(a[0],a[1]), q=gp(b[0],b[1]); if(!p||!q) return;
+    ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(q[0],q[1]);
+    ctx.strokeStyle=col; ctx.lineWidth=Math.max(1.1, w*(IW/Math.max(260,p[2]+q[2]))); ctx.stroke();
+  }
+  const WH='rgba(240,244,238,.86)';
+  line([0,0],[FL,0],9,WH); line([0,FW],[FL,FW],9,WH);
+  [0,EZ,FL-EZ,FL].forEach(x=>line([x,0],[x,FW],9,WH));
+  [BRICK, FL-BRICK].forEach(x=>{ line([x-0.7,FW/2],[x+0.7,FW/2],7,WH); line([x,FW/2-0.7],[x,FW/2+0.7],7,WH); });
+  ctx.globalAlpha=.4; for(let x=EZ+10;x<FL-EZ;x+=10) line([x,0],[x,0.9],6,WH), line([x,FW-0.9],[x,FW],6,WH);
+  ctx.globalAlpha=1;
+
+  // players, far to near
+  const order=P.map(p=>({p, c:proj(f,truth(p,f)[0],truth(p,f)[1],0)})).filter(o=>o.c).sort((a,b)=>b.c[2]-a.c[2]);
+  for(const {p,c} of order){
+    const t=truth(p,f), head=proj(f,t[0],t[1],1.82); if(!head) continue;
+    const h=c[1]-head[1]; if(h<3) continue;
+    const w=h*0.30, J=JERSEY[p.team];
+    ctx.save(); ctx.globalAlpha=.32; ctx.fillStyle='#0B140B';
+    ctx.beginPath(); ctx.ellipse(c[0],c[1],w*0.72,w*0.28,0,0,7); ctx.fill(); ctx.restore();
+    ctx.fillStyle=J.bot; ctx.fillRect(c[0]-w/2, c[1]-h*0.46, w, h*0.46);
+    ctx.fillStyle=J.top; ctx.fillRect(c[0]-w/2, c[1]-h*0.86, w, h*0.42);
+    ctx.fillStyle=J.skin; ctx.beginPath(); ctx.arc(c[0], c[1]-h*0.92, h*0.11, 0, 7); ctx.fill();
+  }
+  // disc
+  const dz=D.disc[f], dp=proj(f,dz[0],dz[1],dz[2]);
+  if(dp){ ctx.save(); ctx.translate(dp[0],dp[1]); const r=Math.max(2, 900/dp[2]*0.36);
+    ctx.fillStyle='#F6F7F2'; ctx.beginPath(); ctx.ellipse(0,0,r,r*0.42,0,0,7); ctx.fill();
+    ctx.strokeStyle='rgba(20,30,20,.55)'; ctx.lineWidth=Math.max(.7,r*0.13); ctx.stroke(); ctx.restore(); }
+
+  if(S.overlay) drawOverlay(ctx,f);
+  ctx.restore();
+  // vignette
+  ctx.save(); const vg=ctx.createRadialGradient(W/2,H/2,H*0.35,W/2,H/2,H*0.95);
+  vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,.42)');
+  ctx.fillStyle=vg; ctx.fillRect(0,0,W,H); ctx.restore();
+}
+function teamCol(t){ return t===D.possession.offense ? css('--sol') : css('--chill'); }
+function drawOverlay(ctx,f){
+  const held=holderAt(f/FPS);
+  const focus = S.sel ? new Set([S.sel, assign(f)[S.sel] ? assign(f)[S.sel].to : null,
+                 ...DEF.filter(d=>assign(f)[d.id].to===S.sel).map(d=>d.id)]) : null;
+  if(S.matchups){
+    const m=assign(f); ctx.save(); ctx.lineWidth=1.6; ctx.setLineDash([5,4]);
+    for(const d of DEF){ const o=byId[m[d.id].to];
+      const a=proj(f,at(d,f)[0],at(d,f)[1],0), b=proj(f,at(o,f)[0],at(o,f)[1],0);
+      if(!a||!b) continue;
+      ctx.strokeStyle='rgba(235,240,232,.34)';
+      ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke(); }
+    ctx.restore();
+  }
+  for(const p of P){
+    const st=stAt(p,f), e=at(p,f), pr=proj(f,e[0],e[1],0);
+    const on = pr && pr[0]>-40 && pr[0]<IW+40 && pr[1]>-40 && pr[1]<IH+40;
+    const col=teamCol(p.team), dim = focus && !focus.has(p.id);
+    if(on && st!=='unknown'){
+      const ring=[]; for(let a=0;a<16;a++){ const q=proj(f, e[0]+0.95*Math.cos(a/16*6.283), e[1]+0.95*Math.sin(a/16*6.283), 0); if(q) ring.push(q); }
+      if(ring.length>12){
+        ctx.save(); ctx.globalAlpha = dim?0.26:(st==='observed'||st==='confirmed'?0.95:0.6);
+        ctx.beginPath(); ctx.moveTo(ring[0][0],ring[0][1]); ring.forEach(q=>ctx.lineTo(q[0],q[1])); ctx.closePath();
+        ctx.strokeStyle=col; ctx.lineWidth=(p.id===S.sel?3.2:2.1);
+        ctx.setLineDash(st==='observed'||st==='confirmed'?[]:[5,4]); ctx.stroke();
+        if(p.id===S.sel){ ctx.globalAlpha=0.16; ctx.fillStyle=col; ctx.fill(); }
+        ctx.restore();
+      }
+      const showLab = p.id===S.sel || p.id===held || (focus&&focus.has(p.id)) || p.id===S.hover;
+      if(showLab){
+        const hd=proj(f,e[0],e[1],2.25); if(hd){
+          const txt=p.slot+' · '+p.jersey, tw=txt.length*7.4+12;
+          ctx.save(); ctx.globalAlpha=dim?0.4:1;
+          ctx.fillStyle=col; roundRect(ctx, hd[0]-tw/2, hd[1]-19, tw, 18, 4); ctx.fill();
+          ctx.fillStyle='#0C120B'; ctx.font='600 12px "IBM Plex Mono", monospace'; ctx.textAlign='center';
+          ctx.fillText(txt, hd[0], hd[1]-6); ctx.restore();
+        }
+      }
+    } else if(S.edge && pr){
+      // off-frame: chevron on the border in the direction we think they are
+      const cx=clamp(pr[0],26,IW-26), cy=clamp(pr[1],26,IH-26);
+      const ang=Math.atan2(pr[1]-IH/2, pr[0]-IW/2);
+      ctx.save(); ctx.translate(cx,cy); ctx.rotate(ang); ctx.globalAlpha=dim?.25:.85;
+      ctx.fillStyle=col; ctx.beginPath(); ctx.moveTo(11,0); ctx.lineTo(-6,7); ctx.lineTo(-6,-7); ctx.closePath(); ctx.fill();
+      ctx.rotate(-ang); ctx.fillStyle=col; ctx.font='600 11px "IBM Plex Mono", monospace'; ctx.textAlign='center';
+      ctx.globalAlpha=dim?.25:.95;
+      ctx.fillText(p.slot+' \u00b1'+p.sigma[f].toFixed(0)+'y', 0, 20); ctx.restore();
+    }
+  }
+}
+function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+/* --------------------------------------------------------- the radar pane */
+let RT={s:1,ox:0,oy:0};
+function radarFit(){
+  const W=rcv.__w, H=rcv.__h, pad=14;
+  const s=Math.min((W-2*pad)/FL, (H-2*pad)/FW);
+  RT={s, ox:(W-FL*s)/2, oy:(H-FW*s)/2};
+}
+const RX=x=>RT.ox+x*RT.s, RY=y=>RT.oy+y*RT.s;
+const invX=px=>(px-RT.ox)/RT.s, invY=py=>(py-RT.oy)/RT.s;
+function drawRadar(){
+  radarFit();
+  const ctx=rctx, dpr=rcv.__s, f=S.f;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,rcv.__w,rcv.__h);
+  const ink=css('--ink'), ink2=css('--ink-2'), ink3=css('--ink-3'), surf=css('--surface');
+  const grass=css('--sunk'), lineC=css('--line');
+  // field
+  ctx.fillStyle=surf; ctx.fillRect(RX(0),RY(0),FL*RT.s,FW*RT.s);
+  ctx.fillStyle=css('--chill-soft'); ctx.fillRect(RX(0),RY(0),EZ*RT.s,FW*RT.s);
+  ctx.fillStyle=css('--sol-soft');   ctx.fillRect(RX(FL-EZ),RY(0),EZ*RT.s,FW*RT.s);
+  if(S.space) drawSpace(ctx,f);
+  ctx.strokeStyle=lineC; ctx.lineWidth=1;
+  for(let x=EZ+10;x<FL-EZ;x+=10){ ctx.beginPath(); ctx.moveTo(RX(x),RY(0)); ctx.lineTo(RX(x),RY(FW)); ctx.stroke(); }
+  ctx.strokeStyle=ink3; ctx.lineWidth=1.4;
+  [0,EZ,FL-EZ,FL].forEach(x=>{ ctx.beginPath(); ctx.moveTo(RX(x),RY(0)); ctx.lineTo(RX(x),RY(FW)); ctx.stroke(); });
+  ctx.strokeRect(RX(0),RY(0),FL*RT.s,FW*RT.s);
+  ctx.fillStyle=ink3;
+  [BRICK,FL-BRICK].forEach(x=>{ ctx.fillRect(RX(x)-4,RY(FW/2)-0.75,8,1.5); ctx.fillRect(RX(x)-0.75,RY(FW/2)-4,1.5,8); });
+  ctx.font='600 10px "Barlow Condensed", sans-serif'; ctx.textAlign='center'; ctx.fillStyle=ink3;
+  ctx.fillText('ATTACKING →', RX(FL-EZ/2), RY(FW)-5);
+
+  // what the camera can see
+  const poly=frustumPoly(f);
+  if(poly.length>2){
+    ctx.save();
+    ctx.beginPath(); ctx.rect(RX(0),RY(0),FL*RT.s,FW*RT.s);
+    ctx.moveTo(RX(poly[0][0]),RY(poly[0][1]));
+    for(let k=poly.length-1;k>0;k--) ctx.lineTo(RX(poly[k][0]),RY(poly[k][1]));
+    ctx.closePath();
+    ctx.fillStyle=css('--bg'); ctx.globalAlpha=.62; ctx.fill('evenodd'); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.moveTo(RX(poly[0][0]),RY(poly[0][1]));
+    poly.forEach(p=>ctx.lineTo(RX(p[0]),RY(p[1]))); ctx.closePath();
+    ctx.setLineDash([5,4]); ctx.strokeStyle=ink2; ctx.lineWidth=1.3; ctx.globalAlpha=.85; ctx.stroke(); ctx.restore();
+  }
+  // trails
+  if(S.trails){
+    const back=Math.round(2.6*FPS);
+    for(const p of P){
+      ctx.save(); ctx.lineWidth=p.id===S.sel?2.2:1.3; ctx.strokeStyle=teamCol(p.team);
+      for(let k=Math.max(1,f-back); k<=f; k++){
+        const a=at(p,k-1), b=at(p,k), solid=(p.state[k]==='observed'||p.state[k]==='confirmed');
+        ctx.globalAlpha=(p.id===S.sel?0.85:0.34)*(1-(f-k)/(back+1))*(solid?1:0.55);
+        ctx.setLineDash(solid?[]:[3,3]);
+        ctx.beginPath(); ctx.moveTo(RX(a[0]),RY(a[1])); ctx.lineTo(RX(b[0]),RY(b[1])); ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+  // matchup links
+  if(S.matchups){ const m=assign(f); ctx.save(); ctx.setLineDash([4,3]); ctx.lineWidth=1.1; ctx.globalAlpha=.5;
+    ctx.strokeStyle=ink2;
+    for(const d of DEF){ const o=byId[m[d.id].to], a=at(d,f), b=at(o,f);
+      ctx.beginPath(); ctx.moveTo(RX(a[0]),RY(a[1])); ctx.lineTo(RX(b[0]),RY(b[1])); ctx.stroke(); }
+    ctx.restore(); }
+  // pinned formation
+  if(S.pin!==null){
+    ctx.save(); ctx.globalAlpha=.42; ctx.setLineDash([2,3]); ctx.lineWidth=1.2;
+    for(const p of P){ const e=at(p,S.pin); ctx.strokeStyle=teamCol(p.team);
+      ctx.beginPath(); ctx.arc(RX(e[0]),RY(e[1]),5.5,0,7); ctx.stroke(); }
+    ctx.restore();
+  }
+  // players
+  for(const p of P){
+    const e=S.drag&&S.drag.id===p.id ? S.drag.pos : at(p,f);
+    const st = S.drag&&S.drag.id===p.id ? 'confirmed' : stAt(p,f);
+    const col=teamCol(p.team), x=RX(e[0]), y=RY(e[1]);
+    const dim = S.sel && p.id!==S.sel && !(assign(f)[S.sel] && assign(f)[S.sel].to===p.id) && !(p.team!==byId[S.sel].team && assign(f)[p.id] && assign(f)[p.id].to===S.sel);
+    ctx.save(); ctx.globalAlpha = dim?0.5:1;
+    if(st==='unknown'||st==='predicted'){
+      ctx.globalAlpha=(dim?0.09:0.16); ctx.fillStyle=col;
+      ctx.beginPath(); ctx.arc(x,y,Math.max(7,p.sigma[f]*RT.s),0,7); ctx.fill();
+      ctx.globalAlpha=dim?0.4:0.9; ctx.setLineDash([2.6,2.6]); ctx.lineWidth=1.7; ctx.strokeStyle=col;
+      ctx.beginPath(); ctx.arc(x,y,5,0,7); ctx.stroke();
+    } else if(st==='interpolated'){
+      ctx.setLineDash([3,2.4]); ctx.lineWidth=2; ctx.strokeStyle=col;
+      ctx.beginPath(); ctx.arc(x,y,5.4,0,7); ctx.stroke();
+    } else {
+      ctx.fillStyle=col; ctx.beginPath(); ctx.arc(x,y,5.6,0,7); ctx.fill();
+      if(st==='confirmed'){ ctx.setLineDash([]); ctx.lineWidth=1.8; ctx.strokeStyle=css('--focus');
+        ctx.beginPath(); ctx.arc(x,y,8.4,0,7); ctx.stroke(); }
+    }
+    ctx.setLineDash([]);
+    if(p.id===S.sel){ ctx.lineWidth=2; ctx.strokeStyle=ink; ctx.beginPath(); ctx.arc(x,y,10,0,7); ctx.stroke(); }
+    if(p.id===S.sel||p.id===S.hover||S.matchups){
+      ctx.fillStyle=ink; ctx.font='600 10px "IBM Plex Mono", monospace'; ctx.textAlign='center';
+      ctx.fillText(p.slot, x, y-10);
+    }
+    ctx.restore();
+  }
+  // disc
+  const dz=D.disc[f];
+  ctx.save(); ctx.fillStyle='#FAFBF5'; ctx.strokeStyle=ink; ctx.lineWidth=1.6;
+  ctx.beginPath(); ctx.arc(RX(dz[0]),RY(dz[1]),4.2,0,7); ctx.fill(); ctx.stroke(); ctx.restore();
+}
+function drawSpace(ctx,f){
+  const w=Math.round(FL), h=Math.round(FW);
+  const off=document.createElement('canvas'); off.width=w; off.height=h;
+  const octx=off.getContext('2d'), img=octx.createImageData(w,h);
+  const pos=P.map(p=>({e:at(p,f), t:p.team, ok:(stAt(p,f)==='observed'||stAt(p,f)==='confirmed')}));
+  const solRGB=hexRGB(css('--sol')), chRGB=hexRGB(css('--chill'));
+  for(let yy=0;yy<h;yy++) for(let xx=0;xx<w;xx++){
+    let bd=1e9,bt=null,bok=true;
+    for(const q of pos){ const dd=(q.e[0]-xx-0.5)**2+(q.e[1]-yy-0.5)**2; if(dd<bd){bd=dd;bt=q.t;bok=q.ok} }
+    const i=(yy*w+xx)*4, c = bt===D.possession.offense?solRGB:chRGB;
+    img.data[i]=c[0]; img.data[i+1]=c[1]; img.data[i+2]=c[2];
+    img.data[i+3]= bok ? 52 : (((xx+yy)%3===0)?46:10);   // hatched where the owner is a guess
+  }
+  octx.putImageData(img,0,0);
+  ctx.save(); ctx.imageSmoothingEnabled=true;
+  ctx.drawImage(off, RX(0), RY(0), FL*RT.s, FW*RT.s); ctx.restore();
+}
+function hexRGB(hx){ hx=hx.replace('#',''); if(hx.length===3) hx=hx.split('').map(c=>c+c).join('');
+  return [parseInt(hx.slice(0,2),16),parseInt(hx.slice(2,4),16),parseInt(hx.slice(4,6),16)]; }
+
+/* ------------------------------------------------------------- the reads */
+function lastThrow(f){ let e=null; for(const x of D.events) if(x.type==='throw' && x.t<=f/FPS) e=x; return e; }
+function nextEventAfter(f,types){ for(const x of D.events) if(x.t>f/FPS+1e-6 && (!types||types.includes(x.type))) return x; return null; }
+function renderReads(){
+  const f=S.f, cov=coverage(f), el=document.getElementById('reads');
+  const stab=stability(f,2.0), m0=assign(f);
+  const stabVals=DEF.map(d=>stab[d.id].stab), meanStab=stabVals.reduce((a,b)=>a+b,0)/stabVals.length;
+  const TIGHT=5.5;
+  const tight=DEF.filter(d=> m0[d.id].d<TIGHT && stab[d.id].stab>0.6);
+  const adrift=DEF.filter(d=> m0[d.id].d>=TIGHT).sort((a,b)=>m0[b.id].d-m0[a.id].d);
+  const churn=DEF.filter(d=>stab[d.id].stab<0.55);
+  const notCovering = DEF.length - tight.length;
+  const scheme = notCovering===0 ? 'Person' : tight.length<=3 ? 'Zone or junk'
+    : 'Person, '+notCovering+' off';
+  let schemeNote;
+  if(adrift.length===0 && churn.length===0) schemeNote='All seven defenders are inside '+TIGHT+' yd of the same offensive player they were guarding two seconds ago.';
+  else if(adrift.length) schemeNote = adrift.map(d=>d.slot+' is '+m0[d.id].d.toFixed(1)+' yd from anyone').join('; ')+
+    '. A defender that far off their nearest opponent is poaching, switching, or beaten — this is the moment to look at.'+
+    (churn.length?' '+churn.map(d=>d.slot).join(', ')+' also changed assignment inside the window.':'');
+  else schemeNote = churn.map(d=>d.slot).join(', ')+' changed who they are closest to without leaving coverage — a switch, or a tracking error.';
+  // mark & force
+  const held=byId[holderAt(f/FPS)];
+  const mark=DEF.map(d=>({d,dd:dist(at(d,f),at(held,f))})).sort((a,b)=>a.dd-b.dd)[0];
+  const side = at(mark.d,f)[1] < at(held,f)[1] ? 'near' : 'far';
+  const forced = side==='near' ? 'far' : 'near';
+  // separation at release
+  const th=lastThrow(f); let sep=null, sepConf='poor';
+  if(th){ const fr=Math.round(th.t*FPS), rec=byId[th.target];
+    const nd=DEF.map(d=>dist(at(d,fr),at(rec,fr))).sort((a,b)=>a-b)[0];
+    const ok=(rec.state[fr]==='observed'||rec.state[fr]==='confirmed');
+    sep={yd:nd, rec, t:th.t, ok}; sepConf = ok && coverage(fr)>=11 ? 'good' : ok ? 'part' : 'poor'; }
+  // shape lag
+  const off=meanXY(OFF,f), def=meanXY(DEF,f);
+  const lagY=def[1]-off[1], goalSide=def[0]-off[0];
+  const covPct=cov/14;
+  const confFor=v=> v>=0.82?'good':v>=0.6?'part':'poor';
+  const cells=[];
+  cells.push(card('Coverage', cov+' of 14', 'in shot',
+    covPct>=.8?'good':covPct>=.6?'part':'poor',
+    cov===14?'Every player on the field is visible right now.':
+      (14-cov)+' player'+(14-cov>1?'s are':' is')+' outside the frame or hidden. Their markers below are the system’s best guess, not an observation.',
+    spark('cov', i=>coverage(i)/14, f)));
+  cells.push(card('Defensive shape', scheme, Math.round(meanStab*100)+'% matchup stability',
+    confFor(covPct), schemeNote, spark('stab', i=>{const s=stability(Math.max(i,Math.round(2*FPS)),2.0);
+      return DEF.reduce((a,d)=>a+s[d.id].stab,0)/7;}, f, 8)));
+  cells.push(card('Mark', 'On the '+side+' side', 'of '+held.slot+' · '+mark.dd.toFixed(1)+' yd off',
+    (stAt(mark.d,f)==='observed'&&stAt(held,f)==='observed')?'good':'part',
+    'The mark stands to the '+side+' side of the thrower, which pushes the throw toward the '+forced+' sideline. Which hand that favours depends on the thrower, so the tool reports the geometry, not the call.'));
+  if(sep) cells.push(card('Separation at release', sep.yd.toFixed(1)+' yd', sep.rec.slot+' · #'+sep.rec.jersey+' at '+sep.t.toFixed(1)+'s',
+    sepConf, sepConf==='good' ? 'Measured from an observed position at the moment the disc left the thrower’s hand.'
+      : sepConf==='part' ? 'The receiver was observed, but four or more players were off camera. Treat as approximate.'
+      : 'The receiver was not visible at release. This number comes from a predicted position and should not be quoted.'));
+  const deepest=OFF.reduce((a,b)=> at(a,f)[0]>at(b,f)[0]?a:b);
+  const nearD=DEF.map(d=>({d, dd:dist(at(d,f),at(deepest,f))})).sort((a,b)=>a.dd-b.dd)[0];
+  const behind=DEF.filter(d=>at(d,f)[0]>at(deepest,f)[0]);
+  const deepObs=(stAt(deepest,f)==='observed'||stAt(deepest,f)==='confirmed')&&(stAt(nearD.d,f)==='observed'||stAt(nearD.d,f)==='confirmed');
+  cells.push(card('Deep cover', nearD.dd.toFixed(1)+' yd', 'from '+deepest.slot+' \u00b7 #'+deepest.jersey+', the deepest threat',
+    deepObs?'good':'poor',
+    (behind.length? behind.length+' defender'+(behind.length>1?'s are':' is')+' still goal-side of '+deepest.slot+', so the deep space is accounted for.'
+                  : 'No defender is goal-side of '+deepest.slot+'. Nothing is behind the offence — a huck here only has to beat '+nearD.d.slot+'.')+
+    (deepObs?'':' Both positions are estimates right now, so treat the number as a direction, not a measurement.')));
+  cells.push(card('Shape lag', (Math.abs(lagY)).toFixed(1)+' yd', lagY>0?'defence sits to the far side':'defence sits to the near side',
+    confFor(covPct),
+    'Across the field, the defensive centre of mass is '+Math.abs(lagY).toFixed(1)+' yd '+(lagY>0?'far':'near')+' of the offence’s, and '+
+    Math.abs(goalSide).toFixed(1)+' yd '+(goalSide>0?'goal-side':'behind')+'. A spike here on a swing is the defence failing to shift with the disc.',
+    spark('lag', i=>{const a=meanXY(OFF,i), b=meanXY(DEF,i); return clamp((b[1]-a[1])/12+0.5,0,1)}, f)));
+  el.innerHTML=cells.join('');
+}
+function meanXY(list,f){ let x=0,y=0; for(const p of list){const e=at(p,f); x+=e[0]; y+=e[1];} return [x/list.length, y/list.length]; }
+function card(label, val, sub, conf, body, sparkSvg){
+  const confTxt={good:'measured',part:'partial',poor:'inferred'}[conf];
+  return '<div class="read'+(conf==='poor'?' dim':'')+'">'+
+    '<div class="top"><span class="lbl">'+label+'</span><span class="conf '+conf+'" style="margin-left:auto">'+confTxt+'</span></div>'+
+    '<div class="v'+(val.length>12?' sm':'')+'">'+val+'</div>'+
+    '<div class="lbl" style="color:var(--ink-2); letter-spacing:.04em; text-transform:none; font-size:12px">'+sub+'</div>'+
+    (sparkSvg||'')+'<p>'+body+'</p></div>';
+}
+function spark(key, fn, f, step){
+  step=step||3;
+  if(!sparkMemo[key]){
+    const pts=[]; const n=Math.ceil(NF/step);
+    for(let k=0;k<n;k++){ const i=Math.min(k*step,NF-1); pts.push([k/(n-1)*100, 100-clamp(fn(i),0,1)*88-6]); }
+    sparkMemo[key]={d:pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' '), pts, step, n};
+  }
+  const m=sparkMemo[key];
+  const cx=clamp(f/(NF-1),0,1)*100;
+  const cy=m.pts[clamp(Math.round(f/m.step),0,m.n-1)][1];
+  return '<svg class="spark" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">'+
+    '<path d="'+m.d+'" fill="none" stroke="'+css('--ink-3')+'" stroke-width="2.4" vector-effect="non-scaling-stroke"/>'+
+    '<line x1="'+cx.toFixed(1)+'" y1="0" x2="'+cx.toFixed(1)+'" y2="100" stroke="'+css('--ink')+'" stroke-width="1" vector-effect="non-scaling-stroke" opacity=".45"/>'+
+    '<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="3" fill="'+css('--ink')+'" vector-effect="non-scaling-stroke"/></svg>';
+}
+
+/* --------------------------------------------------------------- roster */
+const seenPct={}; P.forEach(p=>{ seenPct[p.id]=p.state.filter(s=>s==='observed'||s==='confirmed').length/NF; });
+function renderRoster(){
+  const f=S.f, m=assign(f), tb=document.querySelector('#roster tbody');
+  const rows=P.map(p=>{
+    const st=stAt(p,f);
+    const guard = p.team===D.possession.defense ? (byId[m[p.id].to].slot+' · '+m[p.id].d.toFixed(1)+' yd')
+      : (DEF.filter(d=>m[d.id].to===p.id).map(d=>d.slot).join(', ')||'— unguarded');
+    return '<tr class="row'+(p.id===S.sel?' sel':'')+'" data-id="'+p.id+'">'+
+      '<td><span class="dot" style="background:'+teamCol(p.team)+'; margin-right:6px"></span><b>'+p.slot+'</b></td>'+
+      '<td class="num">'+p.jersey+'</td>'+
+      '<td><span class="pill '+st+'">'+st+(st==='observed'?'':' ±'+p.sigma[f].toFixed(1)+' yd')+'</span></td>'+
+      '<td>'+bar(seenPct[p.id])+'</td>'+
+      '<td class="num">'+speed(p,f).toFixed(1)+' yd/s</td>'+
+      '<td style="color:var(--ink-2)">'+guard+'</td></tr>';
+  }).join('');
+  tb.innerHTML=rows;
+  tb.querySelectorAll('tr.row').forEach(tr=>tr.onclick=()=>{ S.sel = S.sel===tr.dataset.id?null:tr.dataset.id; draw(); });
+  document.getElementById('rosterNote').textContent = 'click a row to follow a player';
+}
+function bar(v){
+  const c = v>0.8?css('--ok') : v>0.6?css('--sol') : css('--flag');
+  return '<svg class="mini" viewBox="0 0 100 10" preserveAspectRatio="none"><rect x="0" y="0" width="100" height="10" fill="'+css('--surface-2')+'"/>'+
+    '<rect x="0" y="0" width="'+(v*100).toFixed(0)+'" height="10" fill="'+c+'"/></svg> <span class="num" style="font-size:11px;color:var(--ink-2)">'+Math.round(v*100)+'%</span>';
+}
+
+/* ---------------------------------------------------- issues + corrections */
+let ISSUES=[];
+function findIssues(){
+  const out=[];
+  // 1. identity exchange: two tracks that trade places in one frame
+  for(let f=1;f<NF;f++){
+    for(let a=0;a<P.length;a++) for(let b=a+1;b<P.length;b++){
+      const A=P[a],B=P[b];
+      if(A.team!==B.team) continue;
+      if(dist(at(A,f),at(B,f-1))<1.6 && dist(at(B,f),at(A,f-1))<1.6 &&
+         dist(at(A,f),at(A,f-1))>3.0 && dist(at(B,f),at(B,f-1))>3.0){
+        out.push({kind:'swap', sev:'high', f, a:A.id, b:B.id,
+          title:'Two tracks changed places at '+(f/FPS).toFixed(1)+'s',
+          body:A.slot+' (#'+A.jersey+') and '+B.slot+' (#'+B.jersey+') swapped identities in a single frame. '+
+               'Both are '+D.teams[A.team].name+', they crossed within about a yard, and no jersey number was legible at that range. '+
+               'Everything after this point may have the wrong names on it.'});
+        f+=Math.round(FPS); a=P.length; break;
+      }
+    }
+  }
+  // 2. long stretches with no observation
+  const coldStart=[];
+  for(const p of P){
+    let run=0, start=0;
+    for(let f=0;f<=NF;f++){
+      const unk = f<NF && (p.state[f]==='unknown');
+      if(unk){ if(run===0) start=f; run++; }
+      else { if(run> 1.5*FPS && start===0) coldStart.push({p, run});
+        else if(run> 1.5*FPS) out.push({kind:'gap', sev:'med', f:start+Math.round(run/2), pid:p.id,
+        title:p.slot+' unseen for '+(run/FPS).toFixed(1)+' s',
+        body:'From '+(start/FPS).toFixed(1)+'s to '+((start+run)/FPS).toFixed(1)+'s the camera never showed '+p.slot+
+             ' (#'+p.jersey+'). The marker on the overhead view is dead reckoning and drifts up to ±'+
+             Math.max(...p.sigma.slice(start,start+run)).toFixed(0)+' yd. Drag it to where you can see they actually were.'});
+        run=0; }
+    }
+  }
+  if(coldStart.length){
+    coldStart.sort((a,b)=>b.run-a.run);
+    out.push({kind:'cold', sev:'high', f:Math.round(coldStart[0].run*0.6), pid:coldStart[0].p.id,
+      title:coldStart.length+' player'+(coldStart.length>1?'s were':' was')+' never seen at the start of the possession',
+      body:coldStart.map(c=>c.p.slot+' (#'+c.p.jersey+', '+(c.run/FPS).toFixed(1)+'s)').join(', ')+
+        '. The camera opened tight on the handler set, so these players have no first observation to reason from — their opening positions are a formation assumption, not a measurement. '+
+        'Placing each of them once, from your own knowledge of the pull, fixes the whole opening.'});
+  }
+  ISSUES=out.sort((a,b)=> (a.sev==='high'?0:1)-(b.sev==='high'?0:1) || a.f-b.f);
+}
+function renderIssues(){
+  const host=document.getElementById('issues');
+  document.getElementById('issueCount').textContent = ISSUES.length ? (ISSUES.length>5?'showing 5 of '+ISSUES.length:ISSUES.length+' open') : 'all clear';
+  if(!ISSUES.length){ host.innerHTML='<div class="empty">Nothing flagged. Every track is either observed or bridged by less than a second and a half.</div>'; return; }
+  host.innerHTML=ISSUES.slice(0,5).map((is,i)=>
+    '<div class="issue"><div class="sev '+(is.sev==='high'?'':'low')+'"></div><div style="min-width:0">'+
+    '<h4>'+is.title+'</h4><p>'+is.body+'</p><div class="act">'+
+    '<button data-go="'+i+'">Go to '+(is.f/FPS).toFixed(1)+'s</button>'+
+    (is.kind==='swap'?'<button class="primary" data-fix="'+i+'">Swap them back</button>':
+     is.kind==='cold'?'<button data-mark="'+i+'">Place them</button>':
+                      '<button data-mark="'+i+'">Show me who to move</button>')+
+    '</div></div></div>').join('');
+  host.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{ const is=ISSUES[+b.dataset.go]; S.f=is.f; S.sel=is.a||is.pid; pause(); draw(); });
+  host.querySelectorAll('[data-fix]').forEach(b=>b.onclick=()=>applySwap(ISSUES[+b.dataset.fix]));
+  host.querySelectorAll('[data-mark]').forEach(b=>b.onclick=()=>{ const is=ISSUES[+b.dataset.mark];
+    S.f=is.f; S.sel=is.pid; pause(); draw();
+    document.getElementById('radarHint').textContent='Drag '+byId[is.pid].slot+' to where they really were';
+    rcv.scrollIntoView({block:'nearest', behavior:'smooth'}); });
+}
+function snapshot(ids){ S.undo.push(ids.map(id=>({id, est:byId[id].est.map(a=>a.slice()), state:byId[id].state.slice(), sigma:byId[id].sigma.slice()})));
+  if(S.undo.length>20) S.undo.shift(); }
+function restore(){ const snap=S.undo.pop(); if(!snap) return;
+  snap.forEach(s=>{ const p=byId[s.id]; p.est=s.est; p.state=s.state; p.sigma=s.sigma; });
+  S.log.pop(); invalidate(); renderAll(); }
+function invalidate(){ assignCache.length=0; stabCache.clear(); sparkMemo={}; }
+function applySwap(is){
+  const A=byId[is.a], B=byId[is.b]; snapshot([A.id,B.id]);
+  for(const k of ['est','state','sigma']){ const ta=A[k].slice(is.f), tb=B[k].slice(is.f);
+    A[k]=A[k].slice(0,is.f).concat(tb); B[k]=B[k].slice(0,is.f).concat(ta); }
+  S.log.push({t:is.f/FPS, txt:'Swapped '+A.slot+' and '+B.slot+' from '+(is.f/FPS).toFixed(1)+'s onward.'});
+  invalidate(); renderAll();
+}
+function applyAnchor(pid, f, x, y){
+  const p=byId[pid]; snapshot([pid]);
+  let lo=f; while(lo>0 && p.state[lo-1]!=='observed' && p.state[lo-1]!=='confirmed') lo--;
+  let hi=f; while(hi<NF-1 && p.state[hi+1]!=='observed' && p.state[hi+1]!=='confirmed') hi++;
+  const dx=x-p.est[f][0], dy=y-p.est[f][1];
+  for(let k=lo;k<=hi;k++){
+    const w = k<=f ? (f===lo?1:(k-lo)/(f-lo)) : (hi===f?1:1-(k-f)/(hi-f));
+    p.est[k]=[+(p.est[k][0]+dx*w).toFixed(2), +(p.est[k][1]+dy*w).toFixed(2)];
+    p.sigma[k]=+Math.max(0.3, p.sigma[k]*(1-0.75*w)).toFixed(2);
+    if(p.state[k]==='unknown'&&w>0.35) p.state[k]='predicted';
+  }
+  p.state[f]='confirmed'; p.sigma[f]=0.3;
+  S.log.push({t:f/FPS, txt:'Moved '+p.slot+' at '+(f/FPS).toFixed(1)+'s by '+Math.hypot(dx,dy).toFixed(1)+' yd. '+
+    ((hi-lo)/FPS).toFixed(1)+'s of estimated track re-fitted around it.'});
+  invalidate(); renderAll();
+}
+function renderLog(){
+  const el=document.getElementById('log');
+  if(!S.log.length){ el.innerHTML='<div class="empty">Nothing corrected yet. Corrections are kept separately from the tracking output — the raw result is never overwritten.</div>'; return; }
+  el.innerHTML=S.log.slice().reverse().map(l=>'<div class="logline"><span class="num">'+l.t.toFixed(1)+'s</span><span>'+l.txt+'</span></div>').join('');
+}
+
+/* ------------------------------------------------------------- transport */
+function fmt(f){ return (f/FPS).toFixed(2); }
+function renderTransport(){
+  document.getElementById('tNow').textContent=fmt(S.f);
+  document.getElementById('tTot').textContent=' / '+DUR.toFixed(2)+' s';
+  const u=S.f/(NF-1);
+  document.getElementById('fill').style.width=(u*100)+'%';
+  document.getElementById('head').style.left=(u*100)+'%';
+  const ev=D.events.filter(e=>Math.abs(e.t-S.f/FPS)<0.25)[0];
+  document.getElementById('evNow').textContent = ev ? (ev.type==='goal'?'GOAL':ev.type.toUpperCase()+' — '+ev.player) : '';
+  document.getElementById('rateBtn').textContent=S.rate.toFixed(1)+'×';
+}
+function buildScrub(){
+  const sc=document.getElementById('scrub');
+  D.events.filter(e=>e.type==='throw'||e.type==='goal').forEach(e=>{
+    const d=document.createElement('div'); d.className='ev';
+    d.style.left=(e.t/DUR*100)+'%'; d.style.background = e.type==='goal'?css('--ok'):css('--ink-3');
+    sc.appendChild(d);
+    const l=document.createElement('div'); l.className='evlab'; l.style.left=(e.t/DUR*100)+'%';
+    l.textContent = e.type==='goal'?'goal':'throw'; sc.appendChild(l);
+  });
+  const cb=document.getElementById('covbar');
+  for(let k=0;k<120;k++){ const i=Math.round(k/119*(NF-1)), v=coverage(i)/14;
+    const b=document.createElement('i'); b.style.background = v>=.8?css('--ok') : v>=.6?css('--sol') : css('--flag');
+    b.style.opacity=0.55; cb.appendChild(b); }
+}
+let raf=null, lastTs=0;
+function tick(ts){
+  if(!S.playing) return;
+  if(!lastTs) lastTs=ts;
+  const adv=(ts-lastTs)/1000*FPS*S.rate;
+  if(adv>=1){ S.f=S.f+Math.floor(adv); lastTs=ts;
+    if(S.f>=NF-1){ S.f=NF-1; pause(); draw(); return; } draw(); }
+  raf=requestAnimationFrame(tick);
+}
+function play(){ if(S.f>=NF-1) S.f=0; S.playing=true; lastTs=0;
+  document.getElementById('playIcon').innerHTML='<path d="M3 1.5h4v13H3zM9 1.5h4v13H9z"/>';
+  document.getElementById('playBtn').setAttribute('aria-label','Pause'); raf=requestAnimationFrame(tick); }
+function pause(){ S.playing=false; if(raf) cancelAnimationFrame(raf);
+  document.getElementById('playIcon').innerHTML='<path d="M3 1.5 14 8 3 14.5z"/>';
+  document.getElementById('playBtn').setAttribute('aria-label','Play'); }
+
+/* ----------------------------------------------------------- interaction */
+function nearestOnRadar(px,py){
+  let best=null,bd=15;
+  for(const p of P){ const e=at(p,S.f), d=Math.hypot(RX(e[0])-px, RY(e[1])-py); if(d<bd){bd=d;best=p} }
+  return best;
+}
+rcv.addEventListener('pointerdown', ev=>{
+  const r=rcv.getBoundingClientRect(), px=ev.clientX-r.left, py=ev.clientY-r.top;
+  const p=nearestOnRadar(px,py); if(!p) { S.sel=null; draw(); return; }
+  S.sel=p.id;
+  const st=stAt(p,S.f);
+  if(st!=='observed'){ S.drag={id:p.id, pos:at(p,S.f).slice()}; rcv.setPointerCapture(ev.pointerId);
+    document.getElementById('radarHint').textContent='Release to lock '+p.slot+' here'; }
+  draw();
+});
+rcv.addEventListener('pointermove', ev=>{
+  const r=rcv.getBoundingClientRect(), px=ev.clientX-r.left, py=ev.clientY-r.top;
+  if(S.drag){ S.drag.pos=[clamp(invX(px),0,FL), clamp(invY(py),0,FW)]; draw(); return; }
+  const p=nearestOnRadar(px,py); const id=p?p.id:null;
+  if(id!==S.hover){ S.hover=id; rcv.style.cursor = p && stAt(p,S.f)!=='observed' ? 'grab' : (p?'pointer':'default'); draw(); }
+});
+rcv.addEventListener('pointerup', ev=>{
+  if(S.drag){ const d=S.drag; S.drag=null;
+    applyAnchor(d.id, S.f, d.pos[0], d.pos[1]);
+    document.getElementById('radarHint').textContent='Drag a ghost to correct it'; }
+});
+vcv.addEventListener('click', ev=>{
+  const r=vcv.getBoundingClientRect(), k=IW/r.width;
+  const px=(ev.clientX-r.left)*k, py=(ev.clientY-r.top)*k;
+  let best=null,bd=70;
+  for(const p of P){ const e=at(p,S.f), q=proj(S.f,e[0],e[1],0.9); if(!q) continue;
+    const d=Math.hypot(q[0]-px,q[1]-py); if(d<bd){bd=d;best=p} }
+  S.sel = best ? (S.sel===best.id?null:best.id) : null; draw();
+});
+function togg(id,key,after){ const b=document.getElementById(id);
+  b.onclick=()=>{ S[key]=!S[key]; b.setAttribute('aria-pressed',String(S[key])); if(after) after(); draw(); }; }
+togg('tgOverlay','overlay'); togg('tgMatch','matchups'); togg('tgEdge','edge');
+togg('tgSpace','space'); togg('tgTrail','trails');
+document.getElementById('tgPin').onclick=function(){ const on=S.pin===null; S.pin=on?S.f:null;
+  this.setAttribute('aria-pressed',String(on)); this.textContent=on?'Pinned '+fmt(S.f)+'s':'Pin moment'; draw(); };
+document.getElementById('playBtn').onclick=()=>S.playing?pause():play();
+document.getElementById('stepB').onclick=()=>{pause(); S.f=clamp(S.f-1,0,NF-1); draw();};
+document.getElementById('stepF').onclick=()=>{pause(); S.f=clamp(S.f+1,0,NF-1); draw();};
+document.getElementById('rateBtn').onclick=()=>{ S.rate = S.rate===1?0.35:S.rate===0.35?0.6:1; renderTransport(); };
+document.getElementById('nextEv').onclick=()=>{ const e=nextEventAfter(S.f,['throw','goal']); if(e){pause(); S.f=Math.round(e.t*FPS); draw();} };
+document.getElementById('prevEv').onclick=()=>{ let prev=null;
+  for(const e of D.events) if((e.type==='throw'||e.type==='goal') && e.t < S.f/FPS-0.3) prev=e;
+  if(prev){pause(); S.f=Math.round(prev.t*FPS); draw();} };
+document.getElementById('undoBtn').onclick=restore;
+const sc=document.getElementById('scrub');
+function seekFromEvent(ev){ const r=sc.getBoundingClientRect();
+  S.f=clamp(Math.round((ev.clientX-r.left)/r.width*(NF-1)),0,NF-1); draw(); }
+sc.addEventListener('pointerdown', ev=>{ pause(); sc.setPointerCapture(ev.pointerId); sc.__d=true; seekFromEvent(ev); });
+sc.addEventListener('pointermove', ev=>{ if(sc.__d) seekFromEvent(ev); });
+sc.addEventListener('pointerup', ()=>sc.__d=false);
+sc.addEventListener('keydown', ev=>{ if(ev.key==='ArrowRight'){S.f=clamp(S.f+3,0,NF-1);draw();ev.preventDefault();}
+  if(ev.key==='ArrowLeft'){S.f=clamp(S.f-3,0,NF-1);draw();ev.preventDefault();} });
+document.addEventListener('keydown', ev=>{
+  if(ev.target.tagName==='INPUT') return;
+  if(ev.code==='Space'){ ev.preventDefault(); S.playing?pause():play(); }
+  else if(ev.key==='ArrowRight'){ pause(); S.f=clamp(S.f+(ev.shiftKey?15:1),0,NF-1); draw(); }
+  else if(ev.key==='ArrowLeft'){ pause(); S.f=clamp(S.f-(ev.shiftKey?15:1),0,NF-1); draw(); }
+  else if(ev.key==='Escape'){ S.sel=null; draw(); }
+});
+document.getElementById('themeBtn').onclick=()=>{
+  const cur=document.documentElement.getAttribute('data-theme');
+  const next = cur==='dark' ? 'light' : cur==='light' ? null : 'dark';
+  if(next) document.documentElement.setAttribute('data-theme',next);
+  else document.documentElement.removeAttribute('data-theme');
+  sparkMemo={}; renderAll();
+};
+document.getElementById('shareBtn').onclick=function(){
+  const url=location.origin+location.pathname+'#t='+fmt(S.f);
+  navigator.clipboard?.writeText(url).then(()=>{ this.textContent='Link copied'; setTimeout(()=>this.textContent='Copy link to this moment',1600); })
+    .catch(()=>{ this.textContent='#t='+fmt(S.f); });
+};
+
+/* ------------------------------------------------------------------ boot */
+function draw(){
+  drawVideo(); drawRadar(); renderTransport(); renderReads(); renderRoster();
+  const cov=coverage(S.f);
+  document.getElementById('videoHint').textContent =
+    fmt(S.f)+'s · '+cov+'/14 in shot' + (S.sel?' · following '+byId[S.sel].slot:'');
+  history.replaceState(null,'','#t='+fmt(S.f));
+}
+function renderAll(){ findIssues(); renderIssues(); renderLog(); draw(); }
+buildScrub(); findIssues(); renderIssues(); renderLog(); draw();
+window.addEventListener('resize', ()=>{ radarFit(); draw(); });
+})();
+</script>
+</html>

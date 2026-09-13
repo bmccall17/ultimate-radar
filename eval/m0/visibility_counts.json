@@ -1,0 +1,72 @@
+{
+  "schema": "ultimate-radar/m0-visibility@1",
+  "question": "docs/04-milestones.md M0 Q6 - how many of the 14 on-field players are visible",
+  "source": "raw/sol-vs-windchill-2026-semi.mp4",
+  "sample": {
+    "method": "tools.survey random",
+    "n": 40,
+    "seed": 20260827,
+    "range_s": [0.0, 8546.8]
+  },
+  "counting_method": [
+    "Each frame classified by eye as wide / medium / tight / not-live-play.",
+    "On-field players counted by hand at full resolution. Blob boxes from",
+    "tools.measure were rendered over the frame and used only as a magnifier so",
+    "that 10-pixel players are not missed; the count is the human's, not the",
+    "detector's.",
+    "Referees, camera operators, photographers and sideline players are NOT",
+    "counted. A player is 'visible' if any part of them is in frame and they can",
+    "be identified as a player.",
+    "Expect +/- 1 disagreement between counters on the crowded frames."
+  ],
+  "counted_by": "claude-opus-5, 2026-09-12",
+  "frames": [
+    {"t": 1092.0, "file": "005_t1092.0.png", "framing": "wide", "visible": 13},
+    {"t": 1292.1, "file": "006_t1292.1.png", "framing": "wide", "visible": 11},
+    {"t": 1480.9, "file": "008_t1480.9.png", "framing": "wide", "visible": 11},
+    {"t": 1569.5, "file": "009_t1569.5.png", "framing": "wide", "visible": 8},
+    {"t": 1615.7, "file": "010_t1615.7.png", "framing": "medium", "visible": 5},
+    {"t": 2572.6, "file": "012_t2572.6.png", "framing": "medium", "visible": 6},
+    {"t": 2835.3, "file": "013_t2835.3.png", "framing": "wide", "visible": 8},
+    {"t": 2966.5, "file": "014_t2966.5.png", "framing": "wide", "visible": 14},
+    {"t": 3247.5, "file": "015_t3247.5.png", "framing": "wide", "visible": 14,
+     "note": "very wide, pre-pull setup"},
+    {"t": 3471.4, "file": "016_t3471.4.png", "framing": "tight", "visible": 2},
+    {"t": 3474.7, "file": "017_t3474.7.png", "framing": "medium", "visible": 5},
+    {"t": 5307.7, "file": "023_t5307.7.png", "framing": "tight", "visible": 1},
+    {"t": 5401.7, "file": "024_t5401.7.png", "framing": "medium", "visible": 4},
+    {"t": 5513.7, "file": "025_t5513.7.png", "framing": "wide", "visible": 6,
+     "note": "stoppage - referee signalling"},
+    {"t": 5703.7, "file": "026_t5703.7.png", "framing": "wide", "visible": 13},
+    {"t": 5899.4, "file": "027_t5899.4.png", "framing": "medium", "visible": 6},
+    {"t": 5999.0, "file": "028_t5999.0.png", "framing": "wide", "visible": 5,
+     "note": "camera on empty field between points"},
+    {"t": 7285.1, "file": "033_t7285.1.png", "framing": "wide", "visible": 8},
+    {"t": 7291.7, "file": "034_t7291.7.png", "framing": "wide", "visible": 11},
+    {"t": 7386.8, "file": "035_t7386.8.png", "framing": "wide", "visible": 13},
+    {"t": 7733.1, "file": "038_t7733.1.png", "framing": "wide", "visible": 10}
+  ],
+  "not_live_play": {
+    "n": 19,
+    "files": ["000_t82.4", "001_t371.2", "002_t391.6", "003_t490.7", "004_t825.7",
+              "007_t1414.0", "011_t1981.6", "018_t3727.6", "019_t3947.8",
+              "020_t4337.8", "021_t4491.6", "022_t4930.3", "029_t6522.9",
+              "030_t6597.3", "031_t6631.6", "032_t6910.5", "036_t7599.2",
+              "037_t7642.7", "039_t8459.2"],
+    "note": "031_t6631.6 is a non-game segment - different uniforms, looks like a halftime or celebration set piece - so it is excluded from the live-play statistics rather than counted as zero."
+  },
+  "summary": {
+    "broadcast_usable_share": {"wide": 0.350, "medium_or_tight": 0.175, "not_live_play": 0.475},
+    "wide": {"n": 14, "sum": 145, "mean": 10.36, "median": 11, "min": 5, "max": 14},
+    "medium_or_tight": {"n": 7, "sum": 29, "mean": 4.14, "median": 5, "min": 1, "max": 6},
+    "all_live_play": {"n": 21, "sum": 174, "mean": 8.29, "median": 8, "min": 1, "max": 14}
+  },
+  "chosen_possession_p0001": {
+    "method": "same hand count on work/p0001/frames",
+    "counts": [{"frame": 0, "visible": 11},
+               {"frame": 180, "visible": 14},
+               {"frame": 345, "visible": 12}],
+    "mean": 12.33,
+    "note": "This, not the broadcast-wide figure, is what the M4 observed-fraction gate should be compared against."
+  }
+}

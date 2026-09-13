@@ -1,0 +1,12 @@
+{
+  "span_s": 8546.8,
+  "cut_threshold": 0.35,
+  "candidates_above_loose": 7262,
+  "cuts": 403,
+  "cuts_per_minute": 2.829,
+  "median_shot_s": 6.11,
+  "p10_shot_s": 0.5,
+  "p90_shot_s": 66.6,
+  "shots_under_5s": 189,
+  "shots_over_30s": 78
+}

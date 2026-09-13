@@ -1,0 +1,7 @@
+﻿# Media and derived artefacts — never committed.
+raw/
+work/
+survey/
+.venv/
+__pycache__/
+*.pyc

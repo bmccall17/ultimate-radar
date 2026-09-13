@@ -1,0 +1,23 @@
+{
+  "n": 333,
+  "dark_cluster": {
+    "n": 219,
+    "L_mean": 31.8,
+    "L_sd": 11.9,
+    "L_p95": 49.1,
+    "a_mean": -4.6,
+    "b_mean": 6.3
+  },
+  "light_cluster": {
+    "n": 114,
+    "L_mean": 66.6,
+    "L_sd": 12.8,
+    "L_p05": 50.1,
+    "a_mean": -0.8,
+    "b_mean": 17.0
+  },
+  "centre_separation_deltaE": 36.6,
+  "L_threshold": 49.2,
+  "blobs_on_wrong_side_of_L_threshold": 15,
+  "seed": 20260827
+}
