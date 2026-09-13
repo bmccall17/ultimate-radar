@@ -110,6 +110,54 @@ def cmd_render(a) -> int:
     return 0
 
 
+
+def specified_detectors(trk: dict) -> dict:
+    """Run the two detectors `docs/05-uncertainty.md` specifies for M5.
+
+    The M4 gate is "at most two identity switches, **and every one detected by
+    the M5 swap detector**". M5 does not exist, but its detectors are specified
+    precisely enough to run, so the second clause can be answered now rather than
+    deferred - and the answer is the interesting part.
+    """
+    import itertools
+
+    S = {x["slot"]: x for x in trk["slots"]}
+    team = {x["slot"]: x["team"] for x in trk["slots"]}
+    nf = len(trk["slots"][0]["samples"])
+
+    def xy(slot, f):
+        v = S[slot]["samples"][f]["xy"]
+        return None if v is None else np.array(v, float)
+
+    exchange = []
+    for a, b in itertools.combinations(S, 2):
+        if team[a] != team[b]:
+            continue
+        for f in range(1, nf):
+            Af, Ap, Bf, Bp = xy(a, f), xy(a, f - 1), xy(b, f), xy(b, f - 1)
+            if any(v is None for v in (Af, Ap, Bf, Bp)):
+                continue
+            if (np.hypot(*(Af - Bp)) < 1.6 and np.hypot(*(Bf - Ap)) < 1.6
+                    and np.hypot(*(Af - Ap)) > 3.0 and np.hypot(*(Bf - Bp)) > 3.0):
+                exchange.append({"frame": f, "slots": [a, b]})
+
+    blind = []
+    for x in trk["slots"]:
+        run, start = 0, None
+        for smp in x["samples"]:
+            if smp["state"] == "unknown":
+                start = smp["f"] if run == 0 else start
+                run += 1
+            else:
+                if run > 22:           # more than 1.5 s at 15 fps
+                    blind.append({"slot": x["slot"], "from": start, "frames": run})
+                run = 0
+        if run > 22:
+            blind.append({"slot": x["slot"], "from": start, "frames": run})
+
+    return {"identity_exchange": exchange, "long_blind_stretch": blind}
+
+
 def cmd_score(a) -> int:
     """Count identity switches, and everything else the labels can answer."""
     work, out = Path(a.work), Path(a.out)
@@ -159,17 +207,36 @@ def cmd_score(a) -> int:
     # and the roster constraint does not prevent it.
     dupes = []
     per_frame: dict[int, dict[int, list[str]]] = defaultdict(lambda: defaultdict(list))
+    team_of = {x["slot"]: x["team"] for x in trk["slots"]}
     for slot, seq in seen.items():
         for f, j in seq:
-            per_frame[f][j].append(slot)
+            # Key on (team, jersey): both teams field a #28, so a bare jersey
+            # number is not an identity and would raise a false duplicate.
+            per_frame[f][(team_of[slot], j)].append(slot)
     for f, js in sorted(per_frame.items()):
-        for j, slots_ in js.items():
+        for (team, j), slots_ in js.items():
             if len(slots_) > 1:
-                dupes.append({"frame": f, "jersey": j, "slots": sorted(slots_)})
+                dupes.append({"frame": f, "team": team, "jersey": j,
+                              "slots": sorted(slots_)})
 
     labelled = [r for r in truth_doc["labels"]]
     legible = sum(1 for r in labelled if r.get("jersey") is not None)
     nonplayers = sum(1 for r in labelled if r.get("not_player"))
+    # Only legible readings are written, so the denominator for legibility is the
+    # number of crops examined, recorded when the labels were made.
+    examined = int(truth_doc.get("detections_examined", len(labelled)))
+
+    det5 = specified_detectors(trk)
+    # Would M5's specified detectors have caught the switches that happened?
+    caught = []
+    for sw in switches:
+        a, b = sw["from_frame"], sw["at_frame"]
+        by_exchange = any(a <= e["frame"] <= b and sw["slot"] in e["slots"]
+                          for e in det5["identity_exchange"])
+        by_blind = any(x["slot"] == sw["slot"] and a <= x["from"] <= b
+                       for x in det5["long_blind_stretch"])
+        caught.append({**sw, "caught_by_identity_exchange": by_exchange,
+                       "caught_by_long_blind_stretch": by_blind})
 
     res = {
         "schema": "ultimate-radar/m4-identity-acceptance@1",
@@ -177,15 +244,38 @@ def cmd_score(a) -> int:
         "labelled_by": truth_doc.get("labelled_by"),
         "caveats": truth_doc.get("caveats"),
         "labelled_frames": sorted(frames),
+        "detections_examined": examined,
         "detections_labelled": len(labelled),
         "jersey_legible": legible,
-        "jersey_legible_fraction": round(legible / max(len(labelled), 1), 3),
+        "jersey_legible_fraction": round(legible / max(examined, 1), 3),
         "labelled_as_non_player": nonplayers,
         "tracker_observations_with_a_label": n_obs_labelled,
         "gate": {"identity_switches": 2},
         "identity_switches": len(switches),
         "pass_switches": bool(len(switches) <= 2),
-        "switch_detail": switches,
+        "switch_detail": caught,
+        "gate_second_clause": {
+            "requirement": "every switch detected by the M5 swap detector "
+                           "(docs/04 M4)",
+            "detectors_run": "docs/05 'identity exchange' and 'long blind stretch', "
+                             "implemented from their written specifications",
+            "identity_exchange_fires_all_possession": len(det5["identity_exchange"]),
+            "long_blind_stretch_fires_all_possession": len(det5["long_blind_stretch"]),
+            "switches_caught": sum(1 for c in caught
+                                   if c["caught_by_identity_exchange"]
+                                   or c["caught_by_long_blind_stretch"]),
+            "pass": bool(caught) and all(c["caught_by_identity_exchange"]
+                                         or c["caught_by_long_blind_stretch"]
+                                         for c in caught),
+            "why": "The identity-exchange rule looks for a single-frame crossing - "
+                   "two slots exchanging position between f-1 and f while both move "
+                   "more than 3 yd. Both switches measured here happen across a "
+                   "DROPOUT instead: the slot stops being observed for 1.8 s and "
+                   "3.3 s and re-acquires onto a different person, so there is no "
+                   "crossing frame to see. The blind-stretch rule misses them too, "
+                   "because it triggers on `unknown` and these gaps were spent "
+                   "mostly in `predicted`.",
+        },
         "same_person_in_two_slots": dupes,
         "non_player_in_a_slot": {k: v for k, v in nonplayer_hits.items()},
         "per_slot": per_slot,
@@ -193,9 +283,9 @@ def cmd_score(a) -> int:
     (out / "m4_identity_acceptance.json").write_text(
         json.dumps(res, indent=2) + chr(10), encoding="utf-8")
 
-    print(f"  labelled          : {len(labelled)} detections over {len(frames)} frames "
+    print(f"  examined          : {examined} detections over {len(frames)} frames "
           f"at {LABEL_HZ} Hz")
-    print(f"  jersey legible    : {legible} ({legible / max(len(labelled),1):.0%})")
+    print(f"  jersey legible    : {legible} ({legible / max(examined,1):.0%})")
     print(f"  non-players found : {nonplayers}")
     print(f"  tracker obs with a readable number: {n_obs_labelled}")
     print(f"  identity switches : {len(switches)}   (gate <= 2)  "
@@ -203,10 +293,17 @@ def cmd_score(a) -> int:
     for sw in switches:
         print(f"      {sw['slot']:>3}  f{sw['from_frame']:>3} #{sw['from_jersey']} "
               f"-> f{sw['at_frame']:>3} #{sw['to_jersey']}")
+    g2 = res["gate_second_clause"]
+    print(f"  M5 detectors      : identity-exchange fires "
+          f"{g2['identity_exchange_fires_all_possession']} times all possession, "
+          f"blind-stretch {g2['long_blind_stretch_fires_all_possession']}")
+    print(f"  switches caught   : {g2['switches_caught']}/{len(caught)}   "
+          f"(gate: all of them)  {'PASS' if g2['pass'] else 'FAIL'}")
     if dupes:
         print(f"  same person in two slots at once: {len(dupes)}")
         for d in dupes[:10]:
-            print(f"      f{d['frame']:>4} #{d['jersey']} in {', '.join(d['slots'])}")
+            print(f"      f{d['frame']:>4} {d['team']} #{d['jersey']} "
+                  f"in {', '.join(d['slots'])}")
     if nonplayer_hits:
         print("  non-player occupying a slot:")
         for k, v in sorted(nonplayer_hits.items()):

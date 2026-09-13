@@ -1,0 +1,312 @@
+{
+ "schema": "ultimate-radar/m4-identity-labels@1",
+ "possession": "p0001",
+ "labelled_by": "claude-opus-5, 2026-09-13",
+ "frames_source": "tools.m4_label render work/p0001 (1 Hz: frames 0, 15, ... 345)",
+ "detections_examined": 241,
+ "what_was_judged": [
+  "Every in-bounds, non-weak_team, positioned detection on the 24 one-Hz frames",
+  "was rendered as a torso crop at 6x and looked at. A jersey number was recorded",
+  "only where it could be read with confidence; everything else is simply absent",
+  "from `labels` rather than guessed.",
+  "",
+  "Identity is (team, jersey). Both teams have a #28, so the jersey alone is not",
+  "an identity and the scorer must key on the pair."
+ ],
+ "caveats": [
+  "These are the agent's own readings, not an independent human's.",
+  "",
+  "**Legibility is far lower than the probe suggested and it is not uniform.**",
+  "The probe that justified this approach sampled frames 30, 105 and 180 and",
+  "found about half of crops readable. Over all 24 frames it is 52 of 241, about",
+  "22 %, and it tracks camera distance hard: the sheet covering f165-f210, where",
+  "the camera is closest, is around 50 % legible, while the sheets covering the",
+  "wide opening (f15-f105) and the wide ending (f270-f345) are nearer 12 %.",
+  "",
+  "The consequence is stated rather than worked around: this measurement has good",
+  "sensitivity to an identity switch in the middle third of the possession and",
+  "poor sensitivity at either end. A switch during the opening or closing seconds",
+  "could go unseen. It is not evidence that none happened there.",
+  "",
+  "**Three readings were withdrawn after scoring, and the mechanism that caught",
+  "them is worth keeping.** Two pairs of detections were read as the same number",
+  "on the same frame while being 6.1 and 23.5 yd apart - and two people cannot",
+  "wear one number. That is a consistency check the labels perform on themselves,",
+  "and it fired twice on 52 readings. Both pairs were re-rendered at 9x; neither",
+  "resolved, so all three readings involved were withdrawn rather than one of",
+  "each pair being picked. Withdrawing costs sensitivity; picking would have",
+  "invented a fact.",
+  "",
+  "That also implies a reading error rate of very roughly 2 to 3 in 52 for the",
+  "readings that survive, since only conflicts that happen to collide on one",
+  "frame are detectable at all."
+ ],
+ "labels": [
+  {
+   "f": 15,
+   "i": 1,
+   "jersey": 5
+  },
+  {
+   "f": 30,
+   "i": 4,
+   "jersey": 5
+  },
+  {
+   "f": 45,
+   "i": 4,
+   "jersey": 5
+  },
+  {
+   "f": 45,
+   "i": 12,
+   "jersey": 50
+  },
+  {
+   "f": 75,
+   "i": 7,
+   "jersey": 3
+  },
+  {
+   "f": 90,
+   "i": 2,
+   "jersey": 28
+  },
+  {
+   "f": 90,
+   "i": 3,
+   "jersey": 4
+  },
+  {
+   "f": 90,
+   "i": 11,
+   "jersey": 3
+  },
+  {
+   "f": 105,
+   "i": 2,
+   "jersey": 28
+  },
+  {
+   "f": 105,
+   "i": 8,
+   "jersey": 4
+  },
+  {
+   "f": 120,
+   "i": 0,
+   "jersey": 5
+  },
+  {
+   "f": 120,
+   "i": 1,
+   "jersey": 50
+  },
+  {
+   "f": 135,
+   "i": 0,
+   "jersey": 50
+  },
+  {
+   "f": 135,
+   "i": 8,
+   "jersey": 5
+  },
+  {
+   "f": 165,
+   "i": 6,
+   "jersey": 23
+  },
+  {
+   "f": 165,
+   "i": 10,
+   "jersey": 28
+  },
+  {
+   "f": 165,
+   "i": 11,
+   "jersey": 4
+  },
+  {
+   "f": 180,
+   "i": 1,
+   "jersey": 23
+  },
+  {
+   "f": 180,
+   "i": 4,
+   "jersey": 28
+  },
+  {
+   "f": 180,
+   "i": 5,
+   "jersey": 4
+  },
+  {
+   "f": 180,
+   "i": 7,
+   "jersey": 5
+  },
+  {
+   "f": 180,
+   "i": 9,
+   "jersey": 23
+  },
+  {
+   "f": 180,
+   "i": 13,
+   "jersey": 3
+  },
+  {
+   "f": 195,
+   "i": 0,
+   "jersey": 28
+  },
+  {
+   "f": 195,
+   "i": 3,
+   "jersey": 28
+  },
+  {
+   "f": 195,
+   "i": 5,
+   "jersey": 51
+  },
+  {
+   "f": 195,
+   "i": 7,
+   "jersey": 3
+  },
+  {
+   "f": 195,
+   "i": 9,
+   "jersey": 5
+  },
+  {
+   "f": 195,
+   "i": 14,
+   "jersey": 4
+  },
+  {
+   "f": 210,
+   "i": 0,
+   "jersey": 28
+  },
+  {
+   "f": 210,
+   "i": 1,
+   "jersey": 28
+  },
+  {
+   "f": 210,
+   "i": 2,
+   "jersey": 50
+  },
+  {
+   "f": 210,
+   "i": 3,
+   "jersey": 51
+  },
+  {
+   "f": 210,
+   "i": 6,
+   "jersey": 23
+  },
+  {
+   "f": 210,
+   "i": 7,
+   "jersey": 5
+  },
+  {
+   "f": 210,
+   "i": 8,
+   "jersey": 3
+  },
+  {
+   "f": 210,
+   "i": 13,
+   "jersey": 4
+  },
+  {
+   "f": 225,
+   "i": 1,
+   "jersey": 28
+  },
+  {
+   "f": 225,
+   "i": 2,
+   "jersey": 50
+  },
+  {
+   "f": 225,
+   "i": 3,
+   "jersey": 4
+  },
+  {
+   "f": 225,
+   "i": 4,
+   "jersey": 23
+  },
+  {
+   "f": 225,
+   "i": 7,
+   "jersey": 5
+  },
+  {
+   "f": 225,
+   "i": 10,
+   "jersey": 3
+  },
+  {
+   "f": 240,
+   "i": 0,
+   "jersey": 28
+  },
+  {
+   "f": 240,
+   "i": 1,
+   "jersey": 50
+  },
+  {
+   "f": 240,
+   "i": 11,
+   "jersey": 5
+  },
+  {
+   "f": 300,
+   "i": 7,
+   "jersey": 23
+  },
+  {
+   "f": 345,
+   "i": 3,
+   "jersey": 4
+  }
+ ],
+ "withdrawn_readings": [
+  {
+   "f": 30,
+   "i": 0,
+   "read_as": 5,
+   "why": "conflicted with f30 #4, also read 5, 6.1 yd away - two different people cannot share a number. Re-rendered at 9x (ident_recheck.png): this one's number is half behind the player's arm and could be the 5 of a 51. Withdrawn rather than guessed."
+  },
+  {
+   "f": 180,
+   "i": 2,
+   "read_as": 51,
+   "why": "conflicted with f180 #11, also read 51, 23.5 yd away. At 9x the second glyph could be a 1 or a 7 and I cannot tell which of the pair is wrong, so both are withdrawn."
+  },
+  {
+   "f": 180,
+   "i": 11,
+   "read_as": 51,
+   "why": "the other half of the f180 conflict; see above."
+  },
+  {
+   "f": 255,
+   "i": 2,
+   "read_as": 23,
+   "why": "Its slot, D7, was observed in every one of the 16 frames from f240 to f255 and never moved more than 0.3 yd between them. A continuously tracked slot moving sub-yard cannot have changed which person it holds, so a jersey change across that span had to be a reading error. That argument only chose which crop to re-examine; the decision came from the image, at 10x (d7_recheck.png): the second glyph is behind the player's arm and my reading was unreliable. Withdrawn rather than corrected to 28 - inferring 28 would use the tracker's own continuity, which is circular for a gate that measures the tracker."
+  }
+ ]
+}

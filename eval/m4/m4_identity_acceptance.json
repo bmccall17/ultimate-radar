@@ -1,0 +1,227 @@
+{
+  "schema": "ultimate-radar/m4-identity-acceptance@1",
+  "possession": "p0001",
+  "labelled_by": "claude-opus-5, 2026-09-13",
+  "caveats": [
+    "These are the agent's own readings, not an independent human's.",
+    "",
+    "**Legibility is far lower than the probe suggested and it is not uniform.**",
+    "The probe that justified this approach sampled frames 30, 105 and 180 and",
+    "found about half of crops readable. Over all 24 frames it is 52 of 241, about",
+    "22 %, and it tracks camera distance hard: the sheet covering f165-f210, where",
+    "the camera is closest, is around 50 % legible, while the sheets covering the",
+    "wide opening (f15-f105) and the wide ending (f270-f345) are nearer 12 %.",
+    "",
+    "The consequence is stated rather than worked around: this measurement has good",
+    "sensitivity to an identity switch in the middle third of the possession and",
+    "poor sensitivity at either end. A switch during the opening or closing seconds",
+    "could go unseen. It is not evidence that none happened there.",
+    "",
+    "**Three readings were withdrawn after scoring, and the mechanism that caught",
+    "them is worth keeping.** Two pairs of detections were read as the same number",
+    "on the same frame while being 6.1 and 23.5 yd apart - and two people cannot",
+    "wear one number. That is a consistency check the labels perform on themselves,",
+    "and it fired twice on 52 readings. Both pairs were re-rendered at 9x; neither",
+    "resolved, so all three readings involved were withdrawn rather than one of",
+    "each pair being picked. Withdrawing costs sensitivity; picking would have",
+    "invented a fact.",
+    "",
+    "That also implies a reading error rate of very roughly 2 to 3 in 52 for the",
+    "readings that survive, since only conflicts that happen to collide on one",
+    "frame are detectable at all."
+  ],
+  "labelled_frames": [
+    0,
+    15,
+    30,
+    45,
+    60,
+    75,
+    90,
+    105,
+    120,
+    135,
+    150,
+    165,
+    180,
+    195,
+    210,
+    225,
+    240,
+    255,
+    270,
+    285,
+    300,
+    315,
+    330,
+    345
+  ],
+  "detections_examined": 241,
+  "detections_labelled": 48,
+  "jersey_legible": 48,
+  "jersey_legible_fraction": 0.199,
+  "labelled_as_non_player": 0,
+  "tracker_observations_with_a_label": 48,
+  "gate": {
+    "identity_switches": 2
+  },
+  "identity_switches": 2,
+  "pass_switches": true,
+  "switch_detail": [
+    {
+      "slot": "D1",
+      "at_frame": 345,
+      "from_jersey": 5,
+      "to_jersey": 4,
+      "from_frame": 240,
+      "caught_by_identity_exchange": false,
+      "caught_by_long_blind_stretch": false
+    },
+    {
+      "slot": "D2",
+      "at_frame": 180,
+      "from_jersey": 5,
+      "to_jersey": 23,
+      "from_frame": 15,
+      "caught_by_identity_exchange": false,
+      "caught_by_long_blind_stretch": false
+    }
+  ],
+  "gate_second_clause": {
+    "requirement": "every switch detected by the M5 swap detector (docs/04 M4)",
+    "detectors_run": "docs/05 'identity exchange' and 'long blind stretch', implemented from their written specifications",
+    "identity_exchange_fires_all_possession": 0,
+    "long_blind_stretch_fires_all_possession": 3,
+    "switches_caught": 0,
+    "pass": false,
+    "why": "The identity-exchange rule looks for a single-frame crossing - two slots exchanging position between f-1 and f while both move more than 3 yd. Both switches measured here happen across a DROPOUT instead: the slot stops being observed for 1.8 s and 3.3 s and re-acquires onto a different person, so there is no crossing frame to see. The blind-stretch rule misses them too, because it triggers on `unknown` and these gaps were spent mostly in `predicted`."
+  },
+  "same_person_in_two_slots": [],
+  "non_player_in_a_slot": {},
+  "per_slot": {
+    "O1": {
+      "labelled_observations": 5,
+      "distinct_jerseys": [
+        28
+      ],
+      "modal_jersey": 28,
+      "switches": 0,
+      "non_player_observations": 0
+    },
+    "O2": {
+      "labelled_observations": 3,
+      "distinct_jerseys": [
+        23
+      ],
+      "modal_jersey": 23,
+      "switches": 0,
+      "non_player_observations": 0
+    },
+    "O3": {
+      "labelled_observations": 6,
+      "distinct_jerseys": [
+        3
+      ],
+      "modal_jersey": 3,
+      "switches": 0,
+      "non_player_observations": 0
+    },
+    "O4": {
+      "labelled_observations": 6,
+      "distinct_jerseys": [
+        50
+      ],
+      "modal_jersey": 50,
+      "switches": 0,
+      "non_player_observations": 0
+    },
+    "O5": {
+      "labelled_observations": 0,
+      "distinct_jerseys": [],
+      "modal_jersey": null,
+      "switches": 0,
+      "non_player_observations": 0
+    },
+    "O6": {
+      "labelled_observations": 1,
+      "distinct_jerseys": [
+        28
+      ],
+      "modal_jersey": 28,
+      "switches": 0,
+      "non_player_observations": 0
+    },
+    "O7": {
+      "labelled_observations": 0,
+      "distinct_jerseys": [],
+      "modal_jersey": null,
+      "switches": 0,
+      "non_player_observations": 0
+    },
+    "D1": {
+      "labelled_observations": 5,
+      "distinct_jerseys": [
+        4,
+        5
+      ],
+      "modal_jersey": 5,
+      "switches": 1,
+      "non_player_observations": 0
+    },
+    "D2": {
+      "labelled_observations": 4,
+      "distinct_jerseys": [
+        5,
+        23
+      ],
+      "modal_jersey": 23,
+      "switches": 1,
+      "non_player_observations": 0
+    },
+    "D3": {
+      "labelled_observations": 1,
+      "distinct_jerseys": [
+        51
+      ],
+      "modal_jersey": 51,
+      "switches": 0,
+      "non_player_observations": 0
+    },
+    "D4": {
+      "labelled_observations": 5,
+      "distinct_jerseys": [
+        5
+      ],
+      "modal_jersey": 5,
+      "switches": 0,
+      "non_player_observations": 0
+    },
+    "D5": {
+      "labelled_observations": 7,
+      "distinct_jerseys": [
+        4
+      ],
+      "modal_jersey": 4,
+      "switches": 0,
+      "non_player_observations": 0
+    },
+    "D6": {
+      "labelled_observations": 1,
+      "distinct_jerseys": [
+        51
+      ],
+      "modal_jersey": 51,
+      "switches": 0,
+      "non_player_observations": 0
+    },
+    "D7": {
+      "labelled_observations": 4,
+      "distinct_jerseys": [
+        28
+      ],
+      "modal_jersey": 28,
+      "switches": 0,
+      "non_player_observations": 0
+    }
+  }
+}
