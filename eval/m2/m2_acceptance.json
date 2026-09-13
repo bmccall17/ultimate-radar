@@ -1,0 +1,227 @@
+{
+  "possession": "p0001",
+  "n_frames": 20,
+  "labelled_by": "claude-opus-5, 2026-09-12",
+  "caveats": [
+    "These are the agent's own labels, not an independent human's, so recall is",
+    "measured against the agent's judgement of what counts as an on-field player.",
+    "Per-frame counts carry roughly +/-1 on the crowded frames.",
+    "The systematic question the gate exists to answer - is a whole class of",
+    "player being missed - does not depend on that precision, and the answer is",
+    "that the only misses are overlapping pairs."
+  ],
+  "truth_players": 236,
+  "found": 233,
+  "missed": 3,
+  "false_positives_in_bounds": 27,
+  "recall": 0.9873,
+  "false_positives_per_frame": 1.35,
+  "gate": {
+    "recall": 0.95,
+    "fp_per_frame": 1.0
+  },
+  "pass_recall": true,
+  "pass_fp": false,
+  "per_frame": [
+    {
+      "frame": 37,
+      "in_bounds": 14,
+      "players_found": 13,
+      "not_player": 1,
+      "missed": 0,
+      "truth_players": 13,
+      "recall": 1.0,
+      "note": "one crew member near the boards survives the bounds test"
+    },
+    {
+      "frame": 46,
+      "in_bounds": 15,
+      "players_found": 14,
+      "not_player": 1,
+      "missed": 0,
+      "truth_players": 14,
+      "recall": 1.0,
+      "note": ""
+    },
+    {
+      "frame": 47,
+      "in_bounds": 14,
+      "players_found": 13,
+      "not_player": 1,
+      "missed": 0,
+      "truth_players": 13,
+      "recall": 1.0,
+      "note": ""
+    },
+    {
+      "frame": 95,
+      "in_bounds": 16,
+      "players_found": 14,
+      "not_player": 2,
+      "missed": 0,
+      "truth_players": 14,
+      "recall": 1.0,
+      "note": "referee at frame right, plus one crew"
+    },
+    {
+      "frame": 103,
+      "in_bounds": 14,
+      "players_found": 12,
+      "not_player": 2,
+      "missed": 0,
+      "truth_players": 12,
+      "recall": 1.0,
+      "note": "referee at frame right, plus one crew"
+    },
+    {
+      "frame": 115,
+      "in_bounds": 13,
+      "players_found": 11,
+      "not_player": 2,
+      "missed": 0,
+      "truth_players": 11,
+      "recall": 1.0,
+      "note": "referee visibly striped at frame right"
+    },
+    {
+      "frame": 130,
+      "in_bounds": 12,
+      "players_found": 10,
+      "not_player": 2,
+      "missed": 0,
+      "truth_players": 10,
+      "recall": 1.0,
+      "note": "referee mid-frame, plus one crew"
+    },
+    {
+      "frame": 175,
+      "in_bounds": 16,
+      "players_found": 14,
+      "not_player": 2,
+      "missed": 0,
+      "truth_players": 14,
+      "recall": 1.0,
+      "note": ""
+    },
+    {
+      "frame": 184,
+      "in_bounds": 16,
+      "players_found": 14,
+      "not_player": 2,
+      "missed": 0,
+      "truth_players": 14,
+      "recall": 1.0,
+      "note": ""
+    },
+    {
+      "frame": 190,
+      "in_bounds": 15,
+      "players_found": 14,
+      "not_player": 1,
+      "missed": 0,
+      "truth_players": 14,
+      "recall": 1.0,
+      "note": "referee at frame right"
+    },
+    {
+      "frame": 194,
+      "in_bounds": 15,
+      "players_found": 13,
+      "not_player": 2,
+      "missed": 0,
+      "truth_players": 13,
+      "recall": 1.0,
+      "note": ""
+    },
+    {
+      "frame": 210,
+      "in_bounds": 14,
+      "players_found": 12,
+      "not_player": 2,
+      "missed": 0,
+      "truth_players": 12,
+      "recall": 1.0,
+      "note": "zoomed to confirm two figures at soccer y 15-16 are players, not crew"
+    },
+    {
+      "frame": 213,
+      "in_bounds": 13,
+      "players_found": 13,
+      "not_player": 0,
+      "missed": 0,
+      "truth_players": 13,
+      "recall": 1.0,
+      "note": "cleanest frame in the set"
+    },
+    {
+      "frame": 226,
+      "in_bounds": 12,
+      "players_found": 10,
+      "not_player": 2,
+      "missed": 0,
+      "truth_players": 10,
+      "recall": 1.0,
+      "note": ""
+    },
+    {
+      "frame": 228,
+      "in_bounds": 11,
+      "players_found": 10,
+      "not_player": 1,
+      "missed": 0,
+      "truth_players": 10,
+      "recall": 1.0,
+      "note": ""
+    },
+    {
+      "frame": 230,
+      "in_bounds": 12,
+      "players_found": 11,
+      "not_player": 1,
+      "missed": 1,
+      "truth_players": 12,
+      "recall": 0.9167,
+      "note": "left pair share one box"
+    },
+    {
+      "frame": 245,
+      "in_bounds": 11,
+      "players_found": 10,
+      "not_player": 1,
+      "missed": 0,
+      "truth_players": 10,
+      "recall": 1.0,
+      "note": "the tripod camera operator is correctly rejected here at score 0.83"
+    },
+    {
+      "frame": 246,
+      "in_bounds": 12,
+      "players_found": 11,
+      "not_player": 1,
+      "missed": 1,
+      "truth_players": 12,
+      "recall": 0.9167,
+      "note": "left pair share one box"
+    },
+    {
+      "frame": 289,
+      "in_bounds": 9,
+      "players_found": 8,
+      "not_player": 1,
+      "missed": 0,
+      "truth_players": 8,
+      "recall": 1.0,
+      "note": "referee at frame left"
+    },
+    {
+      "frame": 327,
+      "in_bounds": 6,
+      "players_found": 6,
+      "not_player": 0,
+      "missed": 1,
+      "truth_players": 7,
+      "recall": 0.8571,
+      "note": "thrower and mark share one box; confirmed by zooming the source frame - the detector produced no separate box for the defender at any score, so this is a detection failure and not a suppression one"
+    }
+  ]
+}

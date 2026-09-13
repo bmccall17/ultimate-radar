@@ -71,9 +71,9 @@
     "x_sign": 1,
     "y_sign": 1,
     "x_offset": 60.0,
-    "y_offset": 25.95,
-    "source": "one ultimate sideline measured at y = -25.95 yd (0.72 yd from where a field centred across the pitch would put it); the opposite sideline is out of usable range, and the x offset still assumes the field is centred along the pitch",
-    "residual_yd": 0.7167,
+    "y_offset": 32.75,
+    "source": "near ultimate sideline taken as soccer y = -32.75, putting the far sideline at 20.58. Chosen between two candidate paint peaks using where players actually go: they taper out at y = +17 and a stationary crew cluster sits at +24..+26, so the far sideline lies in the gap between. The along-pitch offset is still the centred assumption.",
+    "residual_yd": 0.0,
     "measured": true
   },
   "y_peaks": [

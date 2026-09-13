@@ -203,7 +203,8 @@ def render_map(pm: PaintMap, path) -> None:
     cv2.imwrite(str(path), img)
 
 
-def measure_transform(pm: PaintMap, field_length: float) -> W.VenueTransform:
+def measure_transform(pm: PaintMap, field_length: float,
+                      near_sideline_y: float | None = None) -> W.VenueTransform:
     """Place the ultimate field on the pitch using the sideline peaks.
 
     The cross-field offset is measured rather than assumed: the two ultimate
@@ -212,6 +213,31 @@ def measure_transform(pm: PaintMap, field_length: float) -> W.VenueTransform:
     whether it is actually centred.
     """
     peaks = find_peaks(pm.hist_y, pm.centres_y())
+
+    if near_sideline_y is not None:
+        # An explicit choice between candidate peaks, made on evidence this
+        # module cannot see. The paint map offers two near-side lines and cannot
+        # tell which is the ultimate sideline and which the soccer touchline -
+        # they are only ~7 yd apart and both are real paint. What settles it is
+        # where the *players* go, which only exists once M2 has run:
+        # confident player-like detections taper out at soccer y = +17 and then
+        # a stationary cluster of camera crew sits at +24..+26 with an empty gap
+        # between. The far sideline has to lie in that gap. Picking -32.75 puts
+        # it at +20.58, inside the gap; picking -25.95 puts it at +27.38, which
+        # would place the crew on the field of play.
+        nearest = min(peaks, key=lambda p: abs(p["x_yd"] - near_sideline_y),
+                      default=None)
+        off = abs(near_sideline_y)
+        return W.VenueTransform(
+            x_sign=1, y_sign=1, x_offset=field_length / 2.0, y_offset=off,
+            residual_yd=(abs(nearest["x_yd"] - near_sideline_y) if nearest else None),
+            source=f"near ultimate sideline taken as soccer y = {near_sideline_y:.2f}, "
+                   f"putting the far sideline at {near_sideline_y + W.UFA_WIDTH:.2f}. "
+                   "Chosen between two candidate paint peaks using where players "
+                   "actually go: they taper out at y = +17 and a stationary crew "
+                   "cluster sits at +24..+26, so the far sideline lies in the gap "
+                   "between. The along-pitch offset is still the centred assumption.")
+
     best, best_err = None, np.inf
     for i in range(len(peaks)):
         for j in range(i + 1, len(peaks)):
@@ -274,6 +300,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--eval-dir", default="eval/m1")
     ap.add_argument("--stride", type=int, default=2)
     ap.add_argument("--max-range", type=float, default=75.0)
+    ap.add_argument("--near-sideline-y", type=float, default=None,
+                    help="pick the near ultimate sideline explicitly, in soccer y")
     a = ap.parse_args(argv)
 
     work, ev = Path(a.work), Path(a.eval_dir)
@@ -313,7 +341,8 @@ def main(argv: list[str] | None = None) -> int:
     for p in find_peaks(pm.hist_y, pm.centres_y()):
         print(f"    y {p['x_yd']:+8.2f} yd  count {p['count']:9.0f}  prom {p['prominence']:.2f}")
 
-    vt = measure_transform(pm, length["field_length_yd"] or 120.0)
+    vt = measure_transform(pm, length["field_length_yd"] or 120.0,
+                           near_sideline_y=a.near_sideline_y)
     print(f"[venue] transform: {json.dumps(vt.to_dict())}")
 
     (ev / "venue.json").write_text(json.dumps(

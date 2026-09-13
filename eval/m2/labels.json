@@ -1,0 +1,49 @@
+{
+  "schema": "ultimate-radar/m2-labels@1",
+  "possession": "p0001",
+  "labelled_by": "claude-opus-5, 2026-09-12",
+  "frames_source": "tools.m2_label render work/p0001 -n 20 (seed 20260827)",
+  "what_was_judged": [
+    "Every held-out frame was looked at as a magnified strip cropped to the band",
+    "the detections occupy, not as a downscaled full frame - at 30-100 px a box",
+    "cannot be judged otherwise. Where a call was close the source frame was",
+    "cropped and zoomed again (frames 210 and 327).",
+    "",
+    "players     = in-bounds boxes the labeller judged to be an on-field player",
+    "not_player  = in-bounds boxes that are not: referees standing on the field,",
+    "              and camera operators or photographers near the far boards that",
+    "              the geometric filter did not reject",
+    "missed      = on-field players with no box of their own, which in every case",
+    "              here was two overlapping players sharing one box"
+  ],
+  "caveats": [
+    "These are the agent's own labels, not an independent human's, so recall is",
+    "measured against the agent's judgement of what counts as an on-field player.",
+    "Per-frame counts carry roughly +/-1 on the crowded frames.",
+    "The systematic question the gate exists to answer - is a whole class of",
+    "player being missed - does not depend on that precision, and the answer is",
+    "that the only misses are overlapping pairs."
+  ],
+  "frames": [
+    {"frame": 37,  "players": 13, "not_player": 1, "missed": 0, "note": "one crew member near the boards survives the bounds test"},
+    {"frame": 46,  "players": 14, "not_player": 1, "missed": 0},
+    {"frame": 47,  "players": 13, "not_player": 1, "missed": 0},
+    {"frame": 95,  "players": 14, "not_player": 2, "missed": 0, "note": "referee at frame right, plus one crew"},
+    {"frame": 103, "players": 12, "not_player": 2, "missed": 0, "note": "referee at frame right, plus one crew"},
+    {"frame": 115, "players": 11, "not_player": 2, "missed": 0, "note": "referee visibly striped at frame right"},
+    {"frame": 130, "players": 10, "not_player": 2, "missed": 0, "note": "referee mid-frame, plus one crew"},
+    {"frame": 175, "players": 14, "not_player": 2, "missed": 0},
+    {"frame": 184, "players": 14, "not_player": 2, "missed": 0},
+    {"frame": 190, "players": 14, "not_player": 1, "missed": 0, "note": "referee at frame right"},
+    {"frame": 194, "players": 13, "not_player": 2, "missed": 0},
+    {"frame": 210, "players": 12, "not_player": 2, "missed": 0, "note": "zoomed to confirm two figures at soccer y 15-16 are players, not crew"},
+    {"frame": 213, "players": 13, "not_player": 0, "missed": 0, "note": "cleanest frame in the set"},
+    {"frame": 226, "players": 10, "not_player": 2, "missed": 0},
+    {"frame": 228, "players": 10, "not_player": 1, "missed": 0},
+    {"frame": 230, "players": 11, "not_player": 1, "missed": 1, "note": "left pair share one box"},
+    {"frame": 245, "players": 10, "not_player": 1, "missed": 0, "note": "the tripod camera operator is correctly rejected here at score 0.83"},
+    {"frame": 246, "players": 11, "not_player": 1, "missed": 1, "note": "left pair share one box"},
+    {"frame": 289, "players": 8,  "not_player": 1, "missed": 0, "note": "referee at frame left"},
+    {"frame": 327, "players": 6,  "not_player": 0, "missed": 1, "note": "thrower and mark share one box; confirmed by zooming the source frame - the detector produced no separate box for the defender at any score, so this is a detection failure and not a suppression one"}
+  ]
+}
