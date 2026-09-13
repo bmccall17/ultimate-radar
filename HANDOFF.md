@@ -25,7 +25,7 @@ Working directory: `E:\dev\playertrackerultimate\ultimate-radar`
 | **M1** | Calibration | **Done**, acceptance passed (`docs/12-m1-calibration.md`) |
 | **M2** | Detection | **Done.** Recall passed here; its false-positive gate passed in M3 (`docs/13-m2-detection.md`) |
 | **M3** | Team assignment + projection | **Done**, both gates passed (`docs/14-m3.md`) |
-| **M4** | Tracking | **In progress.** Tracker built and rendered; the `observed` gate is re-specified and **measured at 0.8846**; four gates still unmeasured |
+| **M4** | Tracking | **In progress.** Four of five gates measured: structure **PASS**, position **PASS**, sigma **PASS (marginal)**, recall **0.8846**. Only the ID-switch gate is left, and it needs the 1 Hz jersey labels |
 | M5 | Identity, events, corrections | Not started |
 | M6 | Viewer | Not started; `viewer/prototype.html` is the design target, `viewer/live.html` is M3's working page |
 | M7 | Sharing + a second possession | `p0003` is already cut for it |
@@ -157,6 +157,35 @@ and pulling it means readmitting the detections that keep referees out of player
 review conditioned that on recall landing near 0.75; it landed at 0.885. Changing it now would
 be changing the tracker to hit the number. **Whoever sets the gate threshold should decide this
 explicitly** — `docs/04` § "The `observed` fraction gate was retired" lays out the trade.
+
+## 3c. Step 3, done
+
+| Gate | Result | |
+|---|---|---|
+| Zero phantom or missing slots | 14 slots, 5040 samples, 0 problems | **PASS** |
+| Position error, `observed` | median **0.3698 yd** (gate 0.8), p95 **1.0337** (gate 1.8) | **PASS** |
+| Sigma calibration | **80.0 %** (32/40) inside the disc | **PASS, marginal** |
+
+Measured on 40 observed slot-samples **disjoint from `eval/m3/foot_labels.json`**, because
+`FOOT_UNCERTAINTY_PX` was fitted on those and the sigma gate would otherwise be scoring a
+constant against its own training data.
+
+**The fresh sample independently reproduces M3's foot-point bias** — dx −1.62 px against M3's
+−1.52, dy −2.15 against −1.66, sharing none of the same detections. That makes the bias a
+measured fact rather than reading noise, and it is most of what is left: 0.38 yd of pure
+offset against a 0.370 yd median total error. A Kalman filter cannot remove it, because it
+assumes zero-mean noise and averaging frames does not cancel a shift.
+
+**The sigma gate first failed at 57.5 %, on units rather than on the filter.** `docs/05` draws
+a disc of radius `sigma` and wants ≥ 80 % of truths inside; the tracker was emitting a per-axis
+standard deviation, and for a 2-D Gaussian that disc contains **39.3 %** — unreachable by
+construction. The filter's covariance turned out ~31 % *conservative*, i.e. the number was
+right and the units were wrong. It now reports 1.794 × the per-axis sigma, matching the
+convention M3 had already adopted for `sigma_yd`. `docs/03` carries the definition and a table
+of which producer uses which containment level.
+
+**The pass is marginal and must not be quoted as settled.** 32 of 40 is exactly 80.0 %; the
+Wilson 95 % interval on n = 40 runs 65.2 % to 89.5 %. A bigger sample is the only way to call it.
 
 ## 4. What M4 still needs, in order
 
