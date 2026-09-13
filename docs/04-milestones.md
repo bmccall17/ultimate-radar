@@ -139,12 +139,52 @@ positions — that is what the cold-start issue in M5 is for.
 |---|---|
 | Identity switches over the possession | ≤ 2, and every one detected by the M5 swap detector |
 | Field position error, `observed` samples | median < 0.8 yd, p95 < 1.8 yd |
-| `observed` fraction | within 5 points of the visible fraction measured in M0 **for this possession** — hand-counted at **≈ 88 % (11/14/12 at frames 0/180/345)**, not the broadcast-wide 74 % |
+| ~~`observed` fraction~~ **RETIRED — replaced by per-player recall below** | ~~within 5 points of the visible fraction~~ |
+| **Per-player recall, position-matched** | ≥ ? — see below. **Measured 0.8846** |
 | Phantom or missing slots | zero, always |
 | Sigma calibration | ≥ 80 % of truths fall inside the drawn sigma disc |
 
 That last row is the one people skip. A sigma that does not contain the truth is worse than
 no sigma, because the viewer's entire honesty argument rests on it.
+
+### The `observed` fraction gate was retired, and why
+
+*Replaced 2026-09-13, after `docs/15-m4-review.md`.* The original gate compared two **counts** —
+observed slot-frames against players visible. A count comparison can be satisfied by counting
+the wrong objects, and here it actively rewarded doing so: admitting the detections
+`ur/team.py` flags `weak_team` would have added ~1.1 detections per frame, over half of them
+referees and camera crew, and bought ~8 points of "observed" by putting non-players into
+player slots. The number would have passed and the product would have been worse. It also
+pulled against the "zero phantom slots" row, so the two gates measured the same coverage from
+opposite ends.
+
+**The replacement asks what the old gate was trying to ask.** For each of the 20 hand-labelled
+frames, take every box a human labelled `sol` or `chill` — a real player, in kit, on the field.
+Project its foot point. Ask whether a slot **of that team** is `observed` within 1.5 yd.
+
+A referee cannot improve this number, because referees are not in the denominator. The
+perverse incentive is gone and the phantom-slot gate is no longer traded against.
+
+**Measured on p0001** (`eval/m4/m4_recall_acceptance.json`, `tools/m4_recall.py`):
+
+| threshold | greedy | one-to-one | vs the wider denominator |
+|---|---|---|---|
+| 1.0 yd | 0.8504 | 0.8504 | 0.8397 |
+| **1.5 yd** | **0.8846** | **0.8846** | 0.8734 |
+| 2.0 yd | 0.8974 | 0.8932 | 0.8819 |
+
+Greedy and one-to-one agree at 1.0 and 1.5 yd, so no observed slot is standing in for two
+players at once — a failure mode worth ruling out rather than assuming away. The denominator
+is *detected and labelled* players (234); the detector missed 3 more on these frames
+(M2 recall 0.9873), hence the wider denominator of 237.
+
+**The threshold is not yet set.** 0.8846 is 1.5 points below the 0.90 the review recorded as
+its expectation before measuring. The whole deficit is attributed: of 27 misses, **14 are
+detections deliberately excluded as `weak_team`**, 10 were offered and rejected by the
+association gate at a median of 15 yd, and 3 are a slot sitting 1.6–2.4 yd from a detection it
+did consume. Setting the gate at 0.90 would make it reachable only by readmitting the
+detections whose exclusion keeps referees out of player slots — which is the trap the old gate
+fell into. Whoever sets the number should decide that explicitly rather than inherit it.
 
 ## M5 — Identity, events, corrections ·  two days
 

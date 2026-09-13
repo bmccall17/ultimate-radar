@@ -25,7 +25,7 @@ Working directory: `E:\dev\playertrackerultimate\ultimate-radar`
 | **M1** | Calibration | **Done**, acceptance passed (`docs/12-m1-calibration.md`) |
 | **M2** | Detection | **Done.** Recall passed here; its false-positive gate passed in M3 (`docs/13-m2-detection.md`) |
 | **M3** | Team assignment + projection | **Done**, both gates passed (`docs/14-m3.md`) |
-| **M4** | Tracking | **In progress.** Tracker built, committed and reviewed; **gates unmeasured, and nothing has been rendered** |
+| **M4** | Tracking | **In progress.** Tracker built and rendered; the `observed` gate is re-specified and **measured at 0.8846**; four gates still unmeasured |
 | M5 | Identity, events, corrections | Not started |
 | M6 | Viewer | Not started; `viewer/prototype.html` is the design target, `viewer/live.html` is M3's working page |
 | M7 | Sharing + a second possession | `p0003` is already cut for it |
@@ -121,6 +121,42 @@ because it would be buying real players rather than referees.
 
 Also settled: the visible fraction is **84.6 %** from 20 labelled frames, not the 88 % from
 three hand-counted M0 frames. `docs/04` and `docs/05` should carry the measured number.
+
+## 3b. Steps 1 and 2, done
+
+**Step 1 — rendered and watched.** `eval/m4/p0001_tracks.mp4`, written up in
+`docs/16-m4-watching.md`. Two findings that no statistic had produced: **D6 holds a camera
+operator for the last second of the possession** (it cleared the bounds margin by 0.24 yd, the
+height-ratio floor comfortably, and the `weak_team` band by 0.39 L\*), and **the unassigned
+detections are real players** — I had called them "almost always a non-player" in this document,
+inferring it from a distance statistic without looking at the pixels. 245 of 248 of them occur
+while that team still has a *free slot*.
+
+**Step 2 — the re-specified gate is measured: 0.8846** at 1.5 yd
+(`eval/m4/m4_recall_acceptance.json`). Greedy and one-to-one agree, so nothing is
+double-counted. The 27 misses attribute completely: **14 excluded as `weak_team`**, 10 rejected
+by the association gate at a median of 15 yd, 3 where the slot sits 1.6–2.4 yd from a detection
+it did consume. The old count-comparison gate is retired in `docs/04` with the reasoning.
+
+**One tracker change, and it did not move the number.** Watching found a type error in the
+reach gate: it compared a bound on how far the *player* could have moved against the distance
+between two *measured* points, without allowing for the noise of either. The old
+`max(2.0 yd, speed × elapsed)` floor was tighter than the statistical gate at short gaps and
+rejected 70 associations that chi-square scored at 4.4 against a threshold of 9.21. It is now
+`speed × elapsed + 3σ` of combined endpoint noise. Reach-only rejections went **70 → 0** and
+recall at 1.5 yd went **0.8846 → 0.8846**. The defect was real, the fix is right, and it bought
+nothing on this gate — all three of those are worth saying.
+
+It did surface something for the position gate: three labelled players are now "missed" because
+the slot holding them sits 1.6–2.4 yd away. The filter accepted a surprising detection and moved
+only part of the way to it, which is correct Bayesian behaviour if its covariance is right and
+over-confidence if it is not. Step 3 measures exactly that.
+
+**Not done, deliberately.** The largest single lever on the gate is the 14 `weak_team` misses,
+and pulling it means readmitting the detections that keep referees out of player slots. The
+review conditioned that on recall landing near 0.75; it landed at 0.885. Changing it now would
+be changing the tracker to hit the number. **Whoever sets the gate threshold should decide this
+explicitly** — `docs/04` § "The `observed` fraction gate was retired" lays out the trade.
 
 ## 4. What M4 still needs, in order
 

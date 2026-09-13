@@ -63,11 +63,25 @@ N_PER_TEAM = 7
 
 # Association gate. Chi-square with 2 degrees of freedom at p = 0.99.
 GATE_CHI2 = 9.21
-# ...and a hard physical bound on top of it, because after a long gap the
-# covariance grows until the statistical gate would accept most of the field.
-# AD-1: a sprint is about 9.5 yd/s.
+# ...and a physical bound on top of it, because after a long gap the covariance
+# grows until the statistical gate alone would accept most of the field. AD-1: a
+# sprint is about 9.5 yd/s.
 MAX_SPEED_YD_S = 9.5
-GATE_FLOOR_YD = 2.0       # a gate is never tighter than this, whatever P says
+
+# The physical bound limits how far the PLAYER can have moved. What the gate
+# actually compares it against is the distance between two *measured* points -
+# the slot's last observed position and the candidate detection - and both of
+# those carry noise. Allowing k sigma of combined endpoint noise on top of the
+# displacement bound is what makes the comparison type-correct.
+#
+# The first version instead used `max(2.0, speed * elapsed)`. The 2.0 yd floor
+# was meant as a backstop for long gaps; at a gap of one or two frames it is
+# *tighter* than the statistical gate, so it overrode the covariance exactly when
+# the covariance was small and right. It cost 70 associations that chi-square
+# scored at 4.4 against a threshold of 9.21 - see docs/16-m4-watching.md, which
+# found it by watching the render rather than by reading any statistic.
+GATE_NOISE_SIGMAS = 3.0
+GATE_FLOOR_YD = 0.5       # degenerate case only: no sigma available at all
 
 # docs/05 state machine, in seconds.
 PREDICT_MAX_S = 2.2       # beyond this a slot is `unknown`, not `predicted`
@@ -83,6 +97,11 @@ class Slot:
         self.team = team
         self.track = Track()
         self.last_obs_f: int | None = None
+        # The position sigma at the moment this slot was last *updated*, not the
+        # grown one. The physical bound applies from where the player actually
+        # was, and that was known this well - using the grown sigma instead would
+        # widen the physical bound by the very uncertainty it exists to contain.
+        self.last_obs_sigma: float | None = None
         self.samples: list[dict] = []
 
     @property
@@ -127,8 +146,12 @@ def associate_team(slots: list[Slot], dets: list[tuple[int, np.ndarray, np.ndarr
     cost = np.full((len(live), len(dets)), BIG)
     for i, s in enumerate(live):
         gap = max(1, gap_frames.get(s.name, 1))
-        reach = max(GATE_FLOOR_YD, MAX_SPEED_YD_S * dt * gap)
+        travel = MAX_SPEED_YD_S * dt * gap
+        s_last = s.last_obs_sigma if s.last_obs_sigma is not None else GATE_FLOOR_YD
         for j, (_, z, R) in enumerate(dets):
+            s_det = float(np.sqrt(R[0, 0]))
+            reach = max(GATE_FLOOR_YD,
+                        travel + GATE_NOISE_SIGMAS * float(np.hypot(s_last, s_det)))
             if float(np.hypot(*(z - s.track.position))) > reach:
                 continue
             y, S = s.track.innovation(z, R)
@@ -231,6 +254,7 @@ def track(work: Path, *, verbose: bool = True) -> dict:
                 if stats["seeded"].get(s.name) != f:
                     s.track.update(z, R)
                 s.last_obs_f = f
+                s.last_obs_sigma = s.track.position_sigma()
                 s.samples.append({
                     "f": f, "xy": [round(float(v), 3) for v in s.track.position],
                     "state": "observed",
@@ -358,6 +382,13 @@ def write_tracks(work: Path, clip: dict, det: dict, slots: list[Slot],
             "association": "per-team gated Hungarian on squared Mahalanobis distance",
             "gate_chi2_2dof": GATE_CHI2,
             "gate_max_speed_yd_s": MAX_SPEED_YD_S,
+            "gate_reach": ("max speed x elapsed, plus "
+                           f"{GATE_NOISE_SIGMAS} sigma of combined endpoint noise "
+                           "(the slot's sigma when last observed, and the "
+                           "detection's). The physical bound limits how far the "
+                           "player moved; the distance being compared is between "
+                           "two measured points, so the noise of both belongs in "
+                           "the comparison."),
             "team_gate": "hard, AD-3: association across teams is forbidden",
             "weak_team": "excluded from association; those detections match neither "
                          "kit and are where ur.team's uncaught referees end up",

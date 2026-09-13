@@ -22,6 +22,13 @@ that is not a freak. The broadcast cuts tight on a catch several times a point, 
 those tight cut-ins will have seconds at a stretch where twelve of fourteen players are pure
 dead reckoning.
 
+> **For p0001 specifically, the visible fraction is 84.6 %, not 88 %.** *Corrected 2026-09-13.*
+> The 88 % came from three frames hand-counted during M0 (11/14/12 at frames 0/180/345). M3
+> later labelled every box on 20 held-out frames of the same possession, which gives 11.85
+> visible of 14 — 234 players found and labelled plus the 3 M2 measured as missed. Twenty
+> frames beat three, so 84.6 % is the number to use, and `docs/04-milestones.md` M4 now does.
+> The broadcast-wide figures in the table above are unaffected; this is one possession.
+
 > Still modelled, not measured: the per-role breakdown — handler set visible 83–89 % of the
 > time, deep cutters and their defenders 35–54 %. Measuring it needs tracking output, so it
 > cannot be settled before M4. The *claim* it supports is sound in direction — the camera
