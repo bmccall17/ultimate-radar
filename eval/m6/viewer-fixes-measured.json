@@ -1,0 +1,106 @@
+{
+  "what": "docs/21 viewer fixes, re-measured in the repo copy after landing them",
+  "how": "Chromium against tools.serve on 127.0.0.1:8137, viewer/index.html with viewer/live-data.js (p0001) present. Every number below was computed in the page or from window.POSSESSION, not read off a screenshot.",
+  "date": "2026-09-13",
+
+  "defect_1_mirrored_short_axis": {
+    "fix": "ry() and its inverse ryi(); the `attacking` label; drawSpace cell height and anchor",
+    "self_check_at_boot": {
+      "probe_points_yd": [[60.0, 8.0], [60.0, 45.33]],
+      "frame": 0,
+      "delta_image_v": 463.34,
+      "delta_radar_y": 252,
+      "signs_agree": true
+    },
+    "check_can_fail": {
+      "note": "re-run against both transforms with an independently written projection that shares no code with the page",
+      "old_ry_delta_radar_y": -100.8,
+      "old_ry_passes": false,
+      "new_ry_delta_radar_y": 100.8,
+      "new_ry_passes": true
+    },
+    "whole_roster_cross_check": {
+      "frame": 180,
+      "n_players": 14,
+      "corr_image_v_vs_radar_y": 0.9722,
+      "highest_in_video": {"slot": "O5", "field_y_yd": 41.8, "image_v": 483, "radar_y_px": 75},
+      "lowest_in_video": {"slot": "D6", "field_y_yd": 17.8, "image_v": 668, "radar_y_px": 190},
+      "note": "before the fix this correlation was -0.9722"
+    },
+    "space_layer_alignment": {
+      "note": "the 1-yd Voronoi cell under each player's feet must carry that player's team colour, which fails if the layer is shifted by a cell or mirrored",
+      "samples": [
+        {"slot": "O4", "team": "sol", "cell_rgb": [238, 241, 234], "expected": "#eef1ea"},
+        {"slot": "D7", "team": "chill", "cell_rgb": [91, 155, 240], "expected": "#5b9bf0"},
+        {"slot": "O5", "team": "sol", "cell_rgb": [238, 241, 234], "expected": "#eef1ea"}
+      ]
+    },
+    "radar_click_still_correct": {
+      "note": "ryi() had to be inverted with ry() or click-to-select would have gone mirrored. docs/21 did not mention it.",
+      "clicked_where": "O5 as drawn",
+      "selected": "O5"
+    }
+  },
+
+  "defect_2_matchup_lines_invisible": {
+    "fix": "dark halo under a near-white stroke, in literals; --dim/--bg/--warn reads on the overlay canvas all replaced",
+    "frame": 180,
+    "overlay_lit_px_matchups_off": 3562,
+    "overlay_lit_px_matchups_on": 4621,
+    "added_px": 1059,
+    "added_px_above_L170": 440,
+    "docs_21_baseline_added_px": 434,
+    "docs_21_baseline_added_px_above_L170": 0,
+    "note": "2.4x the pixels, and 440 genuinely bright ones where the old --dim (#6b7364, L 70) produced none"
+  },
+
+  "defect_3_off_frame_feedback": {
+    "fix": "live count on the control, disabled at zero, plus a mark for slots with no position",
+    "census_over_p0001": {
+      "slot_frames": 5040,
+      "inside_frame": 4306,
+      "outside_frame": 565,
+      "no_position_with_a_last_bearing": 0,
+      "no_position_and_no_history": 169,
+      "pct": {"inside": 85.4, "outside": 11.2, "lost": 0.0, "blind": 3.4},
+      "frames_with_at_least_one_mark": 196,
+      "frames_with_none": 164,
+      "note": "reproduces docs/21's independent census exactly"
+    },
+    "control_reads": [
+      {"t_s": 0.0, "label": "Off-frame 0", "disabled": true, "title": "Every slot with a position is inside this frame."},
+      {"t_s": 6.93, "label": "Off-frame 1", "disabled": false, "title": "1 outside the frame"},
+      {"t_s": 12.0, "label": "Off-frame 0", "disabled": true, "title": "Every slot with a position is inside this frame."}
+    ],
+    "blind_slots_carried_by_roster": {"t_s": 0.0, "flagged_rows": 14, "of": 14},
+    "lost_branch_exercised_deliberately": {
+      "note": "p0001 has ZERO slot-frames in the `lost` population - all 169 no-position frames are cold start, with no prior bearing to point at. The hollow-chevron branch therefore never fires on this possession and was tested by injecting a gap.",
+      "method": "null O5's position at an unvisited frame, then navigate there",
+      "frame": 250,
+      "control_label": "Off-frame 3",
+      "control_title": "2 outside the frame, 1 with no current position",
+      "roster_flagged": 0,
+      "reason_roster_not_flagged": "correct - the slot has a last bearing, so it gets a hollow chevron rather than a roster flag"
+    }
+  },
+
+  "hashchange": {
+    "before": "f0180  12.00s  coverage 12/14  calib 0.71",
+    "set_hash_to": "#t=6.90",
+    "after": "f0104  6.93s  coverage 11/14  calib 0.72",
+    "moved": true,
+    "note": "seek() writes the hash itself, so the listener no-ops when the hash already agrees with S.f"
+  },
+
+  "fresh_clone_path": {
+    "method": "live-data.js moved aside, loaded over a second origin to defeat the browser cache",
+    "possession": "demo-0001 (synthetic fixture)",
+    "page_errors": "none beyond the expected 404 on live-data.js",
+    "self_check": {"ok": true, "delta_image_v": 460.15, "delta_radar_y": 252},
+    "note": "the fixture's synthetic pinhole and the real homography agree on which way field y runs, which cross-validates the two projector backends"
+  },
+
+  "also": {
+    "localStorage_read_guarded": "viewer/index.html - the unguarded getItem docs/20 flagged sat at top level of the main script, so a browser blocking site data rendered the page blank"
+  }
+}

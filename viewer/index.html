@@ -415,6 +415,33 @@ function assignments(f){
   }
   memo[key]=out; return out;
 }
+// The last frame before f at which this slot had any position at all.
+function lastKnown(p,f){
+  for(let k=f-1;k>=0;k--){ const xy=at(p,k); if(xy) return {xy,f:k}; }
+  return null;
+}
+// What is off the edge of this frame, and what is off the edge of knowledge.
+// Computed in IMAGE pixels rather than canvas pixels so it survives a resize
+// and cannot disagree with drawCamera, which applies the same bound after a
+// uniform scale. Two populations, and docs/05 says both must be visible:
+//   away  - a known position that projects outside the frame -> solid chevron
+//   lost  - no position at all, a slot `unknown` long enough that dead
+//           reckoning was abandoned -> hollow chevron at the last bearing, or
+//           a flagged roster row when there is no last bearing to point at.
+function offFrame(f){
+  const key="off"+f; if(memo[key]) return memo[key];
+  const P=projector(f);
+  const away=[], lost=[], blind=[];
+  for(const p of PL){
+    const xy=at(p,f);
+    if(!xy){ (lastKnown(p,f)?lost:blind).push(p.id); continue; }
+    if(!P) continue;
+    const q=P.project(xy[0],xy[1],0);
+    if(!q || q[0]<0 || q[0]>IW || q[1]<0 || q[1]>IH) away.push(p.id);
+  }
+  const out={away, lost, blind, marks:away.length+lost.length};
+  memo[key]=out; return out;
+}
 // docs/06: covering = stability > 0.6 AND distance < 5.5 yd.
 function scheme(f){
   const a=assignments(f);
@@ -482,6 +509,12 @@ const strip=document.getElementById("strip"), sctx=strip.getContext("2d");
 const vid=document.getElementById("vid");
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const teamColour = t => t===OFF ? css("--sol") : css("--chill");
+// Ink for the overlay canvas ONLY. That canvas is over video, whose brightness
+// has nothing to do with the theme, so these are literals rather than css(--..).
+// Team colours are the deliberate exception: they carry identity, not contrast.
+const ONVID = "rgba(255,255,255,.92)";   // near-white stroke
+const HALO  = "rgba(10,14,10,.55)";      // dark halo under it
+const WARN_ONVID = "#ffcf5c";
 
 if (D.video_src) { vid.src = D.video_src; vid.hidden = false; }
 
@@ -526,10 +559,11 @@ function drawCamera(){
   // s maps image pixels to canvas pixels; the stage carries the image aspect,
   // so one scale covers both axes.
   if(!P){
-    octx.fillStyle=css("--warn");
     octx.font=`${13*k}px ui-monospace,Consolas,monospace`;
-    octx.fillText("No calibration on this frame — nothing is drawn, because nothing is known.",
-                  16*k, 30*k);
+    const msg="No calibration on this frame — nothing is drawn, because nothing is known.";
+    octx.lineWidth=4*k; octx.strokeStyle=HALO; octx.strokeText(msg,16*k,30*k);
+    octx.fillStyle=WARN_ONVID; octx.fillText(msg,16*k,30*k);
+    octx.lineWidth=1;
     return;
   }
   const a=assignments(S.f), holder=discHolder(S.f);
@@ -538,23 +572,36 @@ function drawCamera(){
                      (a[id] && a[id].mark===sel);
 
   if(S.match){
-    octx.lineWidth=1.2*k; octx.setLineDash([5*k,4*k]);
+    // This canvas sits on VIDEO, not on the page background, so it cannot take
+    // colours from the UI palette: --dim (#6b7364) at 1.2px over floodlit grass
+    // drew 434 lit pixels and was invisible to a person. Anything on the overlay
+    // gets its own treatment - a dark halo under a near-white stroke - and is
+    // specified in literals so a theme change cannot make it disappear again.
+    octx.setLineDash([5*k,4*k]);
     for(const [d,v] of Object.entries(a)){
       if(!v.mark||!keep(d)) continue;
       const p=at(BY[d],S.f), q=at(BY[v.mark],S.f); if(!p||!q) continue;
       const pa=P.project(p[0],p[1],0), pb=P.project(q[0],q[1],0);
       if(!pa||!pb) continue;
-      octx.strokeStyle=css("--dim");
       octx.beginPath(); octx.moveTo(pa[0]*s,pa[1]*s); octx.lineTo(pb[0]*s,pb[1]*s);
-      octx.stroke();
+      octx.strokeStyle=HALO; octx.lineWidth=4.4*k; octx.stroke();
+      octx.strokeStyle=ONVID; octx.lineWidth=2.2*k; octx.stroke();
     }
-    octx.setLineDash([]);
+    octx.setLineDash([]); octx.lineWidth=1;
   }
 
   for(const p of PL){
     const st=p.state[S.f], xy=at(p,S.f);
-    if(!xy) continue;
     const col=teamColour(p.team), on=keep(p.id);
+    if(!xy){
+      // No position at all. docs/05: the viewer must never silently show
+      // nothing - a slot with a last bearing gets a hollow chevron pointing
+      // at it, one with no history at all is carried by the roster flag.
+      const lk=lastKnown(p,S.f);
+      if(S.chev && lk){ octx.globalAlpha = on?1:0.22;
+        drawChevron(p,lk.xy,col,s,k,(S.f-lk.f)/FPS); octx.globalAlpha=1; }
+      continue;
+    }
     octx.globalAlpha = on?1:0.22;
     const q=P.project(xy[0],xy[1],0);
     if(!q){
@@ -562,7 +609,9 @@ function drawCamera(){
       octx.globalAlpha=1; continue;
     }
     const u=q[0]*s, v=q[1]*s;
-    if(u<0||u>over.width||v<0||v>over.height){
+    // Same bound as offFrame(), in image pixels, so the count on the control
+    // and the marks on the canvas cannot drift apart.
+    if(q[0]<0||q[0]>IW||q[1]<0||q[1]>IH){
       if(S.chev) drawChevron(p,xy,col,s,k);
       octx.globalAlpha=1; continue;
     }
@@ -577,16 +626,18 @@ function drawCamera(){
     if(p.id===sel||p.id===selMark||p.id===holder){
       const t=p.jersey?`${p.id} #${p.jersey}`:p.id;
       octx.font=`600 ${13*k}px ui-sans-serif,system-ui`;
-      octx.lineWidth=3.5*k; octx.strokeStyle=css("--bg");
+      octx.lineWidth=3.5*k; octx.strokeStyle=HALO;
       octx.strokeText(t,u+10*k,v-10*k); octx.fillStyle=col;
       octx.fillText(t,u+10*k,v-10*k);
     }
     octx.globalAlpha=1;
   }
 }
-function drawChevron(p,xy,col,s,k){
+function drawChevron(p,xy,col,s,k,staleS){
   // docs/06: non-negotiable. Without it the overlay implies the off-frame
-  // players do not exist.
+  // players do not exist. `staleS` marks the weaker case - xy is not where the
+  // player is, it is where they were last seen - and is drawn hollow, because
+  // a solid chevron would claim a position the tracker has given up on.
   const P=projector(S.f); if(!P) return;
   const c=[FL/2,FW/2], mid=P.project(c[0],c[1],0);
   let ang=Math.atan2(xy[1]-c[1], xy[0]-c[0]);
@@ -598,21 +649,35 @@ function drawChevron(p,xy,col,s,k){
          v=over.height/2+Math.sin(ang)*over.height*0.45;
          u=clamp(u,14*k,over.width-14*k); v=clamp(v,14*k,over.height-14*k); }
   octx.save(); octx.translate(u,v); octx.rotate(ang);
-  octx.fillStyle=col; octx.globalAlpha=0.85;
+  octx.globalAlpha=0.85;
   octx.beginPath(); octx.moveTo(10*k,0); octx.lineTo(-7*k,6*k); octx.lineTo(-7*k,-6*k);
-  octx.closePath(); octx.fill(); octx.restore();
+  octx.closePath();
+  if(staleS===undefined){ octx.fillStyle=col; octx.fill(); }
+  else { octx.strokeStyle=col; octx.lineWidth=1.8*k; octx.setLineDash([3*k,2.5*k]);
+         octx.stroke(); octx.setLineDash([]); }
+  octx.restore();
   octx.globalAlpha=1;
   octx.font=`${11*k}px ui-monospace,Consolas,monospace`;
-  octx.fillStyle=css("--dim");
-  octx.fillText(`${p.id} ±${p.sigma[S.f].toFixed(0)}yd`, u+11*k, v+4*k);
+  const sig=p.sigma[S.f];
+  const lab = staleS!==undefined ? `${p.id} lost ${staleS.toFixed(1)}s`
+            : `${p.id} ±${(sig??0).toFixed(0)}yd`;
+  octx.lineWidth=3.2*k; octx.strokeStyle=HALO; octx.strokeText(lab, u+11*k, v+4*k);
+  octx.fillStyle=ONVID; octx.fillText(lab, u+11*k, v+4*k);
+  octx.lineWidth=1;
 }
 
 let RK = 1, RPAD = 20;
 const RPAD_CSS = 10;
 function rx(x){ return RPAD + x/FL*(radar.width-2*RPAD) }
-function ry(y){ return RPAD + y/FW*(radar.height-2*RPAD) }
+// Field y=0 is the NEAR sideline - the one the camera stands on - so it is at
+// the BOTTOM of the overhead view. Projecting frame 93's homography puts y=0 at
+// image v=1164 (below the frame) and y=53.3 at v=432: in the video y increases
+// upward, and the radar has to agree or every cutter appears on the wrong side.
+// `radarContradiction()` asserts exactly that and is the reason this is not a
+// comment. The long axis needs no flip - field x to image u correlates +0.995.
+function ry(y){ return RPAD + (FW-y)/FW*(radar.height-2*RPAD) }
 function rxi(u){ return (u-RPAD)/(radar.width-2*RPAD)*FL }
-function ryi(v){ return (v-RPAD)/(radar.height-2*RPAD)*FW }
+function ryi(v){ return FW - (v-RPAD)/(radar.height-2*RPAD)*FW }
 
 function drawRadar(){
   RK = dpr(radar); RPAD = RPAD_CSS * RK;
@@ -662,7 +727,7 @@ function drawRadar(){
     }
   }
   rctx.font=`${10*RK}px ui-sans-serif,system-ui`;
-  rctx.fillText("attacking →", rx(FL/2)-22*RK, ry(0)-3*RK);
+  rctx.fillText("attacking →", rx(FL/2)-22*RK, ry(FW)-3*RK);
 
   if(S.pin!==null) drawFormation(S.pin, true);
   if(S.trails) drawTrails();
@@ -703,14 +768,16 @@ function owners(f){
 }
 function drawSpace(){
   const {g,W,H} = owners(S.f);
-  const cw = rx(1)-rx(0)+1, ch = ry(1)-ry(0)+1;
+  // ry() decreases with y, so the cell height is |ry(1)-ry(0)| and each cell is
+  // anchored at ry(y)-ch+1 - its top edge - or the whole layer shifts one cell.
+  const cw = rx(1)-rx(0)+1, ch = Math.abs(ry(1)-ry(0))+1;
   for(let y=0;y<H;y++) for(let x=0;x<W;x++){
     const p=g[y*W+x]; if(!p) continue;
     const guess=!ANCHORED.has(p.state[S.f]);
     const col=teamColour(p.team);
     if(guess){ rctx.globalAlpha=0.5; rctx.fillStyle=hatch(col); }
     else { rctx.globalAlpha=0.2; rctx.fillStyle=col; }
-    rctx.fillRect(rx(x),ry(y),cw,ch);
+    rctx.fillRect(rx(x),ry(y)-ch+1,cw,ch);
   }
   rctx.globalAlpha=1;
 }
@@ -876,8 +943,17 @@ function renderCards(){
 /* ---------------------------------------------------------------- roster */
 function renderRoster(){
   const a=assignments(S.f);
+  const off=offFrame(S.f);
   const rows=PL.map(p=>{
     const st=p.state[S.f];
+    // A slot with no position and no last bearing cannot be drawn anywhere on
+    // the overlay. It is the one case left where the page would show nothing at
+    // all, so the roster carries it instead - docs/05, never silently blank.
+    // The evidence state already says `unknown`; what this adds is that the
+    // slot is absent from BOTH views, so an empty overlay is honest rather
+    // than broken.
+    const blind=off.blind.includes(p.id);
+    const mark=blind?` <span class="why" style="display:inline">· nothing drawn</span>`:"";
     const seen=p.state.filter(s=>ANCHORED.has(s)).length;
     const xy=at(p,S.f), prev=S.f>0?at(p,S.f-1):null;
     const spd=(xy&&prev)?dist(xy,prev)*FPS:null;
@@ -885,7 +961,7 @@ function renderRoster(){
     return `<tr data-id="${p.id}" aria-selected="${S.sel===p.id}" tabindex="0">
       <td style="color:${teamColour(p.team)}">${p.id}</td>
       <td class="n">${p.jersey??"—"}</td>
-      <td>${st}</td>
+      <td>${st}${mark}</td>
       <td class="n">${Math.round(seen/NF*100)}%</td>
       <td class="n">${spd===null?"—":spd.toFixed(1)}</td>
       <td>${m&&m.mark?`${m.mark} @ ${m.range===null?"—":m.range.toFixed(1)} yd`:"—"}</td></tr>`;
@@ -969,6 +1045,21 @@ function seekVideo(){ if(vid.hidden) return;
   try { vid.currentTime = frameTime(S.f); } catch(_) {} }
 function seek(){ scrub.value=S.f; seekVideo();
   location.replace("#t="+(S.f/FPS).toFixed(2)); draw(); }
+// A hash-only navigation is same-document: the page keeps its state and never
+// re-seeks, so "Copy link to this moment" worked on a fresh load and did
+// nothing in-page. seek() writes the hash itself, so this has to no-op when the
+// hash already agrees with S.f or the two bounce off each other.
+function frameFromHash(){
+  const t=new URLSearchParams(location.hash.slice(1)).get("t");
+  if(t===null) return null;
+  const v=parseFloat(t);
+  return Number.isFinite(v) ? clamp(Math.round(v*FPS),0,NF-1) : null;
+}
+addEventListener("hashchange", () => {
+  const f=frameFromHash();
+  if(f===null||f===S.f) return;
+  S.f=f; scrub.value=S.f; seekVideo(); draw();
+});
 scrub.oninput = () => { S.f=+scrub.value; seek(); };
 document.getElementById("play").onclick = togglePlay;
 function togglePlay(){
@@ -1023,12 +1114,29 @@ function toggle(id,key,after){
     if(after) after(); draw(); };
 }
 toggle("tOverlay","overlay"); toggle("tMatch","match"); toggle("tChev","chev");
+// The control drew nothing at t=0 and nothing at t=12.0, which is where a
+// `#t=12` link opens, so the first thing anyone did with it was conclude it was
+// broken. It was not - there was simply nothing off-frame. Say the count.
+function syncChev(){
+  const o=offFrame(S.f), b=document.getElementById("tChev");
+  b.textContent = o.marks ? `Off-frame ${o.marks}` : "Off-frame 0";
+  b.disabled = o.marks===0;
+  b.title = o.marks===0
+    ? "Every slot with a position is inside this frame."
+    : `${o.away.length} outside the frame` +
+      (o.lost.length?`, ${o.lost.length} with no current position`:"");
+}
 toggle("tSpace","space"); toggle("tTrails","trails");
 document.getElementById("tPin").onclick = e => {
   S.pin = S.pin===null ? S.f : null;
   e.currentTarget.setAttribute("aria-pressed", String(S.pin!==null)); draw();
 };
-let themeMode = localStorage.getItem("ur-theme") || "auto";
+// Unguarded this sits at top level of the main script, so a browser configured
+// to block site data renders the whole page blank - which is exactly the
+// failure the build environment could not test for. The matching setItem was
+// already wrapped; this is the other half.
+let themeMode = "auto";
+try{ themeMode = localStorage.getItem("ur-theme") || "auto"; }catch(_){}
 function applyTheme(){
   if(themeMode==="auto") document.documentElement.removeAttribute("data-theme");
   else document.documentElement.setAttribute("data-theme",themeMode);
@@ -1138,12 +1246,58 @@ document.getElementById("foot").innerHTML =
   "Cards marked <i>inferred</i> rest on at least one player nobody saw — do not quote them.";
 
 function draw(){
+  syncChev();
   drawCamera(); drawRadar(); drawStrip(); renderCards(); renderRoster();
   const P=projector(S.f);
   document.getElementById("readout").textContent =
     `f${String(S.f).padStart(4,"0")}  ${(S.f/FPS).toFixed(2)}s  ` +
     `coverage ${coverage(S.f)}/14` + (P&&P.conf<1?`  calib ${P.conf.toFixed(2)}`:"");
 }
+/* ------------------------------------------------------ the self-check
+   HANDOFF § 8: eight bugs across M1–M6 shared one shape — something rendered
+   plausibly and was wrong, and only a check that could CONTRADICT it caught the
+   problem. The overhead view being mirrored across the short axis was the
+   ninth. It is invisible to inspection: a radar full of players looks like a
+   radar full of players whichever way up it is.
+
+   So assert the one thing that ties the two pictures together. Take two field
+   points that differ only in y, project both through the frame's own
+   homography, and require that the one lower in the IMAGE is the one lower on
+   the RADAR. Nothing here shares code with ry(): the image side comes from the
+   calibration, the radar side from the drawing transform, and a sign error in
+   either makes them disagree.
+
+   It runs on every load, on whatever possession is loaded, and it fails loudly
+   in the page rather than in a console nobody has open. */
+function radarContradiction(){
+  const A=[FL/2, FW*0.15], B=[FL/2, FW*0.85];   // differ only in y
+  for(let f=0; f<NF; f++){
+    const P=projector(f); if(!P) continue;
+    const qa=P.project(A[0],A[1],0), qb=P.project(B[0],B[1],0);
+    if(!qa||!qb) continue;
+    const dImage = qa[1]-qb[1];                  // + means A is lower in frame
+    const dRadar = ry(A[1])-ry(B[1]);            // + means A is lower on radar
+    if(Math.abs(dImage)<1e-6||Math.abs(dRadar)<1e-6) continue;
+    return {ok: Math.sign(dImage)===Math.sign(dRadar), f,
+            dImage:+dImage.toFixed(2), dRadar:+dRadar.toFixed(2),
+            why:"field y increases upward in the image, so it must increase "+
+                "upward on the overhead view too"};
+  }
+  return {ok:null, why:"no frame projected both probe points; check not run"};
+}
+const selfCheck = radarContradiction();
+window.__urSelfCheck = selfCheck;
+if(selfCheck.ok===false){
+  const el=document.getElementById("provenance");
+  el.innerHTML = `<b style="color:var(--warn)">Self-check failed</b> — the overhead view
+    disagrees with the camera view about which way field y runs (frame ${selfCheck.f}:
+    image Δv ${selfCheck.dImage}, radar Δy ${selfCheck.dRadar}). Every position on the
+    overhead view is mirrored. Do not read it.` + el.innerHTML;
+  console.error("[ur] radar/image orientation contradiction", selfCheck);
+} else if(selfCheck.ok===null){
+  console.warn("[ur] orientation self-check did not run", selfCheck);
+}
+
 // A currentTime set before the metadata arrives is dropped, so re-apply it once
 // the element knows its own duration — otherwise a link to #t=12 opens at 0.
 vid.addEventListener("loadedmetadata", () => { seekVideo(); sizeCanvases(); });
