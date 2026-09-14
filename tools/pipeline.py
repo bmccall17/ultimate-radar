@@ -22,21 +22,37 @@ import sys
 import time
 from pathlib import Path
 
-# (module, what it writes, whether it needs the GPU)
+# (module, what it writes, whether it takes a per-possession --eval-dir)
+#
+# `ur.calibrate.accept` is in the chain, not beside it. It is the only check in
+# the project that compares a frame against geometry whose position is known
+# exactly, and it was never run on the second or third possession - both of which
+# were wrong by 4.6 and 6.8 yd while every in-possession signal looked healthy,
+# with one of them published for a fortnight. A gate that has to be remembered is
+# a gate that will be forgotten. See docs/28-calibration-confidence.md.
 STAGES = [
-    ("ur.calibrate.run", "calibration.json", False),
-    ("ur.detect.run", "detections.json", True),
+    ("ur.calibrate.run", "calibration.json", True),
+    ("ur.calibrate.accept", "m1_acceptance.json (the known-geometry gate)", True),
+    ("ur.detect.run", "detections.json", False),
     ("ur.team", "detections.json (team fields)", False),
     ("ur.track.run", "tracks.json", False),
     ("ur.possess", "possession.json", False),
     ("ur.disc", "disc.json", False),
     ("ur.issues", "issues.json", False),
 ]
+
+# Calibration evidence is per possession and must not be shared. Both M1 stages
+# default to `eval/m1`, which is p0001's, so running them for another possession
+# would overwrite the evidence `docs/12-m1-calibration.md` cites. One directory
+# per possession; `eval/m1` stays as p0001's historical M1 artefacts.
+def eval_dir(work: Path) -> str:
+    return f"eval/m1-{work.name}"
 DEFAULT_FROM = "detect"
 
 
 def _key(mod: str) -> str:
-    return mod.split(".")[1] if mod.startswith("ur.") else mod
+    parts = mod.split(".")
+    return parts[-1] if parts[-1] not in ("run",) else parts[1]
 
 
 def run(work: Path, start: str, *, dry: bool = False) -> int:
@@ -45,8 +61,10 @@ def run(work: Path, start: str, *, dry: bool = False) -> int:
         print(f"[pipeline] --from must be one of {names}", file=sys.stderr)
         return 2
     begin = names.index(start)
-    for mod, writes, _ in STAGES[begin:]:
+    for mod, writes, per_possession_eval in STAGES[begin:]:
         cmd = [sys.executable, "-m", mod, str(work)]
+        if per_possession_eval:
+            cmd += ["--eval-dir", eval_dir(work)]
         print(f"\n[pipeline] === {mod} -> {writes}")
         if dry:
             continue
