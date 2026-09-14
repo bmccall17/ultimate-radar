@@ -11,6 +11,7 @@ remembered.
 ```bash
 python -m tools.scout goals  --out eval/m9/goals.json
 python -m tools.scout score  --goals eval/m9/goals.json --out eval/m9
+python -m tools.scout score  --goals eval/m9/goals.json --tail=-8 --out eval/m9/shifted
 python -m tools.scout sheet  --start 2394 --end 2424 --out eval/m9/sheets
 ```
 
@@ -160,7 +161,40 @@ from the page it is quoted on. This is `docs/28`'s lesson at one remove: a test 
 only ever run on the possession it was written for is a test of that possession, and an
 acceptance that only ever samples accepted frames is an acceptance of those frames.
 
-### Why p0006 and p0007 fail, and it is a known unbuilt thing
+### The real finding: choosing goals chooses the framing that breaks calibration
+
+The four are not two good possessions and two bad ones. They are four instances of the
+same thing, at different severities. Split each into ten-second thirds:
+
+| | 0–10 s | 10–20 s | 20–30 s |
+|---|---|---|---|
+| p0004 | 95 % | 98 % | **1 %** |
+| p0005 | 73 % | 94 % | **45 %** |
+| p0006 | 63 % | 15 % | **0 %** |
+| p0007 | 99 % | 14 % | **0 %** |
+
+**Every one of them collapses at the end**, and the end is the goal. As the throw goes up
+the camera pushes in on the endzone, the centre circle leaves the shot, and the fit has
+nothing left to sit on. At t = 27 s the published p0004 page reads *"0 of 14 — 0 % of the
+roster is in shot right now"*. It is telling the truth; the truth is that the moment the
+possession was selected for is the moment it cannot see.
+
+For contrast, p0001's window ends **42 s before** its goal and holds 88 % through its final
+third.
+
+So this is a defect in the scouting strategy, not in the four clips. *"A possession that
+ends in a goal"* and *"a possession the camera can calibrate"* pull against each other, and
+nothing measured that before these four were cut. Two ways out, and they are different in
+kind:
+
+- **Move the window earlier** — end eight to ten seconds before the clock freezes. From
+  p0004's profile, 2384–2414 would calibrate above 95 %. It keeps thirty seconds of real
+  throws and gives up the score. `docs/10` § 4 asks for "a real sequence of throws, ideally
+  ending in a score or a turn"; this keeps the sequence and spends the *ideally*.
+- **Build the mosaic fallback.** AD-4's amendment and `docs/28` both already name it. That
+  is the fix rather than the workaround, and it is a milestone rather than an afternoon.
+
+### Why p0006 and p0007 fail hardest, and it is a known unbuilt thing
 
 275 of p0006's 450 frames carry the same note: *"residual 0.00000 yd is below what painted
 lines physically allow — the fit has collapsed, not converged"*, with `n_line_px: 0` and a

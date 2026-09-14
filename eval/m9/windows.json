@@ -51,66 +51,66 @@
   "soft_scene_changes_inside": [
    894.34
   ],
-  "calibratable_fraction": 0.625,
-  "circle_fraction": 1.0,
-  "median_paint_px": 46576,
+  "calibratable_fraction": 0.375,
+  "circle_fraction": 0.875,
+  "median_paint_px": 13602,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 865.99,
     "ok": true,
-    "paint_px": 44697,
+    "paint_px": 16632,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 870.28,
     "ok": true,
-    "paint_px": 53787,
+    "paint_px": 15267,
     "circle": true,
     "line": true
    },
    {
     "t": 874.56,
     "ok": true,
-    "paint_px": 49537,
+    "paint_px": 9288,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 878.85,
     "ok": true,
-    "paint_px": 32047,
+    "paint_px": 8123,
     "circle": true,
     "line": false
    },
    {
     "t": 883.13,
     "ok": true,
-    "paint_px": 47764,
+    "paint_px": 18626,
     "circle": true,
     "line": true
    },
    {
     "t": 887.42,
     "ok": true,
-    "paint_px": 27965,
-    "circle": true,
+    "paint_px": 5360,
+    "circle": false,
     "line": false
    },
    {
     "t": 891.7,
     "ok": true,
-    "paint_px": 45388,
+    "paint_px": 11938,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 895.99,
     "ok": true,
-    "paint_px": 118898,
+    "paint_px": 118647,
     "circle": true,
-    "line": false
+    "line": true
    }
   ]
  },
@@ -142,66 +142,66 @@
    1004.65,
    1009.89
   ],
-  "calibratable_fraction": 0.75,
-  "circle_fraction": 1.0,
-  "median_paint_px": 45433,
+  "calibratable_fraction": 0.25,
+  "circle_fraction": 0.875,
+  "median_paint_px": 20472,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 993.95,
     "ok": true,
-    "paint_px": 150811,
+    "paint_px": 142317,
     "circle": true,
     "line": true
    },
    {
     "t": 998.24,
     "ok": true,
-    "paint_px": 33975,
+    "paint_px": 11571,
     "circle": true,
     "line": false
    },
    {
     "t": 1002.52,
     "ok": true,
-    "paint_px": 31888,
-    "circle": true,
-    "line": true
+    "paint_px": 13315,
+    "circle": false,
+    "line": false
    },
    {
     "t": 1006.81,
     "ok": true,
-    "paint_px": 57901,
+    "paint_px": 29201,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 1011.09,
     "ok": true,
-    "paint_px": 45465,
+    "paint_px": 17770,
     "circle": true,
     "line": true
    },
    {
     "t": 1015.38,
     "ok": true,
-    "paint_px": 47469,
+    "paint_px": 22871,
     "circle": true,
     "line": false
    },
    {
     "t": 1019.66,
     "ok": true,
-    "paint_px": 45402,
+    "paint_px": 22885,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 1023.95,
     "ok": true,
-    "paint_px": 40414,
+    "paint_px": 18074,
     "circle": true,
-    "line": true
+    "line": false
    }
   ]
  },
@@ -231,64 +231,64 @@
   "soft_scene_changes_inside": [
    1084.12
   ],
-  "calibratable_fraction": 0.5,
-  "circle_fraction": 1.0,
-  "median_paint_px": 54437,
+  "calibratable_fraction": 0.375,
+  "circle_fraction": 0.875,
+  "median_paint_px": 30209,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 1077.93,
     "ok": true,
-    "paint_px": 43941,
-    "circle": true,
+    "paint_px": 25777,
+    "circle": false,
     "line": false
    },
    {
     "t": 1082.22,
     "ok": true,
-    "paint_px": 52276,
+    "paint_px": 21594,
     "circle": true,
     "line": true
    },
    {
     "t": 1086.5,
     "ok": true,
-    "paint_px": 32515,
+    "paint_px": 9970,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 1090.79,
     "ok": true,
-    "paint_px": 49266,
+    "paint_px": 7483,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 1095.07,
     "ok": true,
-    "paint_px": 57187,
+    "paint_px": 36041,
     "circle": true,
     "line": false
    },
    {
     "t": 1099.36,
     "ok": true,
-    "paint_px": 61155,
+    "paint_px": 38322,
     "circle": true,
     "line": false
    },
    {
     "t": 1103.64,
     "ok": true,
-    "paint_px": 56606,
+    "paint_px": 34642,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 1107.93,
     "ok": true,
-    "paint_px": 56599,
+    "paint_px": 47040,
     "circle": true,
     "line": true
    }
@@ -322,50 +322,50 @@
    1203.95,
    1203.97
   ],
-  "calibratable_fraction": 0.5,
+  "calibratable_fraction": 0.625,
   "circle_fraction": 0.75,
-  "median_paint_px": 38601,
+  "median_paint_px": 21351,
   "one_shot_fraction": 0.983,
   "per_frame": [
    {
     "t": 1174.19,
     "ok": true,
-    "paint_px": 21472,
-    "circle": true,
+    "paint_px": 3332,
+    "circle": false,
     "line": false
    },
    {
     "t": 1178.48,
     "ok": true,
-    "paint_px": 44027,
+    "paint_px": 17881,
     "circle": true,
     "line": true
    },
    {
     "t": 1182.76,
     "ok": true,
-    "paint_px": 28969,
+    "paint_px": 9924,
     "circle": true,
     "line": true
    },
    {
     "t": 1187.05,
     "ok": true,
-    "paint_px": 33175,
-    "circle": false,
-    "line": false
+    "paint_px": 30477,
+    "circle": true,
+    "line": true
    },
    {
     "t": 1191.33,
     "ok": true,
-    "paint_px": 46066,
+    "paint_px": 24822,
     "circle": true,
     "line": true
    },
    {
     "t": 1195.62,
     "ok": true,
-    "paint_px": 343716,
+    "paint_px": 156269,
     "circle": true,
     "line": true
    },
@@ -379,7 +379,7 @@
    {
     "t": 1204.19,
     "ok": true,
-    "paint_px": 98396,
+    "paint_px": 58844,
     "circle": true,
     "line": false
    }
@@ -409,64 +409,64 @@
   "end": 1315.05,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.5,
-  "circle_fraction": 1.0,
-  "median_paint_px": 48018,
+  "calibratable_fraction": 0.375,
+  "circle_fraction": 0.875,
+  "median_paint_px": 8604,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 1285.05,
     "ok": true,
-    "paint_px": 33283,
+    "paint_px": 8065,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 1289.34,
     "ok": true,
-    "paint_px": 48342,
+    "paint_px": 16046,
     "circle": true,
     "line": true
    },
    {
     "t": 1293.62,
     "ok": true,
-    "paint_px": 51283,
+    "paint_px": 16014,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 1297.91,
     "ok": true,
-    "paint_px": 47335,
+    "paint_px": 6820,
     "circle": true,
     "line": false
    },
    {
     "t": 1302.19,
     "ok": true,
-    "paint_px": 50805,
+    "paint_px": 3226,
     "circle": true,
     "line": false
    },
    {
     "t": 1306.48,
     "ok": true,
-    "paint_px": 52930,
-    "circle": true,
+    "paint_px": 8053,
+    "circle": false,
     "line": false
    },
    {
     "t": 1310.76,
     "ok": true,
-    "paint_px": 46496,
+    "paint_px": 9143,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 1315.05,
     "ok": true,
-    "paint_px": 47694,
+    "paint_px": 35502,
     "circle": true,
     "line": true
    }
@@ -496,64 +496,64 @@
   "end": 1416.11,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.375,
-  "circle_fraction": 1.0,
-  "median_paint_px": 39168,
+  "calibratable_fraction": 0.25,
+  "circle_fraction": 0.875,
+  "median_paint_px": 11842,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 1386.11,
     "ok": true,
-    "paint_px": 38592,
+    "paint_px": 11270,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 1390.4,
     "ok": true,
-    "paint_px": 35726,
+    "paint_px": 11155,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 1394.68,
     "ok": true,
-    "paint_px": 23044,
+    "paint_px": 8665,
     "circle": true,
     "line": false
    },
    {
     "t": 1398.97,
     "ok": true,
-    "paint_px": 29370,
+    "paint_px": 18787,
     "circle": true,
     "line": false
    },
    {
     "t": 1403.25,
     "ok": true,
-    "paint_px": 41364,
+    "paint_px": 20651,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 1407.54,
     "ok": true,
-    "paint_px": 54507,
+    "paint_px": 12411,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 1411.82,
     "ok": true,
-    "paint_px": 49346,
-    "circle": true,
-    "line": true
+    "paint_px": 12072,
+    "circle": false,
+    "line": false
    },
    {
     "t": 1416.11,
     "ok": true,
-    "paint_px": 39745,
+    "paint_px": 11612,
     "circle": true,
     "line": false
    }
@@ -585,64 +585,64 @@
   "soft_scene_changes_inside": [
    1517.7
   ],
-  "calibratable_fraction": 0.25,
-  "circle_fraction": 1.0,
-  "median_paint_px": 53699,
+  "calibratable_fraction": 0.5,
+  "circle_fraction": 0.875,
+  "median_paint_px": 32807,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 1488.1,
     "ok": true,
-    "paint_px": 26651,
+    "paint_px": 21787,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 1492.39,
     "ok": true,
-    "paint_px": 33284,
+    "paint_px": 25210,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 1496.67,
     "ok": true,
-    "paint_px": 56715,
+    "paint_px": 26949,
     "circle": true,
     "line": false
    },
    {
     "t": 1500.96,
     "ok": true,
-    "paint_px": 95937,
+    "paint_px": 53742,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 1505.24,
     "ok": true,
-    "paint_px": 127086,
+    "paint_px": 86531,
     "circle": true,
     "line": true
    },
    {
     "t": 1509.53,
     "ok": true,
-    "paint_px": 76549,
+    "paint_px": 39217,
     "circle": true,
     "line": false
    },
    {
     "t": 1513.81,
     "ok": true,
-    "paint_px": 50683,
-    "circle": true,
-    "line": true
+    "paint_px": 31887,
+    "circle": false,
+    "line": false
    },
    {
     "t": 1518.1,
     "ok": true,
-    "paint_px": 39386,
+    "paint_px": 33728,
     "circle": true,
     "line": false
    }
@@ -672,64 +672,64 @@
   "end": 1617.25,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.75,
+  "calibratable_fraction": 0.5,
   "circle_fraction": 1.0,
-  "median_paint_px": 38792,
+  "median_paint_px": 15048,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 1587.25,
     "ok": true,
-    "paint_px": 32997,
+    "paint_px": 13742,
     "circle": true,
     "line": false
    },
    {
     "t": 1591.54,
     "ok": true,
-    "paint_px": 39480,
+    "paint_px": 17118,
     "circle": true,
     "line": true
    },
    {
     "t": 1595.82,
     "ok": true,
-    "paint_px": 41785,
+    "paint_px": 17907,
     "circle": true,
     "line": true
    },
    {
     "t": 1600.11,
     "ok": true,
-    "paint_px": 38105,
+    "paint_px": 11236,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 1604.39,
     "ok": true,
-    "paint_px": 44033,
+    "paint_px": 16354,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 1608.68,
     "ok": true,
-    "paint_px": 33393,
+    "paint_px": 9374,
     "circle": true,
     "line": true
    },
    {
     "t": 1612.96,
     "ok": true,
-    "paint_px": 27334,
+    "paint_px": 10432,
     "circle": true,
     "line": false
    },
    {
     "t": 1617.25,
     "ok": true,
-    "paint_px": 66128,
+    "paint_px": 61774,
     "circle": true,
     "line": true
    }
@@ -765,66 +765,66 @@
    1728.78,
    1728.79
   ],
-  "calibratable_fraction": 0.875,
+  "calibratable_fraction": 0.375,
   "circle_fraction": 1.0,
-  "median_paint_px": 57487,
+  "median_paint_px": 27517,
   "one_shot_fraction": 0.967,
   "per_frame": [
    {
     "t": 1699.32,
     "ok": true,
-    "paint_px": 42316,
+    "paint_px": 17045,
     "circle": true,
     "line": true
    },
    {
     "t": 1703.61,
     "ok": true,
-    "paint_px": 54693,
+    "paint_px": 23974,
     "circle": true,
     "line": true
    },
    {
     "t": 1707.89,
     "ok": true,
-    "paint_px": 57642,
+    "paint_px": 31721,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 1712.18,
     "ok": true,
-    "paint_px": 63790,
+    "paint_px": 31061,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 1716.46,
     "ok": true,
-    "paint_px": 57588,
+    "paint_px": 19516,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 1720.75,
     "ok": true,
-    "paint_px": 57386,
+    "paint_px": 35341,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 1725.03,
     "ok": true,
-    "paint_px": 47485,
+    "paint_px": 9767,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 1729.32,
     "ok": true,
-    "paint_px": 81048,
+    "paint_px": 42908,
     "circle": true,
-    "line": false
+    "line": true
    }
   ]
  },
@@ -853,63 +853,63 @@
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
   "calibratable_fraction": 0.375,
-  "circle_fraction": 0.875,
-  "median_paint_px": 26005,
+  "circle_fraction": 1.0,
+  "median_paint_px": 11357,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 1793.65,
     "ok": true,
-    "paint_px": 31673,
+    "paint_px": 17583,
     "circle": true,
     "line": true
    },
    {
     "t": 1797.94,
     "ok": true,
-    "paint_px": 34438,
+    "paint_px": 17650,
     "circle": true,
     "line": true
    },
    {
     "t": 1802.22,
     "ok": true,
-    "paint_px": 32198,
+    "paint_px": 15989,
     "circle": true,
     "line": false
    },
    {
     "t": 1806.51,
     "ok": true,
-    "paint_px": 16202,
+    "paint_px": 5366,
     "circle": true,
     "line": false
    },
    {
     "t": 1810.79,
     "ok": true,
-    "paint_px": 13310,
-    "circle": false,
+    "paint_px": 2416,
+    "circle": true,
     "line": false
    },
    {
     "t": 1815.08,
     "ok": true,
-    "paint_px": 16222,
+    "paint_px": 6725,
     "circle": true,
     "line": false
    },
    {
     "t": 1819.36,
     "ok": true,
-    "paint_px": 20338,
+    "paint_px": 6448,
     "circle": true,
     "line": false
    },
    {
     "t": 1823.65,
     "ok": true,
-    "paint_px": 78208,
+    "paint_px": 27813,
     "circle": true,
     "line": true
    }
@@ -942,64 +942,64 @@
    2036.32,
    2061.29
   ],
-  "calibratable_fraction": 0.375,
+  "calibratable_fraction": 0.25,
   "circle_fraction": 1.0,
-  "median_paint_px": 69786,
+  "median_paint_px": 21481,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 2031.43,
     "ok": true,
-    "paint_px": 40373,
+    "paint_px": 13730,
     "circle": true,
     "line": false
    },
    {
     "t": 2035.72,
     "ok": true,
-    "paint_px": 70526,
+    "paint_px": 19043,
     "circle": true,
     "line": false
    },
    {
     "t": 2040.0,
     "ok": true,
-    "paint_px": 86921,
+    "paint_px": 22578,
     "circle": true,
     "line": false
    },
    {
     "t": 2044.29,
     "ok": true,
-    "paint_px": 95650,
+    "paint_px": 25790,
     "circle": true,
     "line": true
    },
    {
     "t": 2048.57,
     "ok": true,
-    "paint_px": 69046,
+    "paint_px": 20745,
     "circle": true,
     "line": true
    },
    {
     "t": 2052.86,
     "ok": true,
-    "paint_px": 93023,
+    "paint_px": 16113,
     "circle": true,
     "line": false
    },
    {
     "t": 2057.14,
     "ok": true,
-    "paint_px": 47427,
+    "paint_px": 22218,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 2061.43,
     "ok": true,
-    "paint_px": 47267,
+    "paint_px": 28982,
     "circle": true,
     "line": false
    }
@@ -1029,64 +1029,64 @@
   "end": 2159.09,
   "window_s": 22.94,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.5,
+  "calibratable_fraction": 0.125,
   "circle_fraction": 1.0,
-  "median_paint_px": 55161,
+  "median_paint_px": 36279,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 2136.15,
     "ok": true,
-    "paint_px": 57857,
+    "paint_px": 36420,
     "circle": true,
     "line": false
    },
    {
     "t": 2139.43,
     "ok": true,
-    "paint_px": 56556,
+    "paint_px": 39592,
     "circle": true,
     "line": false
    },
    {
     "t": 2142.7,
     "ok": true,
-    "paint_px": 53546,
+    "paint_px": 46525,
     "circle": true,
     "line": true
    },
    {
     "t": 2145.98,
     "ok": true,
-    "paint_px": 55485,
+    "paint_px": 36138,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 2149.26,
     "ok": true,
-    "paint_px": 53252,
+    "paint_px": 18611,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 2152.54,
     "ok": true,
-    "paint_px": 38848,
+    "paint_px": 15522,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 2155.81,
     "ok": true,
-    "paint_px": 54838,
+    "paint_px": 28822,
     "circle": true,
     "line": false
    },
    {
     "t": 2159.09,
     "ok": true,
-    "paint_px": 126312,
+    "paint_px": 58173,
     "circle": true,
     "line": false
    }
@@ -1116,66 +1116,66 @@
   "end": 2424.0,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.75,
+  "calibratable_fraction": 0.625,
   "circle_fraction": 1.0,
-  "median_paint_px": 47004,
+  "median_paint_px": 18753,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 2394.0,
     "ok": true,
-    "paint_px": 31791,
+    "paint_px": 15578,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 2398.29,
     "ok": true,
-    "paint_px": 50582,
+    "paint_px": 18741,
     "circle": true,
     "line": true
    },
    {
     "t": 2402.57,
     "ok": true,
-    "paint_px": 38337,
+    "paint_px": 17757,
     "circle": true,
     "line": true
    },
    {
     "t": 2406.86,
     "ok": true,
-    "paint_px": 44040,
+    "paint_px": 18766,
     "circle": true,
     "line": true
    },
    {
     "t": 2411.14,
     "ok": true,
-    "paint_px": 49968,
+    "paint_px": 24123,
     "circle": true,
     "line": true
    },
    {
     "t": 2415.43,
     "ok": true,
-    "paint_px": 38847,
+    "paint_px": 9935,
     "circle": true,
     "line": false
    },
    {
     "t": 2419.71,
     "ok": true,
-    "paint_px": 53183,
+    "paint_px": 23793,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 2424.0,
     "ok": true,
-    "paint_px": 89820,
+    "paint_px": 44657,
     "circle": true,
-    "line": true
+    "line": false
    }
   ]
  },
@@ -1204,63 +1204,63 @@
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
   "calibratable_fraction": 0.25,
-  "circle_fraction": 0.875,
-  "median_paint_px": 37954,
+  "circle_fraction": 1.0,
+  "median_paint_px": 18468,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 2481.93,
     "ok": true,
-    "paint_px": 40420,
-    "circle": false,
-    "line": false
+    "paint_px": 24644,
+    "circle": true,
+    "line": true
    },
    {
     "t": 2486.22,
     "ok": true,
-    "paint_px": 40049,
+    "paint_px": 20881,
     "circle": true,
     "line": true
    },
    {
     "t": 2490.5,
     "ok": true,
-    "paint_px": 40963,
+    "paint_px": 23107,
     "circle": true,
     "line": false
    },
    {
     "t": 2494.79,
     "ok": true,
-    "paint_px": 35860,
+    "paint_px": 16056,
     "circle": true,
     "line": false
    },
    {
     "t": 2499.07,
     "ok": true,
-    "paint_px": 20133,
+    "paint_px": 5924,
     "circle": true,
     "line": false
    },
    {
     "t": 2503.36,
     "ok": true,
-    "paint_px": 31351,
+    "paint_px": 12447,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 2507.64,
     "ok": true,
-    "paint_px": 25099,
+    "paint_px": 12739,
     "circle": true,
     "line": false
    },
    {
     "t": 2511.93,
     "ok": true,
-    "paint_px": 57618,
+    "paint_px": 26341,
     "circle": true,
     "line": false
    }
@@ -1291,64 +1291,64 @@
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
   "calibratable_fraction": 0.5,
-  "circle_fraction": 1.0,
-  "median_paint_px": 44285,
+  "circle_fraction": 0.75,
+  "median_paint_px": 14487,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 2644.51,
     "ok": true,
-    "paint_px": 76730,
+    "paint_px": 72659,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 2648.8,
     "ok": true,
-    "paint_px": 100137,
+    "paint_px": 39642,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 2653.08,
     "ok": true,
-    "paint_px": 160519,
+    "paint_px": 142389,
     "circle": true,
     "line": true
    },
    {
     "t": 2657.37,
     "ok": true,
-    "paint_px": 19617,
-    "circle": true,
-    "line": true
+    "paint_px": 7589,
+    "circle": false,
+    "line": false
    },
    {
     "t": 2661.65,
     "ok": true,
-    "paint_px": 17003,
+    "paint_px": 4509,
     "circle": true,
     "line": false
    },
    {
     "t": 2665.94,
     "ok": true,
-    "paint_px": 43425,
+    "paint_px": 18512,
     "circle": true,
     "line": true
    },
    {
     "t": 2670.22,
     "ok": true,
-    "paint_px": 45145,
+    "paint_px": 9481,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 2674.51,
     "ok": true,
-    "paint_px": 38058,
-    "circle": true,
+    "paint_px": 10463,
+    "circle": false,
     "line": false
    }
   ]
@@ -1381,62 +1381,62 @@
   ],
   "calibratable_fraction": 0.5,
   "circle_fraction": 0.875,
-  "median_paint_px": 39299,
+  "median_paint_px": 19318,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 2741.89,
     "ok": true,
-    "paint_px": 33634,
-    "circle": true,
-    "line": true
-   },
-   {
-    "t": 2746.18,
-    "ok": true,
-    "paint_px": 27493,
+    "paint_px": 12997,
     "circle": true,
     "line": false
    },
    {
+    "t": 2746.18,
+    "ok": true,
+    "paint_px": 15533,
+    "circle": true,
+    "line": true
+   },
+   {
     "t": 2750.46,
     "ok": true,
-    "paint_px": 44964,
+    "paint_px": 23104,
     "circle": true,
     "line": true
    },
    {
     "t": 2754.75,
     "ok": true,
-    "paint_px": 65330,
+    "paint_px": 27230,
     "circle": true,
     "line": true
    },
    {
     "t": 2759.03,
     "ok": true,
-    "paint_px": 93539,
+    "paint_px": 61285,
     "circle": true,
     "line": true
    },
    {
     "t": 2763.32,
     "ok": true,
-    "paint_px": 2822,
+    "paint_px": 2711,
     "circle": true,
     "line": false
    },
    {
     "t": 2767.6,
     "ok": true,
-    "paint_px": 1801,
+    "paint_px": 1790,
     "circle": false,
     "line": false
    },
    {
     "t": 2771.89,
     "ok": true,
-    "paint_px": 294269,
+    "paint_px": 126020,
     "circle": true,
     "line": false
    }
@@ -1466,64 +1466,64 @@
   "end": 2975.12,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.25,
-  "circle_fraction": 0.75,
-  "median_paint_px": 62190,
+  "calibratable_fraction": 0.5,
+  "circle_fraction": 0.875,
+  "median_paint_px": 11295,
   "one_shot_fraction": 0.433,
   "per_frame": [
    {
     "t": 2945.12,
     "ok": true,
-    "paint_px": 547,
+    "paint_px": 453,
     "circle": false,
     "line": false
    },
    {
     "t": 2949.41,
     "ok": true,
-    "paint_px": 55418,
+    "paint_px": 7417,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 2953.69,
     "ok": true,
-    "paint_px": 60198,
+    "paint_px": 8239,
     "circle": true,
     "line": false
    },
    {
     "t": 2957.98,
     "ok": true,
-    "paint_px": 7395,
-    "circle": false,
+    "paint_px": 2675,
+    "circle": true,
     "line": false
    },
    {
     "t": 2962.26,
     "ok": true,
-    "paint_px": 64183,
+    "paint_px": 14351,
     "circle": true,
     "line": false
    },
    {
     "t": 2966.55,
     "ok": true,
-    "paint_px": 94029,
+    "paint_px": 31547,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 2970.83,
     "ok": true,
-    "paint_px": 152336,
+    "paint_px": 35886,
     "circle": true,
     "line": true
    },
    {
     "t": 2975.12,
     "ok": true,
-    "paint_px": 113003,
+    "paint_px": 27538,
     "circle": true,
     "line": true
    }
@@ -1553,66 +1553,66 @@
   "end": 3069.25,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.625,
+  "calibratable_fraction": 0.5,
   "circle_fraction": 1.0,
-  "median_paint_px": 50385,
+  "median_paint_px": 13601,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 3039.25,
     "ok": true,
-    "paint_px": 38525,
+    "paint_px": 6422,
     "circle": true,
     "line": false
    },
    {
     "t": 3043.54,
     "ok": true,
-    "paint_px": 51898,
+    "paint_px": 11316,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 3047.82,
     "ok": true,
-    "paint_px": 48873,
+    "paint_px": 14357,
     "circle": true,
     "line": true
    },
    {
     "t": 3052.11,
     "ok": true,
-    "paint_px": 57886,
+    "paint_px": 12846,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 3056.39,
     "ok": true,
-    "paint_px": 57903,
+    "paint_px": 23309,
     "circle": true,
     "line": true
    },
    {
     "t": 3060.68,
     "ok": true,
-    "paint_px": 48731,
+    "paint_px": 15391,
     "circle": true,
     "line": true
    },
    {
     "t": 3064.96,
     "ok": true,
-    "paint_px": 32368,
+    "paint_px": 6686,
     "circle": true,
     "line": false
    },
    {
     "t": 3069.25,
     "ok": true,
-    "paint_px": 104546,
+    "paint_px": 46255,
     "circle": true,
-    "line": false
+    "line": true
    }
   ]
  },
@@ -1640,64 +1640,64 @@
   "end": 3150.03,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.25,
+  "calibratable_fraction": 0.375,
   "circle_fraction": 1.0,
-  "median_paint_px": 78571,
+  "median_paint_px": 18143,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 3120.03,
     "ok": true,
-    "paint_px": 1007605,
+    "paint_px": 673221,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 3124.32,
     "ok": true,
-    "paint_px": 954233,
+    "paint_px": 626329,
     "circle": true,
     "line": true
    },
    {
     "t": 3128.6,
     "ok": true,
-    "paint_px": 35747,
+    "paint_px": 9746,
     "circle": true,
     "line": false
    },
    {
     "t": 3132.89,
     "ok": true,
-    "paint_px": 37471,
+    "paint_px": 8563,
     "circle": true,
     "line": false
    },
    {
     "t": 3137.17,
     "ok": true,
-    "paint_px": 34623,
+    "paint_px": 12963,
     "circle": true,
     "line": false
    },
    {
     "t": 3141.46,
     "ok": true,
-    "paint_px": 47732,
+    "paint_px": 9363,
     "circle": true,
     "line": false
    },
    {
     "t": 3145.74,
     "ok": true,
-    "paint_px": 109410,
+    "paint_px": 23324,
     "circle": true,
     "line": true
    },
    {
     "t": 3150.03,
     "ok": true,
-    "paint_px": 149205,
+    "paint_px": 51943,
     "circle": true,
     "line": false
    }
@@ -1730,66 +1730,66 @@
    3239.57,
    3248.64
   ],
-  "calibratable_fraction": 0.625,
-  "circle_fraction": 1.0,
-  "median_paint_px": 47237,
+  "calibratable_fraction": 0.125,
+  "circle_fraction": 0.75,
+  "median_paint_px": 14749,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 3219.78,
     "ok": true,
-    "paint_px": 35343,
+    "paint_px": 15214,
     "circle": true,
     "line": false
    },
    {
     "t": 3224.07,
     "ok": true,
-    "paint_px": 39959,
+    "paint_px": 13009,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 3228.35,
     "ok": true,
-    "paint_px": 63117,
-    "circle": true,
-    "line": true
+    "paint_px": 14284,
+    "circle": false,
+    "line": false
    },
    {
     "t": 3232.64,
     "ok": true,
-    "paint_px": 68633,
+    "paint_px": 18346,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 3236.92,
     "ok": true,
-    "paint_px": 51246,
+    "paint_px": 13314,
     "circle": true,
     "line": true
    },
    {
     "t": 3241.21,
     "ok": true,
-    "paint_px": 43229,
+    "paint_px": 27264,
     "circle": true,
     "line": false
    },
    {
     "t": 3245.49,
     "ok": true,
-    "paint_px": 37905,
-    "circle": true,
+    "paint_px": 9250,
+    "circle": false,
     "line": false
    },
    {
     "t": 3249.78,
     "ok": true,
-    "paint_px": 608097,
+    "paint_px": 358610,
     "circle": true,
-    "line": true
+    "line": false
    }
   ]
  },
@@ -1822,22 +1822,22 @@
    3423.0,
    3439.94
   ],
-  "calibratable_fraction": 0.5,
+  "calibratable_fraction": 0.125,
   "circle_fraction": 1.0,
-  "median_paint_px": 40293,
+  "median_paint_px": 20882,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 3411.07,
     "ok": true,
-    "paint_px": 39168,
+    "paint_px": 11517,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 3415.36,
     "ok": true,
-    "paint_px": 27173,
+    "paint_px": 24508,
     "circle": true,
     "line": false
    },
@@ -1851,35 +1851,35 @@
    {
     "t": 3423.93,
     "ok": true,
-    "paint_px": 116252,
-    "circle": true,
-    "line": true
-   },
-   {
-    "t": 3428.21,
-    "ok": true,
-    "paint_px": 121638,
-    "circle": true,
-    "line": true
-   },
-   {
-    "t": 3432.5,
-    "ok": true,
-    "paint_px": 38332,
-    "circle": true,
-    "line": true
-   },
-   {
-    "t": 3436.78,
-    "ok": true,
-    "paint_px": 41581,
+    "paint_px": 20796,
     "circle": true,
     "line": false
    },
    {
+    "t": 3428.21,
+    "ok": true,
+    "paint_px": 14408,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3432.5,
+    "ok": true,
+    "paint_px": 8779,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3436.78,
+    "ok": true,
+    "paint_px": 20969,
+    "circle": true,
+    "line": true
+   },
+   {
     "t": 3441.07,
     "ok": true,
-    "paint_px": 41419,
+    "paint_px": 31668,
     "circle": true,
     "line": false
    }
@@ -1909,66 +1909,66 @@
   "end": 3602.58,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.625,
+  "calibratable_fraction": 0.125,
   "circle_fraction": 1.0,
-  "median_paint_px": 55259,
+  "median_paint_px": 10496,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 3572.58,
     "ok": true,
-    "paint_px": 71169,
+    "paint_px": 8480,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 3576.87,
     "ok": true,
-    "paint_px": 58210,
+    "paint_px": 8775,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 3581.15,
     "ok": true,
-    "paint_px": 52309,
+    "paint_px": 16655,
     "circle": true,
     "line": true
    },
    {
     "t": 3585.44,
     "ok": true,
-    "paint_px": 33753,
+    "paint_px": 12565,
     "circle": true,
     "line": false
    },
    {
     "t": 3589.72,
     "ok": true,
-    "paint_px": 35043,
+    "paint_px": 9594,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 3594.01,
     "ok": true,
-    "paint_px": 33530,
+    "paint_px": 7417,
     "circle": true,
     "line": false
    },
    {
     "t": 3598.29,
     "ok": true,
-    "paint_px": 70121,
+    "paint_px": 11398,
     "circle": true,
     "line": false
    },
    {
     "t": 3602.58,
     "ok": true,
-    "paint_px": 110192,
+    "paint_px": 41165,
     "circle": true,
-    "line": true
+    "line": false
    }
   ]
  },
@@ -2002,62 +2002,62 @@
   ],
   "calibratable_fraction": 0.5,
   "circle_fraction": 1.0,
-  "median_paint_px": 47769,
+  "median_paint_px": 23365,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 3678.64,
     "ok": true,
-    "paint_px": 57238,
+    "paint_px": 23716,
     "circle": true,
     "line": true
    },
    {
     "t": 3682.93,
     "ok": true,
-    "paint_px": 47352,
+    "paint_px": 23674,
     "circle": true,
     "line": true
    },
    {
     "t": 3687.21,
     "ok": true,
-    "paint_px": 48187,
-    "circle": true,
-    "line": true
-   },
-   {
-    "t": 3691.5,
-    "ok": true,
-    "paint_px": 73843,
+    "paint_px": 23057,
     "circle": true,
     "line": false
    },
    {
+    "t": 3691.5,
+    "ok": true,
+    "paint_px": 43041,
+    "circle": true,
+    "line": true
+   },
+   {
     "t": 3695.78,
     "ok": true,
-    "paint_px": 42082,
+    "paint_px": 20314,
     "circle": true,
     "line": false
    },
    {
     "t": 3700.07,
     "ok": true,
-    "paint_px": 23695,
+    "paint_px": 11739,
     "circle": true,
     "line": false
    },
    {
     "t": 3704.35,
     "ok": true,
-    "paint_px": 64398,
+    "paint_px": 40988,
     "circle": true,
     "line": false
    },
    {
     "t": 3708.64,
     "ok": true,
-    "paint_px": 23547,
+    "paint_px": 20054,
     "circle": true,
     "line": true
    }
@@ -2141,64 +2141,64 @@
   "soft_scene_changes_inside": [
    4848.38
   ],
-  "calibratable_fraction": 0.625,
+  "calibratable_fraction": 0.5,
   "circle_fraction": 1.0,
-  "median_paint_px": 61789,
+  "median_paint_px": 24550,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 4820.26,
     "ok": true,
-    "paint_px": 31721,
+    "paint_px": 30412,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 4824.55,
     "ok": true,
-    "paint_px": 49985,
+    "paint_px": 32878,
     "circle": true,
     "line": true
    },
    {
     "t": 4828.83,
     "ok": true,
-    "paint_px": 58508,
+    "paint_px": 20747,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 4833.12,
     "ok": true,
-    "paint_px": 73234,
+    "paint_px": 15765,
     "circle": true,
     "line": false
    },
    {
     "t": 4837.4,
     "ok": true,
-    "paint_px": 65070,
+    "paint_px": 16381,
     "circle": true,
     "line": true
    },
    {
     "t": 4841.69,
     "ok": true,
-    "paint_px": 42880,
+    "paint_px": 15811,
     "circle": true,
     "line": true
    },
    {
     "t": 4845.97,
     "ok": true,
-    "paint_px": 68655,
+    "paint_px": 28353,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 4850.26,
     "ok": true,
-    "paint_px": 92645,
+    "paint_px": 57086,
     "circle": true,
     "line": false
    }
@@ -2228,66 +2228,66 @@
   "end": 5049.59,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.375,
+  "calibratable_fraction": 0.625,
   "circle_fraction": 1.0,
-  "median_paint_px": 26829,
+  "median_paint_px": 10803,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 5019.59,
     "ok": true,
-    "paint_px": 63374,
+    "paint_px": 14383,
     "circle": true,
     "line": false
    },
    {
     "t": 5023.88,
     "ok": true,
-    "paint_px": 80328,
+    "paint_px": 11074,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 5028.16,
     "ok": true,
-    "paint_px": 31548,
+    "paint_px": 9238,
     "circle": true,
     "line": true
    },
    {
     "t": 5032.45,
     "ok": true,
-    "paint_px": 24816,
-    "circle": true,
-    "line": false
-   },
-   {
-    "t": 5036.73,
-    "ok": true,
-    "paint_px": 26012,
+    "paint_px": 8161,
     "circle": true,
     "line": true
    },
    {
-    "t": 5041.02,
+    "t": 5036.73,
     "ok": true,
-    "paint_px": 24852,
+    "paint_px": 9920,
     "circle": true,
     "line": false
+   },
+   {
+    "t": 5041.02,
+    "ok": true,
+    "paint_px": 10532,
+    "circle": true,
+    "line": true
    },
    {
     "t": 5045.3,
     "ok": true,
-    "paint_px": 24866,
+    "paint_px": 12039,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 5049.59,
     "ok": true,
-    "paint_px": 27647,
+    "paint_px": 18088,
     "circle": true,
-    "line": false
+    "line": true
    }
   ]
  },
@@ -2316,63 +2316,63 @@
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
   "calibratable_fraction": 0.125,
-  "circle_fraction": 1.0,
-  "median_paint_px": 34143,
+  "circle_fraction": 0.875,
+  "median_paint_px": 10258,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 5125.15,
     "ok": true,
-    "paint_px": 25792,
+    "paint_px": 7118,
     "circle": true,
     "line": false
    },
    {
     "t": 5129.44,
     "ok": true,
-    "paint_px": 24492,
+    "paint_px": 6222,
     "circle": true,
     "line": false
    },
    {
     "t": 5133.72,
     "ok": true,
-    "paint_px": 31650,
-    "circle": true,
+    "paint_px": 7723,
+    "circle": false,
     "line": false
    },
    {
     "t": 5138.01,
     "ok": true,
-    "paint_px": 23857,
+    "paint_px": 5357,
     "circle": true,
     "line": false
    },
    {
     "t": 5142.29,
     "ok": true,
-    "paint_px": 42185,
+    "paint_px": 14244,
     "circle": true,
     "line": false
    },
    {
     "t": 5146.58,
     "ok": true,
-    "paint_px": 43772,
-    "circle": true,
-    "line": true
-   },
-   {
-    "t": 5150.86,
-    "ok": true,
-    "paint_px": 36637,
+    "paint_px": 12794,
     "circle": true,
     "line": false
    },
    {
+    "t": 5150.86,
+    "ok": true,
+    "paint_px": 12936,
+    "circle": true,
+    "line": true
+   },
+   {
     "t": 5155.15,
     "ok": true,
-    "paint_px": 45266,
+    "paint_px": 42532,
     "circle": true,
     "line": false
    }
@@ -2404,64 +2404,64 @@
   "soft_scene_changes_inside": [
    5298.78
   ],
-  "calibratable_fraction": 0.5,
-  "circle_fraction": 1.0,
-  "median_paint_px": 44083,
+  "calibratable_fraction": 0.25,
+  "circle_fraction": 0.75,
+  "median_paint_px": 13767,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 5269.43,
     "ok": true,
-    "paint_px": 37100,
-    "circle": true,
+    "paint_px": 7190,
+    "circle": false,
     "line": false
    },
    {
     "t": 5273.72,
     "ok": true,
-    "paint_px": 43876,
+    "paint_px": 16991,
     "circle": true,
     "line": true
    },
    {
     "t": 5278.0,
     "ok": true,
-    "paint_px": 47516,
+    "paint_px": 19094,
     "circle": true,
     "line": true
    },
    {
     "t": 5282.29,
     "ok": true,
-    "paint_px": 38609,
+    "paint_px": 10544,
     "circle": true,
     "line": false
    },
    {
     "t": 5286.57,
     "ok": true,
-    "paint_px": 44291,
+    "paint_px": 7456,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 5290.86,
     "ok": true,
-    "paint_px": 27729,
-    "circle": true,
+    "paint_px": 6915,
+    "circle": false,
     "line": false
    },
    {
     "t": 5295.14,
     "ok": true,
-    "paint_px": 148091,
+    "paint_px": 17500,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 5299.43,
     "ok": true,
-    "paint_px": 77281,
+    "paint_px": 41583,
     "circle": true,
     "line": false
    }
@@ -2491,64 +2491,64 @@
   "end": 5403.22,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.75,
-  "circle_fraction": 1.0,
-  "median_paint_px": 42088,
+  "calibratable_fraction": 0.375,
+  "circle_fraction": 0.875,
+  "median_paint_px": 10597,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 5373.22,
     "ok": true,
-    "paint_px": 397627,
+    "paint_px": 358805,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 5377.51,
     "ok": true,
-    "paint_px": 40123,
-    "circle": true,
+    "paint_px": 1829,
+    "circle": false,
     "line": false
    },
    {
     "t": 5381.79,
     "ok": true,
-    "paint_px": 33511,
+    "paint_px": 6954,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 5386.08,
     "ok": true,
-    "paint_px": 44054,
+    "paint_px": 11862,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 5390.36,
     "ok": true,
-    "paint_px": 45532,
+    "paint_px": 9332,
     "circle": true,
     "line": true
    },
    {
     "t": 5394.65,
     "ok": true,
-    "paint_px": 36096,
+    "paint_px": 6595,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 5398.93,
     "ok": true,
-    "paint_px": 35643,
+    "paint_px": 15272,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 5403.22,
     "ok": true,
-    "paint_px": 64380,
+    "paint_px": 22393,
     "circle": true,
     "line": true
    }
@@ -2578,66 +2578,66 @@
   "end": 5513.99,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.375,
-  "circle_fraction": 0.875,
-  "median_paint_px": 47405,
+  "calibratable_fraction": 0.25,
+  "circle_fraction": 1.0,
+  "median_paint_px": 19160,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 5483.99,
     "ok": true,
-    "paint_px": 60028,
+    "paint_px": 26489,
     "circle": true,
     "line": false
    },
    {
     "t": 5488.28,
     "ok": true,
-    "paint_px": 52505,
+    "paint_px": 19823,
     "circle": true,
     "line": false
    },
    {
     "t": 5492.56,
     "ok": true,
-    "paint_px": 42305,
+    "paint_px": 14206,
     "circle": true,
     "line": true
    },
    {
     "t": 5496.85,
     "ok": true,
-    "paint_px": 37285,
+    "paint_px": 18498,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 5501.13,
     "ok": true,
-    "paint_px": 30078,
-    "circle": false,
+    "paint_px": 16551,
+    "circle": true,
     "line": false
    },
    {
     "t": 5505.42,
     "ok": true,
-    "paint_px": 57578,
+    "paint_px": 20941,
     "circle": true,
     "line": false
    },
    {
     "t": 5509.7,
     "ok": true,
-    "paint_px": 27919,
+    "paint_px": 5961,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 5513.99,
     "ok": true,
-    "paint_px": 127553,
+    "paint_px": 50401,
     "circle": true,
-    "line": true
+    "line": false
    }
   ]
  },
@@ -2665,66 +2665,66 @@
   "end": 5607.93,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.375,
+  "calibratable_fraction": 0.25,
   "circle_fraction": 0.875,
-  "median_paint_px": 38940,
+  "median_paint_px": 12333,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 5577.93,
     "ok": true,
-    "paint_px": 47920,
+    "paint_px": 16231,
     "circle": true,
     "line": true
    },
    {
     "t": 5582.22,
     "ok": true,
-    "paint_px": 39025,
+    "paint_px": 11274,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 5586.5,
     "ok": true,
-    "paint_px": 28500,
+    "paint_px": 6979,
     "circle": true,
     "line": false
    },
    {
     "t": 5590.79,
     "ok": true,
-    "paint_px": 27183,
-    "circle": true,
+    "paint_px": 7369,
+    "circle": false,
     "line": false
    },
    {
     "t": 5595.07,
     "ok": true,
-    "paint_px": 38856,
+    "paint_px": 13393,
     "circle": true,
     "line": false
    },
    {
     "t": 5599.36,
     "ok": true,
-    "paint_px": 27964,
-    "circle": false,
+    "paint_px": 8735,
+    "circle": true,
     "line": false
    },
    {
     "t": 5603.64,
     "ok": true,
-    "paint_px": 113796,
+    "paint_px": 21415,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 5607.93,
     "ok": true,
-    "paint_px": 50537,
+    "paint_px": 40194,
     "circle": true,
-    "line": false
+    "line": true
    }
   ]
  },
@@ -2752,66 +2752,66 @@
   "end": 5709.4,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.5,
+  "calibratable_fraction": 0.25,
   "circle_fraction": 1.0,
-  "median_paint_px": 59908,
+  "median_paint_px": 17182,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 5679.4,
     "ok": true,
-    "paint_px": 62296,
+    "paint_px": 28869,
     "circle": true,
     "line": false
    },
    {
     "t": 5683.69,
     "ok": true,
-    "paint_px": 50841,
+    "paint_px": 10471,
     "circle": true,
     "line": false
    },
    {
     "t": 5687.97,
     "ok": true,
-    "paint_px": 52314,
+    "paint_px": 14431,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 5692.26,
     "ok": true,
-    "paint_px": 57521,
+    "paint_px": 15391,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 5696.54,
     "ok": true,
-    "paint_px": 48229,
+    "paint_px": 10903,
     "circle": true,
     "line": false
    },
    {
     "t": 5700.83,
     "ok": true,
-    "paint_px": 141154,
+    "paint_px": 18973,
     "circle": true,
     "line": true
    },
    {
     "t": 5705.11,
     "ok": true,
-    "paint_px": 148611,
+    "paint_px": 20988,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 5709.4,
     "ok": true,
-    "paint_px": 112930,
+    "paint_px": 34374,
     "circle": true,
-    "line": false
+    "line": true
    }
   ]
  },
@@ -2839,64 +2839,64 @@
   "end": 5804.61,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.375,
-  "circle_fraction": 1.0,
-  "median_paint_px": 53164,
+  "calibratable_fraction": 0.125,
+  "circle_fraction": 0.875,
+  "median_paint_px": 8610,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 5774.61,
     "ok": true,
-    "paint_px": 56170,
-    "circle": true,
+    "paint_px": 1671,
+    "circle": false,
     "line": false
    },
    {
     "t": 5778.9,
     "ok": true,
-    "paint_px": 50741,
+    "paint_px": 9861,
     "circle": true,
     "line": false
    },
    {
     "t": 5783.18,
     "ok": true,
-    "paint_px": 53927,
+    "paint_px": 12406,
     "circle": true,
     "line": true
    },
    {
     "t": 5787.47,
     "ok": true,
-    "paint_px": 59280,
+    "paint_px": 7359,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 5791.75,
     "ok": true,
-    "paint_px": 52401,
+    "paint_px": 13541,
     "circle": true,
     "line": false
    },
    {
     "t": 5796.04,
     "ok": true,
-    "paint_px": 49285,
+    "paint_px": 6259,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 5800.32,
     "ok": true,
-    "paint_px": 50548,
+    "paint_px": 7266,
     "circle": true,
     "line": false
    },
    {
     "t": 5804.61,
     "ok": true,
-    "paint_px": 58048,
+    "paint_px": 10408,
     "circle": true,
     "line": false
    }
@@ -2932,45 +2932,45 @@
    5951.78,
    5951.8
   ],
-  "calibratable_fraction": 0.375,
-  "circle_fraction": 1.0,
-  "median_paint_px": 52754,
+  "calibratable_fraction": 0.125,
+  "circle_fraction": 0.875,
+  "median_paint_px": 21895,
   "one_shot_fraction": 0.867,
   "per_frame": [
    {
     "t": 5925.59,
     "ok": true,
-    "paint_px": 57273,
+    "paint_px": 35887,
     "circle": true,
     "line": true
    },
    {
     "t": 5929.88,
     "ok": true,
-    "paint_px": 61232,
+    "paint_px": 28657,
     "circle": true,
     "line": false
    },
    {
     "t": 5934.16,
     "ok": true,
-    "paint_px": 54467,
-    "circle": true,
-    "line": true
+    "paint_px": 14335,
+    "circle": false,
+    "line": false
    },
    {
     "t": 5938.45,
     "ok": true,
-    "paint_px": 30355,
+    "paint_px": 9431,
     "circle": true,
     "line": false
    },
    {
     "t": 5942.73,
     "ok": true,
-    "paint_px": 51042,
+    "paint_px": 10186,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 5947.02,
@@ -2982,14 +2982,14 @@
    {
     "t": 5951.3,
     "ok": true,
-    "paint_px": 61217,
+    "paint_px": 18153,
     "circle": true,
     "line": false
    },
    {
     "t": 5955.59,
     "ok": true,
-    "paint_px": 43210,
+    "paint_px": 25637,
     "circle": true,
     "line": false
    }
@@ -3019,65 +3019,65 @@
   "end": 6016.89,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.375,
-  "circle_fraction": 1.0,
-  "median_paint_px": 46695,
+  "calibratable_fraction": 0.0,
+  "circle_fraction": 0.75,
+  "median_paint_px": 17471,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 5986.89,
     "ok": true,
-    "paint_px": 66395,
+    "paint_px": 36137,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 5991.18,
     "ok": true,
-    "paint_px": 34220,
+    "paint_px": 15566,
     "circle": true,
     "line": false
    },
    {
     "t": 5995.46,
     "ok": true,
-    "paint_px": 28549,
+    "paint_px": 11210,
     "circle": true,
     "line": false
    },
    {
     "t": 5999.75,
     "ok": true,
-    "paint_px": 30105,
+    "paint_px": 24399,
     "circle": true,
     "line": false
    },
    {
     "t": 6004.03,
     "ok": true,
-    "paint_px": 38248,
-    "circle": true,
+    "paint_px": 7756,
+    "circle": false,
     "line": false
    },
    {
     "t": 6008.32,
     "ok": true,
-    "paint_px": 71846,
+    "paint_px": 13555,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 6012.6,
     "ok": true,
-    "paint_px": 55143,
+    "paint_px": 19377,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 6016.89,
     "ok": true,
-    "paint_px": 86923,
-    "circle": true,
+    "paint_px": 38928,
+    "circle": false,
     "line": false
    }
   ]
@@ -3110,62 +3110,62 @@
   ],
   "calibratable_fraction": 0.25,
   "circle_fraction": 1.0,
-  "median_paint_px": 53302,
+  "median_paint_px": 29582,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 6064.79,
     "ok": true,
-    "paint_px": 52127,
+    "paint_px": 37340,
     "circle": true,
     "line": false
    },
    {
     "t": 6069.08,
     "ok": true,
-    "paint_px": 54477,
+    "paint_px": 35277,
     "circle": true,
     "line": false
    },
    {
     "t": 6073.36,
     "ok": true,
-    "paint_px": 76486,
+    "paint_px": 60859,
     "circle": true,
     "line": false
    },
    {
     "t": 6077.65,
     "ok": true,
-    "paint_px": 21744,
+    "paint_px": 12935,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 6081.93,
     "ok": true,
-    "paint_px": 24841,
+    "paint_px": 24869,
     "circle": true,
     "line": false
    },
    {
     "t": 6086.22,
     "ok": true,
-    "paint_px": 40339,
+    "paint_px": 13963,
     "circle": true,
     "line": false
    },
    {
     "t": 6090.5,
     "ok": true,
-    "paint_px": 149018,
+    "paint_px": 20649,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 6094.79,
     "ok": true,
-    "paint_px": 117688,
+    "paint_px": 34295,
     "circle": true,
     "line": true
    }
@@ -3202,64 +3202,64 @@
    6278.51,
    6278.52
   ],
-  "calibratable_fraction": 0.875,
-  "circle_fraction": 1.0,
-  "median_paint_px": 42055,
+  "calibratable_fraction": 0.5,
+  "circle_fraction": 0.875,
+  "median_paint_px": 16396,
   "one_shot_fraction": 0.967,
   "per_frame": [
    {
     "t": 6248.74,
     "ok": true,
-    "paint_px": 106461,
+    "paint_px": 7837,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 6253.03,
     "ok": true,
-    "paint_px": 32592,
-    "circle": true,
-    "line": true
+    "paint_px": 7435,
+    "circle": false,
+    "line": false
    },
    {
     "t": 6257.31,
     "ok": true,
-    "paint_px": 28757,
+    "paint_px": 12207,
     "circle": true,
     "line": true
    },
    {
     "t": 6261.6,
     "ok": true,
-    "paint_px": 30815,
+    "paint_px": 7696,
     "circle": true,
     "line": true
    },
    {
     "t": 6265.88,
     "ok": true,
-    "paint_px": 106138,
+    "paint_px": 20586,
     "circle": true,
     "line": true
    },
    {
     "t": 6270.17,
     "ok": true,
-    "paint_px": 30184,
+    "paint_px": 28445,
     "circle": true,
     "line": false
    },
    {
     "t": 6274.45,
     "ok": true,
-    "paint_px": 51519,
+    "paint_px": 47580,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 6278.74,
     "ok": true,
-    "paint_px": 78756,
+    "paint_px": 60606,
     "circle": true,
     "line": true
    }
@@ -3291,64 +3291,64 @@
   "soft_scene_changes_inside": [
    6394.42
   ],
-  "calibratable_fraction": 0.5,
+  "calibratable_fraction": 0.625,
   "circle_fraction": 1.0,
-  "median_paint_px": 45459,
+  "median_paint_px": 12333,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 6365.05,
     "ok": true,
-    "paint_px": 105573,
+    "paint_px": 85292,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 6369.34,
     "ok": true,
-    "paint_px": 46031,
+    "paint_px": 17483,
     "circle": true,
     "line": true
    },
    {
     "t": 6373.62,
     "ok": true,
-    "paint_px": 50500,
+    "paint_px": 13479,
     "circle": true,
     "line": true
    },
    {
     "t": 6377.91,
     "ok": true,
-    "paint_px": 44012,
+    "paint_px": 11188,
     "circle": true,
     "line": true
    },
    {
     "t": 6382.19,
     "ok": true,
-    "paint_px": 28034,
+    "paint_px": 6512,
     "circle": true,
     "line": false
    },
    {
     "t": 6386.48,
     "ok": true,
-    "paint_px": 44887,
+    "paint_px": 9363,
     "circle": true,
     "line": false
    },
    {
     "t": 6390.76,
     "ok": true,
-    "paint_px": 29628,
+    "paint_px": 6497,
     "circle": true,
     "line": false
    },
    {
     "t": 6395.05,
     "ok": true,
-    "paint_px": 84823,
+    "paint_px": 48134,
     "circle": true,
     "line": true
    }
@@ -3384,65 +3384,65 @@
    6485.56
   ],
   "calibratable_fraction": 0.5,
-  "circle_fraction": 1.0,
-  "median_paint_px": 37047,
+  "circle_fraction": 0.875,
+  "median_paint_px": 17479,
   "one_shot_fraction": 0.983,
   "per_frame": [
    {
     "t": 6455.8,
     "ok": true,
-    "paint_px": 26683,
+    "paint_px": 7929,
     "circle": true,
     "line": false
    },
    {
     "t": 6460.09,
     "ok": true,
-    "paint_px": 27624,
-    "circle": true,
+    "paint_px": 3161,
+    "circle": false,
     "line": false
    },
    {
     "t": 6464.37,
     "ok": true,
-    "paint_px": 37351,
+    "paint_px": 12790,
     "circle": true,
     "line": true
    },
    {
     "t": 6468.66,
     "ok": true,
-    "paint_px": 36744,
+    "paint_px": 16344,
     "circle": true,
     "line": true
    },
    {
     "t": 6472.94,
     "ok": true,
-    "paint_px": 18787,
+    "paint_px": 18614,
     "circle": true,
     "line": false
    },
    {
     "t": 6477.23,
     "ok": true,
-    "paint_px": 80116,
+    "paint_px": 79512,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 6481.51,
     "ok": true,
-    "paint_px": 61501,
+    "paint_px": 60985,
     "circle": true,
     "line": true
    },
    {
     "t": 6485.8,
     "ok": true,
-    "paint_px": 70701,
+    "paint_px": 42434,
     "circle": true,
-    "line": false
+    "line": true
    }
   ]
  },
@@ -3470,66 +3470,66 @@
   "end": 6899.78,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.5,
+  "calibratable_fraction": 0.25,
   "circle_fraction": 1.0,
-  "median_paint_px": 47971,
+  "median_paint_px": 31993,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 6869.78,
     "ok": true,
-    "paint_px": 77406,
+    "paint_px": 47115,
     "circle": true,
     "line": false
    },
    {
     "t": 6874.07,
     "ok": true,
-    "paint_px": 50364,
+    "paint_px": 20513,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 6878.35,
     "ok": true,
-    "paint_px": 39011,
+    "paint_px": 23586,
     "circle": true,
     "line": false
    },
    {
     "t": 6882.64,
     "ok": true,
-    "paint_px": 43635,
+    "paint_px": 30028,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 6886.92,
     "ok": true,
-    "paint_px": 91124,
+    "paint_px": 57635,
     "circle": true,
     "line": false
    },
    {
     "t": 6891.21,
     "ok": true,
-    "paint_px": 58731,
+    "paint_px": 31304,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 6895.49,
     "ok": true,
-    "paint_px": 45579,
+    "paint_px": 37780,
     "circle": true,
     "line": true
    },
    {
     "t": 6899.78,
     "ok": true,
-    "paint_px": 34086,
+    "paint_px": 32682,
     "circle": true,
-    "line": false
+    "line": true
    }
   ]
  },
@@ -3560,66 +3560,66 @@
    6974.23,
    6982.78
   ],
-  "calibratable_fraction": 0.5,
-  "circle_fraction": 1.0,
-  "median_paint_px": 61444,
+  "calibratable_fraction": 0.375,
+  "circle_fraction": 0.875,
+  "median_paint_px": 24550,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 6961.47,
     "ok": true,
-    "paint_px": 28083,
+    "paint_px": 27033,
     "circle": true,
     "line": true
    },
    {
     "t": 6964.84,
     "ok": true,
-    "paint_px": 42455,
+    "paint_px": 16906,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 6968.21,
     "ok": true,
-    "paint_px": 23066,
+    "paint_px": 12459,
     "circle": true,
     "line": false
    },
    {
     "t": 6971.58,
     "ok": true,
-    "paint_px": 91975,
-    "circle": true,
-    "line": true
-   },
-   {
-    "t": 6974.95,
-    "ok": true,
-    "paint_px": 63198,
+    "paint_px": 22067,
     "circle": true,
     "line": false
    },
    {
+    "t": 6974.95,
+    "ok": true,
+    "paint_px": 57417,
+    "circle": true,
+    "line": true
+   },
+   {
     "t": 6978.32,
     "ok": true,
-    "paint_px": 59690,
-    "circle": true,
+    "paint_px": 54362,
+    "circle": false,
     "line": false
    },
    {
     "t": 6981.69,
     "ok": true,
-    "paint_px": 67166,
+    "paint_px": 61173,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 6985.06,
     "ok": true,
-    "paint_px": 71224,
+    "paint_px": 20359,
     "circle": true,
-    "line": true
+    "line": false
    }
   ]
  },
@@ -3650,64 +3650,64 @@
    7096.87,
    7110.65
   ],
-  "calibratable_fraction": 0.25,
+  "calibratable_fraction": 0.0,
   "circle_fraction": 0.875,
-  "median_paint_px": 46031,
+  "median_paint_px": 16634,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 7081.55,
     "ok": true,
-    "paint_px": 61809,
+    "paint_px": 32729,
     "circle": true,
     "line": false
    },
    {
     "t": 7085.84,
     "ok": true,
-    "paint_px": 54378,
+    "paint_px": 19831,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 7090.12,
     "ok": true,
-    "paint_px": 39953,
-    "circle": true,
+    "paint_px": 10867,
+    "circle": false,
     "line": false
    },
    {
     "t": 7094.41,
     "ok": true,
-    "paint_px": 38182,
+    "paint_px": 13437,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 7098.69,
     "ok": true,
-    "paint_px": 72069,
+    "paint_px": 35669,
     "circle": true,
     "line": false
    },
    {
     "t": 7102.98,
     "ok": true,
-    "paint_px": 38677,
-    "circle": false,
+    "paint_px": 4792,
+    "circle": true,
     "line": false
    },
    {
     "t": 7107.26,
     "ok": true,
-    "paint_px": 38022,
+    "paint_px": 11292,
     "circle": true,
     "line": false
    },
    {
     "t": 7111.55,
     "ok": true,
-    "paint_px": 52109,
+    "paint_px": 31926,
     "circle": true,
     "line": false
    }
@@ -3737,66 +3737,66 @@
   "end": 7199.64,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.375,
-  "circle_fraction": 0.875,
-  "median_paint_px": 60674,
+  "calibratable_fraction": 0.0,
+  "circle_fraction": 1.0,
+  "median_paint_px": 15483,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 7169.64,
     "ok": true,
-    "paint_px": 66302,
+    "paint_px": 15121,
     "circle": true,
     "line": false
    },
    {
     "t": 7173.93,
     "ok": true,
-    "paint_px": 61065,
+    "paint_px": 18397,
     "circle": true,
     "line": false
    },
    {
     "t": 7178.21,
     "ok": true,
-    "paint_px": 60283,
+    "paint_px": 15846,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 7182.5,
     "ok": true,
-    "paint_px": 62688,
+    "paint_px": 20286,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 7186.78,
     "ok": true,
-    "paint_px": 40042,
+    "paint_px": 5139,
     "circle": true,
     "line": false
    },
    {
     "t": 7191.07,
     "ok": true,
-    "paint_px": 42341,
-    "circle": false,
+    "paint_px": 11108,
+    "circle": true,
     "line": false
    },
    {
     "t": 7195.35,
     "ok": true,
-    "paint_px": 39062,
+    "paint_px": 7471,
     "circle": true,
     "line": false
    },
    {
     "t": 7199.64,
     "ok": true,
-    "paint_px": 66571,
+    "paint_px": 18739,
     "circle": true,
-    "line": true
+    "line": false
    }
   ]
  },
@@ -3826,64 +3826,64 @@
   "soft_scene_changes_inside": [
    7322.16
   ],
-  "calibratable_fraction": 0.375,
+  "calibratable_fraction": 0.25,
   "circle_fraction": 1.0,
-  "median_paint_px": 45877,
+  "median_paint_px": 13258,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 7299.97,
     "ok": true,
-    "paint_px": 28751,
+    "paint_px": 18326,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 7304.26,
     "ok": true,
-    "paint_px": 49333,
+    "paint_px": 12233,
     "circle": true,
     "line": false
    },
    {
     "t": 7308.54,
     "ok": true,
-    "paint_px": 55530,
+    "paint_px": 11391,
     "circle": true,
     "line": false
    },
    {
     "t": 7312.83,
     "ok": true,
-    "paint_px": 34724,
+    "paint_px": 13649,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 7317.11,
     "ok": true,
-    "paint_px": 49054,
+    "paint_px": 12868,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 7321.4,
     "ok": true,
-    "paint_px": 42700,
+    "paint_px": 11967,
     "circle": true,
     "line": true
    },
    {
     "t": 7325.68,
     "ok": true,
-    "paint_px": 41654,
+    "paint_px": 39746,
     "circle": true,
     "line": false
    },
    {
     "t": 7329.97,
     "ok": true,
-    "paint_px": 117438,
+    "paint_px": 79055,
     "circle": true,
     "line": false
    }
@@ -3915,43 +3915,43 @@
   "soft_scene_changes_inside": [
    7544.94
   ],
-  "calibratable_fraction": 0.75,
-  "circle_fraction": 1.0,
-  "median_paint_px": 27139,
+  "calibratable_fraction": 0.25,
+  "circle_fraction": 0.75,
+  "median_paint_px": 4073,
   "one_shot_fraction": 0.95,
   "per_frame": [
    {
     "t": 7530.32,
     "ok": true,
-    "paint_px": 18362,
+    "paint_px": 2549,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 7534.61,
     "ok": true,
-    "paint_px": 20935,
-    "circle": true,
-    "line": true
+    "paint_px": 3557,
+    "circle": false,
+    "line": false
    },
    {
     "t": 7538.89,
     "ok": true,
-    "paint_px": 23281,
-    "circle": true,
-    "line": true
+    "paint_px": 2241,
+    "circle": false,
+    "line": false
    },
    {
     "t": 7543.18,
     "ok": true,
-    "paint_px": 34644,
+    "paint_px": 4589,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 7547.46,
     "ok": true,
-    "paint_px": 457988,
+    "paint_px": 457779,
     "circle": true,
     "line": true
    },
@@ -3965,14 +3965,14 @@
    {
     "t": 7556.03,
     "ok": true,
-    "paint_px": 30998,
+    "paint_px": 14319,
     "circle": true,
     "line": false
    },
    {
     "t": 7560.32,
     "ok": true,
-    "paint_px": 13990,
+    "paint_px": 1737,
     "circle": true,
     "line": false
    }
@@ -4004,64 +4004,64 @@
   "soft_scene_changes_inside": [],
   "calibratable_fraction": 0.5,
   "circle_fraction": 1.0,
-  "median_paint_px": 39933,
+  "median_paint_px": 13691,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 7605.78,
     "ok": true,
-    "paint_px": 75060,
+    "paint_px": 11382,
     "circle": true,
     "line": false
    },
    {
     "t": 7610.07,
     "ok": true,
-    "paint_px": 31386,
+    "paint_px": 12062,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 7614.35,
     "ok": true,
-    "paint_px": 36479,
+    "paint_px": 13931,
     "circle": true,
     "line": true
    },
    {
     "t": 7618.64,
     "ok": true,
-    "paint_px": 40763,
+    "paint_px": 13451,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 7622.92,
     "ok": true,
-    "paint_px": 52422,
+    "paint_px": 18055,
     "circle": true,
     "line": true
    },
    {
     "t": 7627.21,
     "ok": true,
-    "paint_px": 58303,
+    "paint_px": 16559,
     "circle": true,
     "line": false
    },
    {
     "t": 7631.49,
     "ok": true,
-    "paint_px": 39103,
+    "paint_px": 7899,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 7635.78,
     "ok": true,
-    "paint_px": 38486,
+    "paint_px": 15579,
     "circle": true,
-    "line": true
+    "line": false
    }
   ]
  },
@@ -4095,62 +4095,62 @@
   ],
   "calibratable_fraction": 0.5,
   "circle_fraction": 0.875,
-  "median_paint_px": 36604,
+  "median_paint_px": 20529,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 7710.25,
     "ok": true,
-    "paint_px": 31973,
+    "paint_px": 6919,
     "circle": true,
     "line": false
    },
    {
     "t": 7714.54,
     "ok": true,
-    "paint_px": 34278,
+    "paint_px": 9291,
     "circle": true,
     "line": true
    },
    {
     "t": 7718.82,
     "ok": true,
-    "paint_px": 33099,
+    "paint_px": 18876,
     "circle": true,
     "line": false
    },
    {
     "t": 7723.11,
     "ok": true,
-    "paint_px": 93996,
+    "paint_px": 83205,
     "circle": true,
     "line": true
    },
    {
     "t": 7727.39,
     "ok": true,
-    "paint_px": 38930,
+    "paint_px": 26325,
     "circle": true,
     "line": true
    },
    {
     "t": 7731.68,
     "ok": true,
-    "paint_px": 39279,
-    "circle": true,
-    "line": true
-   },
-   {
-    "t": 7735.96,
-    "ok": true,
-    "paint_px": 39128,
+    "paint_px": 22183,
     "circle": true,
     "line": false
    },
    {
+    "t": 7735.96,
+    "ok": true,
+    "paint_px": 26786,
+    "circle": true,
+    "line": true
+   },
+   {
     "t": 7740.25,
     "ok": true,
-    "paint_px": 11977,
+    "paint_px": 10501,
     "circle": false,
     "line": false
    }
@@ -4180,64 +4180,64 @@
   "end": 7898.49,
   "window_s": 30.0,
   "soft_scene_changes_inside": [],
-  "calibratable_fraction": 0.625,
-  "circle_fraction": 1.0,
-  "median_paint_px": 25427,
+  "calibratable_fraction": 0.25,
+  "circle_fraction": 0.875,
+  "median_paint_px": 8050,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 7868.49,
     "ok": true,
-    "paint_px": 35235,
+    "paint_px": 6551,
     "circle": true,
     "line": false
    },
    {
     "t": 7872.78,
     "ok": true,
-    "paint_px": 26064,
+    "paint_px": 8988,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 7877.06,
     "ok": true,
-    "paint_px": 13131,
+    "paint_px": 6927,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 7881.35,
     "ok": true,
-    "paint_px": 11628,
+    "paint_px": 7113,
     "circle": true,
     "line": false
    },
    {
     "t": 7885.63,
     "ok": true,
-    "paint_px": 22447,
+    "paint_px": 14702,
     "circle": true,
     "line": true
    },
    {
     "t": 7889.92,
     "ok": true,
-    "paint_px": 33070,
+    "paint_px": 16127,
     "circle": true,
     "line": true
    },
    {
     "t": 7894.2,
     "ok": true,
-    "paint_px": 24790,
-    "circle": true,
-    "line": true
+    "paint_px": 6645,
+    "circle": false,
+    "line": false
    },
    {
     "t": 7898.49,
     "ok": true,
-    "paint_px": 48769,
+    "paint_px": 21093,
     "circle": true,
     "line": false
    }
@@ -4270,66 +4270,66 @@
    7977.79,
    7979.2
   ],
-  "calibratable_fraction": 0.625,
+  "calibratable_fraction": 0.5,
   "circle_fraction": 1.0,
-  "median_paint_px": 34830,
+  "median_paint_px": 13573,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 7955.93,
     "ok": true,
-    "paint_px": 105711,
+    "paint_px": 44594,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 7960.22,
     "ok": true,
-    "paint_px": 41936,
+    "paint_px": 8540,
     "circle": true,
     "line": true
    },
    {
     "t": 7964.5,
     "ok": true,
-    "paint_px": 30536,
+    "paint_px": 7788,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 7968.79,
     "ok": true,
-    "paint_px": 36370,
+    "paint_px": 13804,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 7973.07,
     "ok": true,
-    "paint_px": 33291,
+    "paint_px": 13343,
     "circle": true,
-    "line": false
+    "line": true
    },
    {
     "t": 7977.36,
     "ok": true,
-    "paint_px": 28914,
+    "paint_px": 16556,
     "circle": true,
     "line": false
    },
    {
     "t": 7981.64,
     "ok": true,
-    "paint_px": 24074,
+    "paint_px": 5855,
     "circle": true,
     "line": true
    },
    {
     "t": 7985.93,
     "ok": true,
-    "paint_px": 89043,
+    "paint_px": 27466,
     "circle": true,
-    "line": true
+    "line": false
    }
   ]
  },
@@ -4360,15 +4360,15 @@
    8086.73,
    8112.89
   ],
-  "calibratable_fraction": 0.375,
+  "calibratable_fraction": 0.25,
   "circle_fraction": 1.0,
-  "median_paint_px": 54368,
+  "median_paint_px": 31636,
   "one_shot_fraction": 1.0,
   "per_frame": [
    {
     "t": 8083.04,
     "ok": true,
-    "paint_px": 117430,
+    "paint_px": 85972,
     "circle": true,
     "line": true
    },
@@ -4389,35 +4389,35 @@
    {
     "t": 8095.9,
     "ok": true,
-    "paint_px": 67031,
+    "paint_px": 27556,
     "circle": true,
-    "line": true
+    "line": false
    },
    {
     "t": 8100.18,
     "ok": true,
-    "paint_px": 31415,
+    "paint_px": 10097,
     "circle": true,
     "line": false
    },
    {
     "t": 8104.47,
     "ok": true,
-    "paint_px": 42432,
+    "paint_px": 24949,
     "circle": true,
     "line": false
    },
    {
     "t": 8108.75,
     "ok": true,
-    "paint_px": 29805,
+    "paint_px": 22715,
     "circle": true,
     "line": false
    },
    {
     "t": 8113.04,
     "ok": true,
-    "paint_px": 63101,
+    "paint_px": 35717,
     "circle": true,
     "line": false
    }
