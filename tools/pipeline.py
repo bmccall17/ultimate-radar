@@ -53,6 +53,11 @@ from pathlib import Path
 STAGES = [
     ("calibrate", "ur.calibrate.run", "calibration.json",
      lambda w: ["--eval-dir", f"eval/m1-{w.name}"]),
+    # Between the solve and the gate: the mosaic fills frames the paint could not
+    # reach, and the gate then judges the possession as it will actually be used.
+    # It is idempotent - a re-run throws away what a previous run filled first -
+    # so `--from mosaic` is a cheap way to redo just this part.
+    ("mosaic", "ur.calibrate.mosaic", "calibration.json (frames with no paint)", None),
     ("accept", "ur.calibrate.accept", "m1_acceptance.json (the known-geometry gate)",
      lambda w: ["--eval-dir", f"eval/m1-{w.name}"]),
     ("detect", "ur.detect.run", "detections.json", None),
