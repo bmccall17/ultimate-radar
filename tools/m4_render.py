@@ -211,11 +211,11 @@ def draw_video_pane(img, P, n, safe):
         # The sigma disc, at true field scale.
         ring = ground_ellipse(Ms, xy[0], xy[1], max(sig, 0.25))
         if ring is not None:
-            if st == "observed":
+            if st in ("observed", "provisional"):
                 cv2.polylines(drawn, [ring], True, c, 2, cv2.LINE_AA)
             else:
                 dashed_polyline(drawn, ring, c, 2, on=3, off=3)
-        if st == "observed":
+        if st in ("observed", "provisional"):
             cv2.circle(drawn, q, 4, c, -1, cv2.LINE_AA)
             cv2.circle(drawn, q, 4, (0, 0, 0), 1, cv2.LINE_AA)
         else:
@@ -230,7 +230,15 @@ def draw_video_pane(img, P, n, safe):
     cov = P["derived"]["coverage"][n]
     cv2.putText(img, f"f{n:04d}   {cov}/14 observed   calib {pf['confidence']:.2f}",
                 (18, 44), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2, cv2.LINE_AA)
-    cv2.putText(img, "M4 tracker - gates NOT measured", (18, 76),
+    # This used to be the literal "gates NOT measured", which stayed on the render
+    # for the whole of M4 after the gates were in fact measured. A caption that
+    # cannot go out of date is one that reads the file it is captioning.
+    g = P.get("gates") or {}
+    banner = (f"M4 tracker - per-player recall {g['per_player_recall']:.4f} "
+              f"on {g.get('measured_on', '?')}"
+              if P.get("gates_measured") and g.get("per_player_recall") is not None
+              else "M4 tracker - gates NOT measured")
+    cv2.putText(img, banner, (18, 76),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, WARN, 2, cv2.LINE_AA)
     return img
 
@@ -284,7 +292,7 @@ def draw_radar(P, n):
         cv2.circle(ov, (cx, cy), rad, c, -1, cv2.LINE_AA)
         r = cv2.addWeighted(ov, 0.16, r, 0.84, 0)
         cv2.circle(r, (cx, cy), rad, c, 1, cv2.LINE_AA)
-        if st == "observed":
+        if st in ("observed", "provisional"):
             cv2.circle(r, (cx, cy), 4, c, -1, cv2.LINE_AA)
         else:
             cv2.circle(r, (cx, cy), 4, c, 1, cv2.LINE_AA)
@@ -318,7 +326,8 @@ def draw_timeline(P, n):
     h = len(rows) * (rh + gap) + 26
     img = np.full((h, RADAR_W, 3), BG, np.uint8)
     x0, x1 = lab_w, RADAR_W - 8
-    colour = {"observed": (120, 200, 120), "interpolated": (190, 180, 90),
+    colour = {"observed": (120, 200, 120), "provisional": (150, 210, 235),
+              "interpolated": (190, 180, 90),
               "predicted": (70, 140, 220), "unknown": (62, 62, 62)}
     off = P["possession"]["offense"]
     for k, pl in enumerate(rows):

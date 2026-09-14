@@ -1,0 +1,125 @@
+{
+ "possession": "p0001",
+ "frames": 360,
+ "observed_fraction": 0.7135,
+ "observed_fraction_per_slot": {
+  "O1": 0.7722,
+  "O2": 0.5167,
+  "O3": 0.6028,
+  "O4": 0.8722,
+  "O5": 0.875,
+  "O6": 0.775,
+  "O7": 0.6333,
+  "D1": 0.8278,
+  "D2": 0.375,
+  "D3": 0.5806,
+  "D4": 0.9306,
+  "D5": 0.6944,
+  "D6": 0.7389,
+  "D7": 0.8833
+ },
+ "worst_slot": "D2",
+ "worst_slot_fraction": 0.375,
+ "observed_off_field": 0,
+ "observed_off_field_detail": [],
+ "cross_team_confident": 0,
+ "cross_team_detail": [],
+ "margin": {
+  "O1": {
+   "n": 277,
+   "nulls": 0,
+   "median": 11.48
+  },
+  "O2": {
+   "n": 185,
+   "nulls": 0,
+   "median": 10.735
+  },
+  "O3": {
+   "n": 216,
+   "nulls": 0,
+   "median": 11.854
+  },
+  "O4": {
+   "n": 313,
+   "nulls": 0,
+   "median": 11.736
+  },
+  "O5": {
+   "n": 314,
+   "nulls": 0,
+   "median": 11.755
+  },
+  "O6": {
+   "n": 278,
+   "nulls": 0,
+   "median": 11.727
+  },
+  "O7": {
+   "n": 227,
+   "nulls": 0,
+   "median": 11.547
+  },
+  "D1": {
+   "n": 297,
+   "nulls": 0,
+   "median": 11.824
+  },
+  "D2": {
+   "n": 134,
+   "nulls": 0,
+   "median": 11.218
+  },
+  "D3": {
+   "n": 208,
+   "nulls": 0,
+   "median": 11.326
+  },
+  "D4": {
+   "n": 334,
+   "nulls": 0,
+   "median": 11.845
+  },
+  "D5": {
+   "n": 249,
+   "nulls": 0,
+   "median": 11.685
+  },
+  "D6": {
+   "n": 265,
+   "nulls": 0,
+   "median": 11.557
+  },
+  "D7": {
+   "n": 317,
+   "nulls": 0,
+   "median": 11.786
+  }
+ },
+ "margin_null_total": 0,
+ "margin_median_min": 10.735,
+ "near_misses_now": 81,
+ "baseline": {
+  "taken_from": "ur.track.run before the round-2 rule changes (docs/25-round-2-ghost-audit.md)",
+  "observed_fraction": 0.6786,
+  "worst_slot": "D3",
+  "worst_slot_fraction": 0.2972,
+  "near_miss_slot_frames": 218,
+  "distinct_detections": 188,
+  "shared_detections": 30,
+  "other_team_explains_better": 31,
+  "recovered_as_observed": 157,
+  "recovered_fraction": 0.7202,
+  "recovered_of_distinct": 0.8351,
+  "by_reason": {
+   "weak_team": {
+    "n": 194,
+    "recovered": 151
+   },
+   "eligible_unassigned": {
+    "n": 24,
+    "recovered": 6
+   }
+  }
+ }
+}

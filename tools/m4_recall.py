@@ -5,7 +5,7 @@
 The gate `docs/04-milestones.md` originally set compared two *counts* — the
 tracker's observed slot-frames against the number of players visible. A count
 comparison is a weak thing to gate on, because it can be satisfied by counting
-the wrong objects: admitting the detections `ur/team.py` flags `weak_team` would
+the wrong objects: it was argued that admitting `weak_team` detections would
 have added about 1.1 detections per frame, over half of them referees and camera
 crew, and bought roughly 8 points of "observed" by putting non-players into
 player slots. The number would have passed and the product would have been worse.
@@ -72,7 +72,8 @@ def measure(work: Path, labels_path: Path, m2_path: Path) -> dict:
             continue
         truth.append({"f": int(r["f"]), "i": int(r["i"]), "team": r["cls"],
                       "xy": np.asarray(d["field"], float),
-                      "weak_team": bool(d.get("weak_team"))})
+                      "weak_kit": bool(d.get("weak_team")),
+                      "rejected_as": d.get("non_player")})
 
     frames = sorted({t["f"] for t in truth})
     results = {}
@@ -136,7 +137,8 @@ def measure(work: Path, labels_path: Path, m2_path: Path) -> dict:
             miss_detail.append({"f": t["f"], "i": t["i"], "team": t["team"],
                                 "nearest_same_team_observed_yd":
                                     (None if not np.isfinite(near) else round(float(near), 2)),
-                                "was_weak_team": t["weak_team"]})
+                                "weak_kit_call": t["weak_kit"],
+                                "rejected_as_non_player": t["rejected_as"]})
 
     return {
         "schema": "ultimate-radar/m4-recall-acceptance@1",
@@ -194,9 +196,14 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  GATE at {GATE_THRESHOLD} yd, one-to-one: {g['one_to_one']:.4f}   "
           f"(expected >= {GATE_RECALL} before measuring)  "
           f"{'PASS' if res['pass'] else 'FAIL'}")
-    print(f"  misses at {GATE_THRESHOLD} yd: {len(res['misses_at_gate_threshold'])}, "
-          f"of which {sum(1 for m in res['misses_at_gate_threshold'] if m['was_weak_team'])} "
-          "were excluded from association as weak_team")
+    ms = res["misses_at_gate_threshold"]
+    print(f"  misses at {GATE_THRESHOLD} yd: {len(ms)}")
+    print(f"      rejected as a non-player (referee or crew): "
+          f"{sum(1 for m in ms if m['rejected_as_non_player'])}")
+    print(f"      a real player with a weak kit call:         "
+          f"{sum(1 for m in ms if m['weak_kit_call'] and not m['rejected_as_non_player'])}")
+    print(f"      a real player with a confident kit call:    "
+          f"{sum(1 for m in ms if not m['weak_kit_call'] and not m['rejected_as_non_player'])}")
     print(f"\n  -> {out}")
     return 0
 

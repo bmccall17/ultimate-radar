@@ -79,6 +79,59 @@ where the slot sits 1.6–2.4 yd from a detection it did consume.
 detections whose exclusion keeps referees out of player slots — the trap the old gate fell
 into. Whoever sets the number should do so explicitly.
 
+> ### Re-derived 2026-09-14. The justification above does not survive its own labels.
+>
+> The paragraph before this one rests on a claim that was never measured: that the excluded
+> `weak_team` detections are the ones "whose exclusion keeps referees out of player slots".
+> `eval/m3/team_labels.json` labels every in-bounds box on the same 20 held-out frames.
+> Cross-tabulating the 22 `weak_team` detections in it against those labels:
+>
+> | what the label says | n | share |
+> |---|---|---|
+> | **chill player** | 9 | |
+> | **sol player** | 5 | **64 % real players** |
+> | referee | 3 | |
+> | camera crew | 2 | **23 % non-players** |
+> | box spans two players ("unsure") | 3 | 14 % |
+>
+> The exclusion was discarding roughly two real players for every non-player it caught. The
+> 8 points the old count-based gate would have bought by admitting them were not 8 points of
+> referees; most of them were players.
+>
+> **The error was in reporting, not only in reasoning.** `ur/team.py` already had a separate
+> and correct mechanism for non-players — `non_player: "ref" | "crew"` — and those detections
+> were *already* excluded, by a different code path, before `weak_team` was consulted. The
+> two exclusions were then reported as one number (`weak_team_detections_skipped`), which is
+> what let a population that is 64 % players be described as mostly officials. The two are
+> now counted and printed separately everywhere: `non_player_detections_skipped` against
+> `weak_kit_detections_admitted` in `tracks.json`, and `tools/m4_recall.py` splits its misses
+> three ways rather than one.
+>
+> **The re-derived measurement**, after `weak_team` became a price rather than a veto
+> (AD-3 as amended):
+>
+> | | before | after |
+> |---|---|---|
+> | per-player recall @ 1.5 yd, one-to-one | 0.8846 | **0.8932** |
+> | misses at 1.5 yd | 27 | **25** |
+> | …rejected as a referee or crew member | — | **0** |
+> | …a real player with a weak kit call | 14 | **2** |
+> | …a real player with a confident kit call | 13 | **23** |
+>
+> The misses are no longer a classification problem. Twelve of the fourteen kit-driven
+> misses are gone, and what remains is association: 23 players the tracker had a confident
+> detection for and did not put in the right slot.
+>
+> **The threshold stays unset, for a different and better reason.** The old reason — that
+> closing the gap means readmitting referees — is retired; it was not true. The new reason is
+> that this statistic is **chaotically sensitive at this sample size**. Sweeping the
+> association constants over their plausible ranges moves recall non-monotonically between
+> 0.880 and 0.919, and the whole spread is about one standard error on 234 labelled players.
+> One flipped assignment early in a possession changes every assignment after it. A
+> threshold set against a number that jitters by a standard error under changes that should
+> not matter is a threshold that will be met by luck. **Setting it needs more labelled
+> frames, or more possessions — not a better argument.**
+
 ## Watching found two things no statistic had
 
 `docs/16-m4-watching.md` in full; the two that changed what I believed:
@@ -148,6 +201,22 @@ second clause was answered rather than deferred. Both miss both switches:
 footage produces.** The fix is nearly free: the tracker already computes the Mahalanobis
 distance at re-association, so a *re-acquisition surprise* detector — flag a slot that
 re-acquires far from where it was dead-reckoned — needs no new machinery.
+
+> **The proposed fix does not work either, measured 2026-09-14.** Mahalanobis distance
+> cannot separate these: every re-acquisition is inside the gate by construction, so the
+> four the round-2 audit nominated score χ² of 1.19, 6.57, 9.02 and 9.20 against a threshold
+> of 9.21 — the full range of the admissible band. Ambiguity does not separate them either;
+> two of the four have margins of 5.3 and 7.0, comfortably unambiguous. Displacement from
+> the dead-reckoned position is the right *feature* and still does not pick them out: ranked
+> by it, the four sit 3rd, 9th, 11th and 13th of the twenty re-acquisitions in the
+> possession, interleaved with six the audit never flagged, and any threshold catching the
+> smallest admits thirteen of the twenty.
+>
+> The deeper problem is that **nobody has labelled any of them**, so there is nothing to tune
+> against and every "detector" here is a preference with a number attached. The tracker now
+> marks all of them `provisional` and `ur.issues` emits the whole set for review. The
+> `identity_switches_caught` figure in `possession.json` was self-reported as "2 of 2" and is
+> withdrawn: it counted the detector agreeing with the same analysis that produced it.
 
 ### The labels caught themselves twice
 

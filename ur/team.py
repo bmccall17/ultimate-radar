@@ -47,6 +47,20 @@ Everything else gets the nearer kit and a `team_score` from how clear the call w
 A detection whose torso cannot be sampled at all gets `team: null` and a reason,
 never a guess.
 
+**4. The kit call is a probability (round 2).** `team_p` is P(the kit is the one
+in `team`); the other kit is the complement, because there are exactly two. This
+replaced a three-way hard label whose middle band was swallowing real players -
+see the block comment on `WEAK_TEAM_P` for the measurement that forced it, and
+`docs/25-round-2-ghost-audit.md` for what it cost the tracker. The probability is
+calibrated to agree with the old hard label at its decision point, so `weak_team`
+still flags the same detections; what changed is that the flag now carries a
+number, and the tracker prices it instead of deleting it.
+
+Both reject tests take their kit half from that probability rather than from band
+membership. The hard band made them brittle in a way M4 watched twice: a figure
+0.39 L* outside it escaped the test entirely and was tracked as a player for a
+second and a half.
+
 **Not done here:** nothing in this module uses more than one frame. A tracker can
 vote a team over a tracklet and fix the occasional bad frame; M4 is where that
 belongs, and `docs/05-uncertainty.md` governs how it is recorded.
@@ -78,9 +92,53 @@ STRIPE_MIN_RUNS = 3        # measured: 5/8 referees, 0 of 249 non-referees
 STRIPE_MIN_AMP = 3.5       # L units; referees that fire sit at 4.2-5.9
 
 # How far from the midpoint between the two kits a torso must be before it counts
-# as one of them. Inside this band it is "neither kit", which is a precondition
-# for the reject tests - never a rejection on its own.
+# as one of them. This is no longer a hard band - it is the point at which the kit
+# probability below is calibrated to WEAK_TEAM_P. See KIT_LOGIT_K.
 NEITHER_KIT_FRAC = 0.25
+
+# --- the kit call is a probability, not a three-way hard label ------------- #
+#
+# **Why this changed (round 2).** The hard band this constant used to define ran
+# L* 51.4-72.3 on p0001 - half the 41.8 L* separation between the two kits - and
+# every detection inside it was flagged `weak_team` and then *excluded entirely*
+# from association by ur.track.run. 341 detections landed there, and the tracker
+# went blind on 218 slot-frames where one of them was sitting within 1.5 yd of the
+# slot it belonged to.
+#
+# `docs/17-m4-tracking.md` justified that exclusion on the grounds that the
+# excluded detections were "over half referees and camera crew". Measured against
+# eval/m3/team_labels.json, which labels every in-bounds box on 20 held-out
+# frames, that is not true. Of the 22 `weak_team` detections in the labelled set:
+#
+#     9 chill players, 5 sol players   -> 14 real players   (64 %)
+#     3 referees, 2 camera crew        ->  5 non-players    (23 %)
+#     3 boxes spanning two players     ->  3 unsure         (14 %)
+#
+# So the band was mostly discarding players. A hard three-way label was the wrong
+# shape for the answer: the honest statement about an L* of 58 on this footage is
+# "probably the dark kit, but not confidently", and that is a number, not a class.
+#
+# The logistic below says exactly that, and it is calibrated so it does not move
+# the boundary anyone has already measured against: P = WEAK_TEAM_P at exactly the
+# old band edge. Everything the old code called confident is still P >= 0.9, and
+# `weak_team` still flags the same set of detections. What changes is that the
+# flag now travels with a probability the tracker can price, instead of acting as
+# a silent delete.
+WEAK_TEAM_P = 0.90
+
+# The reject tests (referee, crew) used to require `is_neither(L)` - the hard band
+# - as a precondition. That made them brittle in a way M4 watched happen twice: a
+# camera operator at L* 51.0 missed the band edge at 51.39 by 0.39 L* and was
+# handed to slot D6 with full confidence (docs/16-m4-watching.md), and the figure
+# D5 held at the sideline for 1.5 s sits at L* 49.8-51.4 - just outside the band,
+# every frame. A probability threshold degrades instead of snapping.
+#
+# 0.95 rather than WEAK_TEAM_P because the reject tests already carry a second,
+# independent condition (stripes, or feet beyond the far sideline); the kit term
+# only has to say "not a confident kit". Measured on the labelled frames: moving
+# the crew test to this threshold catches all 13 labelled crew and zero players,
+# and moving the referee test to it adds 2 detections, neither of them labelled.
+REJECT_MAX_P = 0.95
 
 CLASSES = ("sol", "chill", "ref", "crew")
 
@@ -208,13 +266,43 @@ class KitModel:
         return self.separation >= self.MIN_SEPARATION
 
     def is_neither(self, L: float) -> bool:
+        """Kept for reporting. Nothing decides on it any more - see `p_light`."""
         return self.neither[0] <= L <= self.neither[1]
 
-    def team_of(self, L: float, light_team: str, dark_team: str) -> tuple[str, float]:
+    def t(self, L: float) -> float:
+        """Torso luminance on the kit axis: -1 at the dark centre, +1 at the light."""
+        return (L - self.midpoint) / max(0.5 * self.separation, 1e-6)
+
+    # Slope of the logistic, derived rather than picked. `t` is +/-1 at the two kit
+    # centres and the old hard band ended at |t| = 2 * NEITHER_KIT_FRAC, so setting
+    # P = WEAK_TEAM_P there fixes the slope:
+    #
+    #     k = ln(P / (1 - P)) / (2 * NEITHER_KIT_FRAC) = ln 9 / 0.5 = 4.394
+    #
+    # That is the whole calibration. It is one constant, tied to a boundary that was
+    # already measured against, so the soft model reproduces the hard one at its
+    # decision point and only differs in what it says about the cases in between.
+    LOGIT_K = float(np.log(WEAK_TEAM_P / (1.0 - WEAK_TEAM_P)) / (2.0 * NEITHER_KIT_FRAC))
+
+    def p_light(self, L: float) -> float:
+        """P(this torso is the light kit). The dark kit is the complement."""
+        return float(1.0 / (1.0 + np.exp(-self.LOGIT_K * self.t(L))))
+
+    def team_of(self, L: float, light_team: str, dark_team: str
+                ) -> tuple[str, float, float]:
+        """The nearer kit, the probability it is right, and the old margin score.
+
+        `team_score` is kept unchanged so nothing that already reads it shifts
+        meaning underneath. `team_p` is the new number and the one to use: it is a
+        probability, so `1 - team_p` is the probability of the *other* kit, which
+        is what the tracker needs to price a cross-team association.
+        """
+        p_l = self.p_light(L)
+        team = light_team if p_l >= 0.5 else dark_team
+        p = max(p_l, 1.0 - p_l)
         d_light, d_dark = abs(L - self.light), abs(L - self.dark)
-        team = light_team if d_light < d_dark else dark_team
         margin = abs(d_light - d_dark) / max(0.5 * self.separation, 1e-6)
-        return team, float(np.clip(margin, 0.0, 1.0))
+        return team, float(p), float(np.clip(margin, 0.0, 1.0))
 
     def as_dict(self) -> dict:
         return {"dark_L": round(self.dark, 2), "light_L": round(self.light, 2),
@@ -223,7 +311,11 @@ class KitModel:
                 "neither_kit_band_L": [round(self.neither[0], 2), round(self.neither[1], 2)],
                 "fitted_on_detections": self.n,
                 "separation_ok": self.separation_ok,
-                "min_separation_L": self.MIN_SEPARATION}
+                "min_separation_L": self.MIN_SEPARATION,
+                "logit_k": round(self.LOGIT_K, 4),
+                "p_calibration": (f"P = {WEAK_TEAM_P} at the old hard band edge "
+                                  f"(|t| = {2 * NEITHER_KIT_FRAC}), so the soft model "
+                                  "agrees with the hard one at its decision point")}
 
 
 def fit_kits(work: Path, *, verbose: bool = True) -> KitModel:
@@ -265,41 +357,52 @@ def classify(img, box, *, kit: KitModel, soccer_y: float | None,
         return {"team": None, "team_score": None,
                 "team_note": "torso could not be sampled - too small, or all grass"}
     L, npx = lum
+    team, p, score = kit.team_of(L, light_team, dark_team)
     out = {"torso_L": round(L, 1), "torso_px": npx}
 
-    neither = kit.is_neither(L)
     ev = stripe_evidence(img, box)
     if ev:
         out["stripe_runs"] = ev["runs"]
         out["stripe_amp"] = ev["amp"]
 
-    if neither and looks_striped(ev):
-        out.update({"team": None, "team_score": None, "non_player": "ref",
-                    "team_note": f"torso matches neither kit (L* {L:.0f}) and carries "
-                                 f"{ev['runs']} vertical bright runs - referee"})
+    # The two reject tests. Each is a weak kit call AND one independent piece of
+    # evidence; neither half is safe alone, which is the argument in this module's
+    # docstring and is unchanged. What changed in round 2 is that the kit half is
+    # now a threshold on a probability rather than membership of a hard band, so a
+    # figure sitting 0.4 L* outside the band no longer escapes the test entirely.
+    weak_for_reject = p < REJECT_MAX_P
+
+    if weak_for_reject and looks_striped(ev):
+        out.update({"team": None, "team_score": None, "team_p": None,
+                    "non_player": "ref",
+                    "team_note": f"kit call is only P {p:.2f} (L* {L:.0f}) and the "
+                                 f"torso carries {ev['runs']} vertical bright runs "
+                                 "- referee"})
         return out
 
-    if (neither and far_sideline_y is not None and soccer_y is not None
+    if (weak_for_reject and far_sideline_y is not None and soccer_y is not None
             and soccer_y > far_sideline_y):
-        out.update({"team": None, "team_score": None, "non_player": "crew",
-                    "team_note": f"torso matches neither kit (L* {L:.0f}) and the feet "
-                                 f"are {soccer_y - far_sideline_y:.1f} yd beyond the far "
-                                 "sideline - camera crew"})
+        out.update({"team": None, "team_score": None, "team_p": None,
+                    "non_player": "crew",
+                    "team_note": f"kit call is only P {p:.2f} (L* {L:.0f}) and the "
+                                 f"feet are {soccer_y - far_sideline_y:.1f} yd beyond "
+                                 "the far sideline - camera crew"})
         return out
 
-    team, score = kit.team_of(L, light_team, dark_team)
-    out.update({"team": team, "team_score": round(score, 3)})
-    if neither:
-        # The reject tests above did not fire, so this is being kept as a player -
-        # but its torso matches neither kit, which is what a referee, a camera
-        # operator and a box drawn round two overlapping players all look like.
-        # M4 must be able to find these without parsing prose: a referee whose
-        # stripes do not survive one frame's pose is still a referee across a
-        # tracklet, and voting over a track is how that gets settled.
+    out.update({"team": team, "team_score": round(score, 3),
+                "team_p": round(p, 4)})
+    if p < WEAK_TEAM_P:
+        # Kept as a player, but the kit call is not confident. Before round 2 this
+        # flag meant "delete": ur.track.run dropped these detections entirely, and
+        # measured against eval/m3/team_labels.json that threw away roughly two
+        # real players for every non-player it caught. It is now a *price*, not a
+        # veto - the tracker adds -2 ln P to the association cost, so an uncertain
+        # kit 0.2 yd away can win a slot and a confident wrong kit still cannot.
         out["weak_team"] = True
-        out["team_note"] = ("torso sits between the two kits; the team call is the "
-                            "nearer one but it is weak, and this may not be a player "
-                            "at all - vote it over a tracklet in M4")
+        out["team_note"] = (f"torso sits between the two kits; P {p:.2f} for {team}. "
+                            "The call is the nearer kit but it is weak, and this may "
+                            "not be a player at all - the tracker prices it rather "
+                            "than trusting or discarding it")
     return out
 
 
@@ -312,7 +415,7 @@ def assign_frame(img, dets: list[dict], *, kit: KitModel | None = None,
     out = []
     for d in dets:
         if not d.get("in_bounds"):
-            out.append({"team": None, "team_score": None,
+            out.append({"team": None, "team_score": None, "team_p": None,
                         "team_note": "not in bounds; no team assigned"})
             continue
         sy = (d.get("soccer") or [None, None])[1]
@@ -345,7 +448,7 @@ def run(work: Path, *, verbose: bool = True) -> dict:
     kit = fit_kits(work, verbose=verbose)
     assign_frame.default_kit = kit
 
-    counts = {"sol": 0, "chill": 0, "ref": 0, "crew": 0, "none": 0}
+    counts = {"sol": 0, "chill": 0, "ref": 0, "crew": 0, "none": 0, "weak": 0}
     for fr in det["frames"]:
         dets = [d for d in fr["dets"] if d.get("in_bounds")]
         if not dets:
@@ -353,14 +456,22 @@ def run(work: Path, *, verbose: bool = True) -> dict:
         img = cv2.imread(str(paths[fr["f"]]))
         for d in fr["dets"]:
             if not d.get("in_bounds"):
-                d["team"], d["team_score"] = None, None
+                d["team"], d["team_score"], d["team_p"] = None, None, None
                 continue
             sy = (d.get("soccer") or [None, None])[1]
             r = classify(img, [int(round(v)) for v in d["box"]], kit=kit, soccer_y=sy,
                          far_sideline_y=far_sideline_y,
                          light_team=light_team, dark_team=dark_team)
+            # A re-run must not leave last run's verdict behind. `non_player` and
+            # `weak_team` are only ever *set*, so a detection that was rejected
+            # under the old hard band and is kept under the new probability would
+            # otherwise keep a stale reject flag and stay invisible downstream.
+            for stale in ("non_player", "weak_team"):
+                d.pop(stale, None)
             d.update(r)
             np_cls = r.get("non_player")
+            if r.get("weak_team"):
+                counts["weak"] += 1
             if np_cls:
                 counts[np_cls] += 1
                 # A rejected detection is no longer an on-field player. in_bounds
@@ -381,6 +492,12 @@ def run(work: Path, *, verbose: bool = True) -> dict:
         "stripe_min_runs": STRIPE_MIN_RUNS,
         "stripe_min_amp": STRIPE_MIN_AMP,
         "neither_kit_frac": NEITHER_KIT_FRAC,
+        "weak_team_p": WEAK_TEAM_P,
+        "reject_max_p": REJECT_MAX_P,
+        "team_p_means": ("P(this detection's kit is the team in `team`). The other "
+                         "kit is the complement - there are exactly two. Calibrated "
+                         "so P = weak_team_p at the old hard band edge, so nothing "
+                         "measured against the hard label shifts meaning."),
         "far_sideline_soccer_y": (round(far_sideline_y, 2)
                                   if far_sideline_y is not None else None),
         "reject_note": "non_player is 'ref' (torso matches neither kit and carries "
@@ -394,16 +511,31 @@ def run(work: Path, *, verbose: bool = True) -> dict:
         "known_leak": "The stripe test is high-precision, moderate-recall. A referee "
                       "whose stripes do not survive one frame's pose is kept and given "
                       "the nearer kit - usually the dark one - with weak_team set and a "
-                      "low team_score. Downstream must not treat a weak_team detection "
+                      "low team_p. Downstream must not treat a weak_team detection "
                       "as a confirmed player.",
+        "round_2_change": {
+            "what": "the three-way hard label became a probability; weak_team is a "
+                    "price the tracker pays, not a detection it deletes",
+            "why": "measured on eval/m3/team_labels.json, the weak_team set is 14 "
+                   "real players, 5 non-players and 3 boxes spanning two players - "
+                   "not the 'over half referees and camera crew' docs/17 asserted "
+                   "when it justified excluding them",
+            "reject_tests": "the kit precondition on the referee and crew tests is "
+                            "now P < reject_max_p rather than membership of the hard "
+                            "band, because M4 watched two non-players escape the band "
+                            "by under 0.4 L* and be tracked as players",
+            "see": "docs/25-round-2-ghost-audit.md R1 and R6",
+        },
         "seed": SEED,
     }
     det_path.write_text(json.dumps(det, indent=1) + "\n", encoding="utf-8")
     if verbose:
-        tot = sum(counts.values())
+        tot = sum(counts[k] for k in ("sol", "chill", "ref", "crew", "none"))
         print(f"[team] {tot} in-bounds detections: {counts['sol']} {light_team}, "
               f"{counts['chill']} {dark_team}, {counts['ref']} referee, "
               f"{counts['crew']} crew, {counts['none']} unassigned")
+        print(f"[team] {counts['weak']} kept with a weak kit call "
+              f"(P < {WEAK_TEAM_P}); the tracker prices these, it does not drop them")
     return det
 
 

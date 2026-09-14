@@ -64,19 +64,25 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             "sigma": [r["sigma"] for r in smp],
             "det": [r["det"] for r in smp],
             "assoc": [r.get("assoc") for r in smp],
+            "reacquire": [r.get("reacquire") for r in smp],
             "observed_frames": s["observed"],
-            "state_counts": {k: s[k] for k in
-                             ("observed", "interpolated", "predicted", "unknown")},
+            "state_counts": {k: s.get(k, 0) for k in
+                             ("observed", "provisional", "interpolated",
+                              "predicted", "unknown")},
             "first_observed_f": s.get("first_observed_f"),
         })
     players.sort(key=lambda p: (p["id"][0] != "O", p["id"]))
 
-    obs = np.array([[x == "observed" for x in p["state"]] for p in players])
+    # Coverage counts slots with a matched detection, which is `provisional` as
+    # well as `observed` - a re-acquisition is an observation of somebody, and the
+    # doubt it carries is about identity, not about whether anyone was seen.
+    obs = np.array([[x in ("observed", "provisional") for x in p["state"]]
+                    for p in players])
     coverage = obs.sum(axis=0).tolist()
 
     # Detections the tracker did not use, kept per frame so the render can show
     # them. Seeing what is standing where a slot is not is the cheapest read
-    # available on whether excluding weak_team was the right call.
+    # available on whether the kit gate is letting real players through.
     used = {(f, di) for p in players
             for f, di in enumerate(p["det"]) if di is not None}
     leftovers = []
@@ -88,7 +94,8 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             if d.get("field") is None or (f, i) in used:
                 continue
             row.append({"xy": d["field"], "team": d.get("team"),
-                        "why": "weak_team" if d.get("weak_team") else "unassigned",
+                        "team_p": d.get("team_p"),
+                        "why": "weak_kit" if d.get("weak_team") else "unassigned",
                         "box": d["box"]})
         leftovers.append(row)
 
@@ -116,15 +123,22 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             # measured. Naming the possession they came from is what lets a
             # reader, and the viewer, tell the difference.
             "measured_on": "p0001",
-            "per_player_recall": 0.8846,
-            "identity_switches_caught": "2 of 2 (ur.issues contested_reacquisition, "
-                                        "docs/18)",
-            "sigma_containment": 0.80,
-            "note": "Four of M4's five gates pass. Per-player recall is 0.8846 "
-                    "against a threshold left deliberately unset - reaching 0.90 "
-                    "needs the weak_team detections readmitted, and those are "
-                    "mostly referees. Sigma containment is 32 of 40, Wilson 95 % "
-                    "CI 65.2-89.5 %, so it passes marginally.",
+            "per_player_recall": 0.8932,
+            "identity_switches_caught": None,
+            "sigma_containment": 0.784,
+            "note": "Per-player recall is 0.8932 against a threshold left "
+                    "deliberately unset, because the statistic is chaotically "
+                    "sensitive at this sample size - it moves non-monotonically "
+                    "between 0.880 and 0.919 under association changes that should "
+                    "not matter, which is about one standard error on 234 labelled "
+                    "players. Sigma containment is 29 of 37, below the 80 % gate and "
+                    "inside its own 95 % interval of 62.8-88.6 %; it needs a larger "
+                    "sample, not a fix. `identity_switches_caught` is null rather "
+                    "than the '2 of 2' it used to claim: that number was the swap "
+                    "detector agreeing with the analysis that produced it, and no "
+                    "re-acquisition on this possession has been labelled by a human. "
+                    "The re-acquisitions are emitted for review instead - see "
+                    "issues.json and docs/25.",
         },
         "notice": (
             "Positions, evidence states and sigmas are the M4 tracker's real "

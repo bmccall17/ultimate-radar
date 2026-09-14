@@ -17,10 +17,18 @@ is the one-paragraph shape of it.*
   and corrections, and the viewer. M7 — sharing and a second possession — is not started.
 - **Three results are not clean, and all three are recorded rather than hidden.** M5's jersey
   gate gets 3 of 7 against a gate of 5, and fails on the footage rather than on the plumbing.
-  M4's per-player recall is 0.8846 with its threshold deliberately unset, because closing the
-  gap means readmitting the detections that keep referees out of player slots — a product
-  decision, not a tuning one. M6's `file://` criterion and its comprehension test both need a
-  human and are unrun.
+  M4's per-player recall is **0.8932** with its threshold deliberately unset — not for the
+  reason recorded until 2026-09-14 (that closing the gap means readmitting referees; that was
+  measured and is false) but because the statistic is chaotically sensitive at this sample
+  size, moving a full standard error under association changes that should not matter.
+  M6's `file://` criterion and its comprehension test both need a human and are unrun.
+
+- **Round 2 (2026-09-14) rewrote the tracker's gates and added a state.** See
+  `docs/25-round-2-ghost-audit.md` for the audit and `docs/26-round-2-tracker.md` for what
+  was built and measured. One acceptance number is not met and cannot be: a per-slot floor of
+  60 % observed requires blindness to spread evenly across the fourteen slots, and the
+  broadcast camera concentrates it on whoever is furthest from the disc. The detections cap
+  the achievable fraction at 0.7726; the tracker reaches 93.2 % of that.
 - **Everything else passes its gate**, and every number in `HANDOFF.md` § 1 has a committed
   acceptance file under `eval/`.
 - **One possession is cut and fully processed**: `work/p0001/`, broadcast 7264.023–7288.014 s,
@@ -58,10 +66,17 @@ Reasoning for each is in `02-architecture.md`; this is the index.
    vanishing ones.
 3. **Team colour is a hard association gate** (Sol light kit, Wind Chill dark). Eliminates
    cross-team identity swaps, the most damaging error class for defensive analysis.
+   *Amended 2026-09-14:* the gate is on a **confident** kit call, not on a hard three-way
+   label, and a weak kit call is priced into the assignment cost rather than deleting the
+   detection. The prohibition it exists for is intact and measures zero; what it stopped
+   doing is throwing away real players — the excluded band was 64 % players, not the
+   majority officials it was assumed to be.
 4. **Register each frame to a per-shot background mosaic**, not to its neighbour. Bounded
    drift, and one set of human clicks per shot rather than per keyframe.
-5. **Evidence states, not confidence floats** — observed / interpolated / predicted /
-   unknown / confirmed, each with a sigma in yards.
+5. **Evidence states, not confidence floats** — observed / provisional / interpolated /
+   predicted / unknown / confirmed, each with a sigma in yards. *`provisional` added
+   2026-09-14:* a detection was matched but the slot had been estimating long enough that
+   which player it is has not been established.
 6. **Corrections are an append-only layer** over immutable tracking output.
 7. **Events are human-tagged**; disc detection is a stretch goal.
 8. **The possession is the unit of work.**

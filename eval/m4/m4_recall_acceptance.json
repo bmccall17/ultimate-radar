@@ -19,18 +19,18 @@
       "one_to_one": 0.8504
     },
     "1.5": {
-      "greedy": 0.8846,
-      "one_to_one": 0.8846
+      "greedy": 0.8932,
+      "one_to_one": 0.8932
     },
     "2.0": {
-      "greedy": 0.8974,
-      "one_to_one": 0.8932
+      "greedy": 0.9145,
+      "one_to_one": 0.9103
     }
   },
   "recall_against_wider_denominator": {
     "1.0": 0.8397,
-    "1.5": 0.8734,
-    "2.0": 0.8819
+    "1.5": 0.8819,
+    "2.0": 0.8987
   },
   "pass": false,
   "by_threshold": {
@@ -43,42 +43,42 @@
         {
           "frame": 37,
           "labelled_players": 13,
-          "observed_slots": 12,
-          "greedy_matched": 12,
-          "one_to_one_matched": 12
+          "observed_slots": 13,
+          "greedy_matched": 13,
+          "one_to_one_matched": 13
         },
         {
           "frame": 46,
-          "labelled_players": 14,
-          "observed_slots": 11,
-          "greedy_matched": 11,
-          "one_to_one_matched": 11
-        },
-        {
-          "frame": 47,
-          "labelled_players": 12,
-          "observed_slots": 11,
-          "greedy_matched": 11,
-          "one_to_one_matched": 11
-        },
-        {
-          "frame": 95,
           "labelled_players": 14,
           "observed_slots": 13,
           "greedy_matched": 13,
           "one_to_one_matched": 13
         },
         {
+          "frame": 47,
+          "labelled_players": 12,
+          "observed_slots": 13,
+          "greedy_matched": 11,
+          "one_to_one_matched": 11
+        },
+        {
+          "frame": 95,
+          "labelled_players": 14,
+          "observed_slots": 14,
+          "greedy_matched": 13,
+          "one_to_one_matched": 13
+        },
+        {
           "frame": 103,
           "labelled_players": 12,
-          "observed_slots": 11,
+          "observed_slots": 12,
           "greedy_matched": 10,
           "one_to_one_matched": 10
         },
         {
           "frame": 115,
           "labelled_players": 11,
-          "observed_slots": 11,
+          "observed_slots": 12,
           "greedy_matched": 11,
           "one_to_one_matched": 11
         },
@@ -92,49 +92,49 @@
         {
           "frame": 175,
           "labelled_players": 14,
-          "observed_slots": 13,
-          "greedy_matched": 12,
-          "one_to_one_matched": 12
+          "observed_slots": 11,
+          "greedy_matched": 11,
+          "one_to_one_matched": 11
         },
         {
           "frame": 184,
           "labelled_players": 14,
-          "observed_slots": 13,
+          "observed_slots": 12,
           "greedy_matched": 12,
           "one_to_one_matched": 12
         },
         {
           "frame": 190,
           "labelled_players": 14,
-          "observed_slots": 13,
-          "greedy_matched": 13,
-          "one_to_one_matched": 13
-        },
-        {
-          "frame": 194,
-          "labelled_players": 14,
-          "observed_slots": 13,
-          "greedy_matched": 13,
-          "one_to_one_matched": 13
-        },
-        {
-          "frame": 210,
-          "labelled_players": 14,
           "observed_slots": 12,
           "greedy_matched": 11,
           "one_to_one_matched": 11
         },
         {
-          "frame": 213,
-          "labelled_players": 13,
+          "frame": 194,
+          "labelled_players": 14,
+          "observed_slots": 13,
+          "greedy_matched": 11,
+          "one_to_one_matched": 11
+        },
+        {
+          "frame": 210,
+          "labelled_players": 14,
           "observed_slots": 12,
           "greedy_matched": 10,
           "one_to_one_matched": 10
         },
         {
+          "frame": 213,
+          "labelled_players": 13,
+          "observed_slots": 12,
+          "greedy_matched": 9,
+          "one_to_one_matched": 9
+        },
+        {
           "frame": 226,
           "labelled_players": 11,
-          "observed_slots": 10,
+          "observed_slots": 9,
           "greedy_matched": 8,
           "one_to_one_matched": 8
         },
@@ -149,20 +149,20 @@
           "frame": 230,
           "labelled_players": 11,
           "observed_slots": 10,
-          "greedy_matched": 8,
-          "one_to_one_matched": 8
+          "greedy_matched": 9,
+          "one_to_one_matched": 9
         },
         {
           "frame": 245,
           "labelled_players": 10,
-          "observed_slots": 8,
-          "greedy_matched": 8,
-          "one_to_one_matched": 8
+          "observed_slots": 10,
+          "greedy_matched": 9,
+          "one_to_one_matched": 9
         },
         {
           "frame": 246,
           "labelled_players": 11,
-          "observed_slots": 9,
+          "observed_slots": 10,
           "greedy_matched": 9,
           "one_to_one_matched": 9
         },
@@ -170,211 +170,63 @@
           "frame": 289,
           "labelled_players": 8,
           "observed_slots": 8,
-          "greedy_matched": 7,
-          "one_to_one_matched": 7
+          "greedy_matched": 8,
+          "one_to_one_matched": 8
         },
         {
           "frame": 327,
           "labelled_players": 4,
-          "observed_slots": 3,
-          "greedy_matched": 3,
-          "one_to_one_matched": 3
+          "observed_slots": 6,
+          "greedy_matched": 4,
+          "one_to_one_matched": 4
         }
       ]
     },
     "1.5": {
-      "greedy": 0.8846,
-      "one_to_one": 0.8846,
-      "greedy_matched": 207,
-      "one_to_one_matched": 207,
-      "per_frame": [
-        {
-          "frame": 37,
-          "labelled_players": 13,
-          "observed_slots": 12,
-          "greedy_matched": 12,
-          "one_to_one_matched": 12
-        },
-        {
-          "frame": 46,
-          "labelled_players": 14,
-          "observed_slots": 11,
-          "greedy_matched": 11,
-          "one_to_one_matched": 11
-        },
-        {
-          "frame": 47,
-          "labelled_players": 12,
-          "observed_slots": 11,
-          "greedy_matched": 11,
-          "one_to_one_matched": 11
-        },
-        {
-          "frame": 95,
-          "labelled_players": 14,
-          "observed_slots": 13,
-          "greedy_matched": 13,
-          "one_to_one_matched": 13
-        },
-        {
-          "frame": 103,
-          "labelled_players": 12,
-          "observed_slots": 11,
-          "greedy_matched": 11,
-          "one_to_one_matched": 11
-        },
-        {
-          "frame": 115,
-          "labelled_players": 11,
-          "observed_slots": 11,
-          "greedy_matched": 11,
-          "one_to_one_matched": 11
-        },
-        {
-          "frame": 130,
-          "labelled_players": 10,
-          "observed_slots": 10,
-          "greedy_matched": 10,
-          "one_to_one_matched": 10
-        },
-        {
-          "frame": 175,
-          "labelled_players": 14,
-          "observed_slots": 13,
-          "greedy_matched": 13,
-          "one_to_one_matched": 13
-        },
-        {
-          "frame": 184,
-          "labelled_players": 14,
-          "observed_slots": 13,
-          "greedy_matched": 13,
-          "one_to_one_matched": 13
-        },
-        {
-          "frame": 190,
-          "labelled_players": 14,
-          "observed_slots": 13,
-          "greedy_matched": 13,
-          "one_to_one_matched": 13
-        },
-        {
-          "frame": 194,
-          "labelled_players": 14,
-          "observed_slots": 13,
-          "greedy_matched": 13,
-          "one_to_one_matched": 13
-        },
-        {
-          "frame": 210,
-          "labelled_players": 14,
-          "observed_slots": 12,
-          "greedy_matched": 12,
-          "one_to_one_matched": 12
-        },
-        {
-          "frame": 213,
-          "labelled_players": 13,
-          "observed_slots": 12,
-          "greedy_matched": 11,
-          "one_to_one_matched": 11
-        },
-        {
-          "frame": 226,
-          "labelled_players": 11,
-          "observed_slots": 10,
-          "greedy_matched": 9,
-          "one_to_one_matched": 9
-        },
-        {
-          "frame": 228,
-          "labelled_players": 10,
-          "observed_slots": 8,
-          "greedy_matched": 8,
-          "one_to_one_matched": 8
-        },
-        {
-          "frame": 230,
-          "labelled_players": 11,
-          "observed_slots": 10,
-          "greedy_matched": 9,
-          "one_to_one_matched": 9
-        },
-        {
-          "frame": 245,
-          "labelled_players": 10,
-          "observed_slots": 8,
-          "greedy_matched": 8,
-          "one_to_one_matched": 8
-        },
-        {
-          "frame": 246,
-          "labelled_players": 11,
-          "observed_slots": 9,
-          "greedy_matched": 9,
-          "one_to_one_matched": 9
-        },
-        {
-          "frame": 289,
-          "labelled_players": 8,
-          "observed_slots": 8,
-          "greedy_matched": 7,
-          "one_to_one_matched": 7
-        },
-        {
-          "frame": 327,
-          "labelled_players": 4,
-          "observed_slots": 3,
-          "greedy_matched": 3,
-          "one_to_one_matched": 3
-        }
-      ]
-    },
-    "2.0": {
-      "greedy": 0.8974,
+      "greedy": 0.8932,
       "one_to_one": 0.8932,
-      "greedy_matched": 210,
+      "greedy_matched": 209,
       "one_to_one_matched": 209,
       "per_frame": [
         {
           "frame": 37,
           "labelled_players": 13,
-          "observed_slots": 12,
-          "greedy_matched": 12,
-          "one_to_one_matched": 12
+          "observed_slots": 13,
+          "greedy_matched": 13,
+          "one_to_one_matched": 13
         },
         {
           "frame": 46,
-          "labelled_players": 14,
-          "observed_slots": 11,
-          "greedy_matched": 11,
-          "one_to_one_matched": 11
-        },
-        {
-          "frame": 47,
-          "labelled_players": 12,
-          "observed_slots": 11,
-          "greedy_matched": 12,
-          "one_to_one_matched": 11
-        },
-        {
-          "frame": 95,
           "labelled_players": 14,
           "observed_slots": 13,
           "greedy_matched": 13,
           "one_to_one_matched": 13
         },
         {
+          "frame": 47,
+          "labelled_players": 12,
+          "observed_slots": 13,
+          "greedy_matched": 12,
+          "one_to_one_matched": 12
+        },
+        {
+          "frame": 95,
+          "labelled_players": 14,
+          "observed_slots": 14,
+          "greedy_matched": 13,
+          "one_to_one_matched": 13
+        },
+        {
           "frame": 103,
           "labelled_players": 12,
-          "observed_slots": 11,
+          "observed_slots": 12,
           "greedy_matched": 11,
           "one_to_one_matched": 11
         },
         {
           "frame": 115,
           "labelled_players": 11,
-          "observed_slots": 11,
+          "observed_slots": 12,
           "greedy_matched": 11,
           "one_to_one_matched": 11
         },
@@ -388,23 +240,23 @@
         {
           "frame": 175,
           "labelled_players": 14,
-          "observed_slots": 13,
-          "greedy_matched": 13,
-          "one_to_one_matched": 13
+          "observed_slots": 11,
+          "greedy_matched": 11,
+          "one_to_one_matched": 11
         },
         {
           "frame": 184,
           "labelled_players": 14,
-          "observed_slots": 13,
-          "greedy_matched": 13,
-          "one_to_one_matched": 13
+          "observed_slots": 12,
+          "greedy_matched": 12,
+          "one_to_one_matched": 12
         },
         {
           "frame": 190,
           "labelled_players": 14,
-          "observed_slots": 13,
-          "greedy_matched": 13,
-          "one_to_one_matched": 13
+          "observed_slots": 12,
+          "greedy_matched": 11,
+          "one_to_one_matched": 11
         },
         {
           "frame": 194,
@@ -424,15 +276,163 @@
           "frame": 213,
           "labelled_players": 13,
           "observed_slots": 12,
-          "greedy_matched": 11,
-          "one_to_one_matched": 11
+          "greedy_matched": 10,
+          "one_to_one_matched": 10
         },
         {
           "frame": 226,
           "labelled_players": 11,
+          "observed_slots": 9,
+          "greedy_matched": 9,
+          "one_to_one_matched": 9
+        },
+        {
+          "frame": 228,
+          "labelled_players": 10,
+          "observed_slots": 8,
+          "greedy_matched": 8,
+          "one_to_one_matched": 8
+        },
+        {
+          "frame": 230,
+          "labelled_players": 11,
+          "observed_slots": 10,
+          "greedy_matched": 9,
+          "one_to_one_matched": 9
+        },
+        {
+          "frame": 245,
+          "labelled_players": 10,
+          "observed_slots": 10,
+          "greedy_matched": 9,
+          "one_to_one_matched": 9
+        },
+        {
+          "frame": 246,
+          "labelled_players": 11,
           "observed_slots": 10,
           "greedy_matched": 10,
           "one_to_one_matched": 10
+        },
+        {
+          "frame": 289,
+          "labelled_players": 8,
+          "observed_slots": 8,
+          "greedy_matched": 8,
+          "one_to_one_matched": 8
+        },
+        {
+          "frame": 327,
+          "labelled_players": 4,
+          "observed_slots": 6,
+          "greedy_matched": 4,
+          "one_to_one_matched": 4
+        }
+      ]
+    },
+    "2.0": {
+      "greedy": 0.9145,
+      "one_to_one": 0.9103,
+      "greedy_matched": 214,
+      "one_to_one_matched": 213,
+      "per_frame": [
+        {
+          "frame": 37,
+          "labelled_players": 13,
+          "observed_slots": 13,
+          "greedy_matched": 13,
+          "one_to_one_matched": 13
+        },
+        {
+          "frame": 46,
+          "labelled_players": 14,
+          "observed_slots": 13,
+          "greedy_matched": 14,
+          "one_to_one_matched": 13
+        },
+        {
+          "frame": 47,
+          "labelled_players": 12,
+          "observed_slots": 13,
+          "greedy_matched": 12,
+          "one_to_one_matched": 12
+        },
+        {
+          "frame": 95,
+          "labelled_players": 14,
+          "observed_slots": 14,
+          "greedy_matched": 13,
+          "one_to_one_matched": 13
+        },
+        {
+          "frame": 103,
+          "labelled_players": 12,
+          "observed_slots": 12,
+          "greedy_matched": 11,
+          "one_to_one_matched": 11
+        },
+        {
+          "frame": 115,
+          "labelled_players": 11,
+          "observed_slots": 12,
+          "greedy_matched": 11,
+          "one_to_one_matched": 11
+        },
+        {
+          "frame": 130,
+          "labelled_players": 10,
+          "observed_slots": 10,
+          "greedy_matched": 10,
+          "one_to_one_matched": 10
+        },
+        {
+          "frame": 175,
+          "labelled_players": 14,
+          "observed_slots": 11,
+          "greedy_matched": 11,
+          "one_to_one_matched": 11
+        },
+        {
+          "frame": 184,
+          "labelled_players": 14,
+          "observed_slots": 12,
+          "greedy_matched": 12,
+          "one_to_one_matched": 12
+        },
+        {
+          "frame": 190,
+          "labelled_players": 14,
+          "observed_slots": 12,
+          "greedy_matched": 12,
+          "one_to_one_matched": 12
+        },
+        {
+          "frame": 194,
+          "labelled_players": 14,
+          "observed_slots": 13,
+          "greedy_matched": 13,
+          "one_to_one_matched": 13
+        },
+        {
+          "frame": 210,
+          "labelled_players": 14,
+          "observed_slots": 12,
+          "greedy_matched": 12,
+          "one_to_one_matched": 12
+        },
+        {
+          "frame": 213,
+          "labelled_players": 13,
+          "observed_slots": 12,
+          "greedy_matched": 12,
+          "one_to_one_matched": 12
+        },
+        {
+          "frame": 226,
+          "labelled_players": 11,
+          "observed_slots": 9,
+          "greedy_matched": 9,
+          "one_to_one_matched": 9
         },
         {
           "frame": 228,
@@ -451,223 +451,234 @@
         {
           "frame": 245,
           "labelled_players": 10,
-          "observed_slots": 8,
-          "greedy_matched": 8,
-          "one_to_one_matched": 8
+          "observed_slots": 10,
+          "greedy_matched": 9,
+          "one_to_one_matched": 9
         },
         {
           "frame": 246,
           "labelled_players": 11,
-          "observed_slots": 9,
-          "greedy_matched": 9,
-          "one_to_one_matched": 9
+          "observed_slots": 10,
+          "greedy_matched": 10,
+          "one_to_one_matched": 10
         },
         {
           "frame": 289,
           "labelled_players": 8,
           "observed_slots": 8,
-          "greedy_matched": 7,
-          "one_to_one_matched": 7
+          "greedy_matched": 8,
+          "one_to_one_matched": 8
         },
         {
           "frame": 327,
           "labelled_players": 4,
-          "observed_slots": 3,
-          "greedy_matched": 3,
-          "one_to_one_matched": 3
+          "observed_slots": 6,
+          "greedy_matched": 4,
+          "one_to_one_matched": 4
         }
       ]
     }
   },
   "misses_at_gate_threshold": [
     {
-      "f": 37,
-      "i": 9,
-      "team": "sol",
-      "nearest_same_team_observed_yd": 2.48,
-      "was_weak_team": false
-    },
-    {
-      "f": 46,
-      "i": 3,
-      "team": "chill",
-      "nearest_same_team_observed_yd": 8.67,
-      "was_weak_team": true
-    },
-    {
-      "f": 46,
-      "i": 6,
-      "team": "chill",
-      "nearest_same_team_observed_yd": 6.89,
-      "was_weak_team": true
-    },
-    {
       "f": 46,
       "i": 17,
       "team": "chill",
-      "nearest_same_team_observed_yd": 6.13,
-      "was_weak_team": true
-    },
-    {
-      "f": 47,
-      "i": 11,
-      "team": "chill",
-      "nearest_same_team_observed_yd": 1.78,
-      "was_weak_team": true
+      "nearest_same_team_observed_yd": 1.86,
+      "weak_kit_call": true,
+      "rejected_as_non_player": null
     },
     {
       "f": 95,
       "i": 13,
       "team": "chill",
-      "nearest_same_team_observed_yd": 3.41,
-      "was_weak_team": false
+      "nearest_same_team_observed_yd": 3.4,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
     },
     {
       "f": 103,
       "i": 9,
       "team": "chill",
       "nearest_same_team_observed_yd": 3.85,
-      "was_weak_team": false
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
+    },
+    {
+      "f": 175,
+      "i": 7,
+      "team": "chill",
+      "nearest_same_team_observed_yd": 5.17,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
     },
     {
       "f": 175,
       "i": 9,
       "team": "sol",
-      "nearest_same_team_observed_yd": 7.57,
-      "was_weak_team": false
+      "nearest_same_team_observed_yd": 7.58,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
+    },
+    {
+      "f": 175,
+      "i": 13,
+      "team": "chill",
+      "nearest_same_team_observed_yd": 9.54,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
+    },
+    {
+      "f": 184,
+      "i": 7,
+      "team": "chill",
+      "nearest_same_team_observed_yd": 6.4,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
     },
     {
       "f": 184,
       "i": 10,
       "team": "sol",
       "nearest_same_team_observed_yd": 11.06,
-      "was_weak_team": false
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
+    },
+    {
+      "f": 190,
+      "i": 4,
+      "team": "chill",
+      "nearest_same_team_observed_yd": 6.93,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
+    },
+    {
+      "f": 190,
+      "i": 11,
+      "team": "chill",
+      "nearest_same_team_observed_yd": 1.61,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
     },
     {
       "f": 190,
       "i": 13,
       "team": "sol",
       "nearest_same_team_observed_yd": 13.61,
-      "was_weak_team": false
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
     },
     {
       "f": 194,
-      "i": 14,
-      "team": "sol",
-      "nearest_same_team_observed_yd": 14.0,
-      "was_weak_team": false
+      "i": 8,
+      "team": "chill",
+      "nearest_same_team_observed_yd": 7.15,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
     },
     {
       "f": 210,
-      "i": 5,
-      "team": "sol",
-      "nearest_same_team_observed_yd": 12.19,
-      "was_weak_team": true
+      "i": 6,
+      "team": "chill",
+      "nearest_same_team_observed_yd": 7.08,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
     },
     {
       "f": 210,
       "i": 14,
       "team": "sol",
-      "nearest_same_team_observed_yd": 15.56,
-      "was_weak_team": false
+      "nearest_same_team_observed_yd": 10.61,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
     },
     {
       "f": 213,
       "i": 5,
       "team": "sol",
-      "nearest_same_team_observed_yd": 9.98,
-      "was_weak_team": false
+      "nearest_same_team_observed_yd": 1.68,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
     },
     {
       "f": 213,
-      "i": 13,
-      "team": "sol",
-      "nearest_same_team_observed_yd": 2.4,
-      "was_weak_team": false
+      "i": 8,
+      "team": "chill",
+      "nearest_same_team_observed_yd": 6.41,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
+    },
+    {
+      "f": 213,
+      "i": 10,
+      "team": "chill",
+      "nearest_same_team_observed_yd": 1.54,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
     },
     {
       "f": 226,
+      "i": 1,
+      "team": "sol",
+      "nearest_same_team_observed_yd": 5.43,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
+    },
+    {
+      "f": 226,
+      "i": 16,
+      "team": "chill",
+      "nearest_same_team_observed_yd": 6.25,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
+    },
+    {
+      "f": 228,
       "i": 4,
       "team": "sol",
-      "nearest_same_team_observed_yd": 1.59,
-      "was_weak_team": false
-    },
-    {
-      "f": 226,
-      "i": 7,
-      "team": "sol",
-      "nearest_same_team_observed_yd": 11.36,
-      "was_weak_team": true
+      "nearest_same_team_observed_yd": 8.49,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
     },
     {
       "f": 228,
-      "i": 7,
+      "i": 5,
       "team": "chill",
-      "nearest_same_team_observed_yd": 5.45,
-      "was_weak_team": true
+      "nearest_same_team_observed_yd": 5.19,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
     },
     {
-      "f": 228,
-      "i": 9,
-      "team": "sol",
-      "nearest_same_team_observed_yd": 11.38,
-      "was_weak_team": true
+      "f": 230,
+      "i": 5,
+      "team": "chill",
+      "nearest_same_team_observed_yd": 5.21,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
     },
     {
       "f": 230,
       "i": 6,
       "team": "chill",
-      "nearest_same_team_observed_yd": 1.79,
-      "was_weak_team": false
-    },
-    {
-      "f": 230,
-      "i": 10,
-      "team": "chill",
-      "nearest_same_team_observed_yd": 5.26,
-      "was_weak_team": true
+      "nearest_same_team_observed_yd": 1.83,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
     },
     {
       "f": 245,
       "i": 3,
       "team": "chill",
-      "nearest_same_team_observed_yd": 4.98,
-      "was_weak_team": true
-    },
-    {
-      "f": 245,
-      "i": 6,
-      "team": "chill",
-      "nearest_same_team_observed_yd": 8.34,
-      "was_weak_team": true
-    },
-    {
-      "f": 246,
-      "i": 6,
-      "team": "chill",
-      "nearest_same_team_observed_yd": 4.15,
-      "was_weak_team": true
+      "nearest_same_team_observed_yd": 4.38,
+      "weak_kit_call": true,
+      "rejected_as_non_player": null
     },
     {
       "f": 246,
       "i": 14,
       "team": "sol",
-      "nearest_same_team_observed_yd": 6.62,
-      "was_weak_team": false
-    },
-    {
-      "f": 289,
-      "i": 10,
-      "team": "sol",
-      "nearest_same_team_observed_yd": 8.34,
-      "was_weak_team": true
-    },
-    {
-      "f": 327,
-      "i": 0,
-      "team": "sol",
-      "nearest_same_team_observed_yd": 17.14,
-      "was_weak_team": true
+      "nearest_same_team_observed_yd": 6.73,
+      "weak_kit_call": false,
+      "rejected_as_non_player": null
     }
   ]
 }

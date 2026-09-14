@@ -1,0 +1,1772 @@
+{
+ "schema": "ultimate-radar/ghost-baseline@1",
+ "taken_from": "ur.track.run before the round-2 rule changes (docs/25-round-2-ghost-audit.md)",
+ "near_yd": 1.5,
+ "measure": {
+  "possession": "p0001",
+  "frames": 360,
+  "observed_fraction": 0.6786,
+  "observed_fraction_per_slot": {
+   "O1": 0.6778,
+   "O2": 0.6111,
+   "O3": 0.6556,
+   "O4": 0.825,
+   "O5": 0.8139,
+   "O6": 0.625,
+   "O7": 0.5028,
+   "D1": 0.7111,
+   "D2": 0.7361,
+   "D3": 0.2972,
+   "D4": 0.9167,
+   "D5": 0.7056,
+   "D6": 0.5417,
+   "D7": 0.8806
+  },
+  "worst_slot": "D3",
+  "worst_slot_fraction": 0.2972,
+  "observed_off_field": 17,
+  "observed_off_field_detail": [
+   {
+    "slot": "D5",
+    "f": 284,
+    "xy": [
+     59.76,
+     53.63
+    ]
+   },
+   {
+    "slot": "D5",
+    "f": 289,
+    "xy": [
+     59.81,
+     54.81
+    ]
+   },
+   {
+    "slot": "D5",
+    "f": 291,
+    "xy": [
+     59.85,
+     54.95
+    ]
+   },
+   {
+    "slot": "D5",
+    "f": 294,
+    "xy": [
+     59.87,
+     55.15
+    ]
+   },
+   {
+    "slot": "D5",
+    "f": 295,
+    "xy": [
+     59.88,
+     55.04
+    ]
+   },
+   {
+    "slot": "D5",
+    "f": 296,
+    "xy": [
+     59.89,
+     55.18
+    ]
+   },
+   {
+    "slot": "D5",
+    "f": 300,
+    "xy": [
+     59.9,
+     55.27
+    ]
+   },
+   {
+    "slot": "D5",
+    "f": 301,
+    "xy": [
+     59.9,
+     55.03
+    ]
+   },
+   {
+    "slot": "D5",
+    "f": 302,
+    "xy": [
+     59.9,
+     54.9
+    ]
+   },
+   {
+    "slot": "D5",
+    "f": 303,
+    "xy": [
+     59.9,
+     54.85
+    ]
+   },
+   {
+    "slot": "D5",
+    "f": 304,
+    "xy": [
+     59.91,
+     54.92
+    ]
+   },
+   {
+    "slot": "D5",
+    "f": 305,
+    "xy": [
+     59.92,
+     54.93
+    ]
+   },
+   {
+    "slot": "D5",
+    "f": 306,
+    "xy": [
+     59.93,
+     54.89
+    ]
+   },
+   {
+    "slot": "D5",
+    "f": 323,
+    "xy": [
+     59.95,
+     54.78
+    ]
+   },
+   {
+    "slot": "D5",
+    "f": 324,
+    "xy": [
+     59.94,
+     54.99
+    ]
+   },
+   {
+    "slot": "D5",
+    "f": 339,
+    "xy": [
+     59.93,
+     55.08
+    ]
+   },
+   {
+    "slot": "D5",
+    "f": 341,
+    "xy": [
+     59.93,
+     55.03
+    ]
+   }
+  ],
+  "cross_team_confident": 0,
+  "cross_team_detail": [],
+  "margin": {
+   "O1": {
+    "n": 79,
+    "nulls": 164,
+    "median": 4.784
+   },
+   "O2": {
+    "n": 42,
+    "nulls": 177,
+    "median": 5.266
+   },
+   "O3": {
+    "n": 61,
+    "nulls": 174,
+    "median": 5.961
+   },
+   "O4": {
+    "n": 33,
+    "nulls": 263,
+    "median": 5.741
+   },
+   "O5": {
+    "n": 36,
+    "nulls": 256,
+    "median": 6.558
+   },
+   "O6": {
+    "n": 1,
+    "nulls": 223,
+    "median": 1.743
+   },
+   "O7": {
+    "n": 11,
+    "nulls": 169,
+    "median": 1.61
+   },
+   "D1": {
+    "n": 53,
+    "nulls": 202,
+    "median": 4.11
+   },
+   "D2": {
+    "n": 60,
+    "nulls": 204,
+    "median": 4.482
+   },
+   "D3": {
+    "n": 11,
+    "nulls": 95,
+    "median": 3.273
+   },
+   "D4": {
+    "n": 24,
+    "nulls": 305,
+    "median": 6.101
+   },
+   "D5": {
+    "n": 0,
+    "nulls": 253,
+    "median": null
+   },
+   "D6": {
+    "n": 2,
+    "nulls": 192,
+    "median": 4.593
+   },
+   "D7": {
+    "n": 16,
+    "nulls": 300,
+    "median": 5.048
+   }
+  },
+  "margin_null_total": 2977,
+  "margin_median_min": 1.61,
+  "near_misses_now": 218
+ },
+ "near_misses": [
+  {
+   "slot": "O1",
+   "f": 157,
+   "dist_yd": 0.238,
+   "det": 15,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O1",
+   "f": 263,
+   "dist_yd": 0.159,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O1",
+   "f": 264,
+   "dist_yd": 1.089,
+   "det": 10,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O1",
+   "f": 265,
+   "dist_yd": 0.186,
+   "det": 15,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O1",
+   "f": 272,
+   "dist_yd": 0.476,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O1",
+   "f": 274,
+   "dist_yd": 1.119,
+   "det": 0,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O1",
+   "f": 284,
+   "dist_yd": 1.246,
+   "det": 0,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "O1",
+   "f": 285,
+   "dist_yd": 1.0,
+   "det": 0,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "O1",
+   "f": 291,
+   "dist_yd": 1.4,
+   "det": 1,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "O1",
+   "f": 323,
+   "dist_yd": 0.276,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O1",
+   "f": 324,
+   "dist_yd": 0.196,
+   "det": 2,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O1",
+   "f": 325,
+   "dist_yd": 0.585,
+   "det": 1,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O1",
+   "f": 326,
+   "dist_yd": 0.832,
+   "det": 1,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O1",
+   "f": 327,
+   "dist_yd": 0.901,
+   "det": 0,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O1",
+   "f": 328,
+   "dist_yd": 0.921,
+   "det": 2,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O1",
+   "f": 330,
+   "dist_yd": 0.811,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O1",
+   "f": 331,
+   "dist_yd": 1.037,
+   "det": 5,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O1",
+   "f": 340,
+   "dist_yd": 0.343,
+   "det": 2,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O1",
+   "f": 341,
+   "dist_yd": 0.646,
+   "det": 8,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O1",
+   "f": 349,
+   "dist_yd": 0.292,
+   "det": 0,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 47,
+   "dist_yd": 0.77,
+   "det": 11,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 48,
+   "dist_yd": 1.008,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 49,
+   "dist_yd": 0.839,
+   "det": 2,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 50,
+   "dist_yd": 0.76,
+   "det": 4,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 97,
+   "dist_yd": 0.163,
+   "det": 10,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 98,
+   "dist_yd": 0.547,
+   "det": 16,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 99,
+   "dist_yd": 0.424,
+   "det": 11,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 100,
+   "dist_yd": 0.437,
+   "det": 11,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 157,
+   "dist_yd": 1.004,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 158,
+   "dist_yd": 0.879,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 159,
+   "dist_yd": 0.84,
+   "det": 4,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 161,
+   "dist_yd": 0.905,
+   "det": 10,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 162,
+   "dist_yd": 1.148,
+   "det": 9,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "O2",
+   "f": 236,
+   "dist_yd": 1.303,
+   "det": 1,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 250,
+   "dist_yd": 0.639,
+   "det": 8,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 267,
+   "dist_yd": 0.536,
+   "det": 9,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 324,
+   "dist_yd": 0.448,
+   "det": 5,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 325,
+   "dist_yd": 1.033,
+   "det": 10,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 327,
+   "dist_yd": 0.356,
+   "det": 5,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 328,
+   "dist_yd": 0.303,
+   "det": 4,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 329,
+   "dist_yd": 0.462,
+   "det": 12,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 330,
+   "dist_yd": 0.677,
+   "det": 12,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O2",
+   "f": 331,
+   "dist_yd": 0.548,
+   "det": 8,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 20,
+   "dist_yd": 0.673,
+   "det": 12,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 49,
+   "dist_yd": 0.771,
+   "det": 6,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "O3",
+   "f": 50,
+   "dist_yd": 0.763,
+   "det": 7,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "O3",
+   "f": 51,
+   "dist_yd": 0.936,
+   "det": 1,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "O3",
+   "f": 52,
+   "dist_yd": 1.149,
+   "det": 8,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "O3",
+   "f": 53,
+   "dist_yd": 1.07,
+   "det": 4,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "O3",
+   "f": 54,
+   "dist_yd": 0.912,
+   "det": 4,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "O3",
+   "f": 55,
+   "dist_yd": 0.881,
+   "det": 5,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "O3",
+   "f": 97,
+   "dist_yd": 0.047,
+   "det": 12,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 98,
+   "dist_yd": 0.109,
+   "det": 13,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 227,
+   "dist_yd": 0.267,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 228,
+   "dist_yd": 0.239,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 229,
+   "dist_yd": 0.231,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 230,
+   "dist_yd": 0.281,
+   "det": 10,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 232,
+   "dist_yd": 0.271,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 233,
+   "dist_yd": 0.276,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 234,
+   "dist_yd": 0.315,
+   "det": 8,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 235,
+   "dist_yd": 0.332,
+   "det": 11,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 236,
+   "dist_yd": 0.253,
+   "det": 11,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 237,
+   "dist_yd": 0.067,
+   "det": 12,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 238,
+   "dist_yd": 0.404,
+   "det": 11,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 242,
+   "dist_yd": 0.537,
+   "det": 13,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 244,
+   "dist_yd": 0.689,
+   "det": 5,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 245,
+   "dist_yd": 0.594,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 246,
+   "dist_yd": 0.644,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 247,
+   "dist_yd": 0.715,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O3",
+   "f": 250,
+   "dist_yd": 0.499,
+   "det": 12,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O4",
+   "f": 13,
+   "dist_yd": 0.302,
+   "det": 8,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O4",
+   "f": 267,
+   "dist_yd": 0.199,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O4",
+   "f": 278,
+   "dist_yd": 0.39,
+   "det": 4,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O4",
+   "f": 279,
+   "dist_yd": 0.414,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O4",
+   "f": 280,
+   "dist_yd": 0.563,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O4",
+   "f": 281,
+   "dist_yd": 0.65,
+   "det": 5,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O4",
+   "f": 282,
+   "dist_yd": 1.161,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O4",
+   "f": 283,
+   "dist_yd": 0.892,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O4",
+   "f": 284,
+   "dist_yd": 1.255,
+   "det": 5,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O4",
+   "f": 285,
+   "dist_yd": 1.172,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O4",
+   "f": 326,
+   "dist_yd": 0.329,
+   "det": 0,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O4",
+   "f": 327,
+   "dist_yd": 0.278,
+   "det": 1,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O4",
+   "f": 328,
+   "dist_yd": 0.574,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O4",
+   "f": 329,
+   "dist_yd": 0.556,
+   "det": 4,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O4",
+   "f": 357,
+   "dist_yd": 0.546,
+   "det": 13,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O4",
+   "f": 358,
+   "dist_yd": 0.375,
+   "det": 8,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O4",
+   "f": 359,
+   "dist_yd": 0.405,
+   "det": 8,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 55,
+   "dist_yd": 1.293,
+   "det": 4,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "O5",
+   "f": 60,
+   "dist_yd": 0.238,
+   "det": 11,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 207,
+   "dist_yd": 0.583,
+   "det": 9,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 208,
+   "dist_yd": 0.142,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 209,
+   "dist_yd": 0.225,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 225,
+   "dist_yd": 0.342,
+   "det": 8,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 226,
+   "dist_yd": 0.4,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 227,
+   "dist_yd": 0.319,
+   "det": 8,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 228,
+   "dist_yd": 0.376,
+   "det": 9,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 248,
+   "dist_yd": 0.514,
+   "det": 10,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 249,
+   "dist_yd": 0.989,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 250,
+   "dist_yd": 1.045,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 258,
+   "dist_yd": 1.48,
+   "det": 10,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 259,
+   "dist_yd": 1.031,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 261,
+   "dist_yd": 0.612,
+   "det": 5,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 262,
+   "dist_yd": 0.386,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 263,
+   "dist_yd": 0.573,
+   "det": 2,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 265,
+   "dist_yd": 0.268,
+   "det": 2,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 266,
+   "dist_yd": 0.503,
+   "det": 1,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 267,
+   "dist_yd": 0.868,
+   "det": 2,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 271,
+   "dist_yd": 0.712,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 274,
+   "dist_yd": 0.525,
+   "det": 1,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 288,
+   "dist_yd": 0.49,
+   "det": 1,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O5",
+   "f": 289,
+   "dist_yd": 0.527,
+   "det": 10,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O6",
+   "f": 147,
+   "dist_yd": 0.553,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O6",
+   "f": 211,
+   "dist_yd": 0.071,
+   "det": 9,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O7",
+   "f": 16,
+   "dist_yd": 0.698,
+   "det": 17,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O7",
+   "f": 102,
+   "dist_yd": 0.329,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O7",
+   "f": 154,
+   "dist_yd": 0.618,
+   "det": 10,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "O7",
+   "f": 155,
+   "dist_yd": 0.395,
+   "det": 8,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "O7",
+   "f": 156,
+   "dist_yd": 0.475,
+   "det": 8,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "O7",
+   "f": 157,
+   "dist_yd": 0.688,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O7",
+   "f": 158,
+   "dist_yd": 0.565,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O7",
+   "f": 159,
+   "dist_yd": 0.526,
+   "det": 4,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O7",
+   "f": 161,
+   "dist_yd": 1.43,
+   "det": 10,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O7",
+   "f": 165,
+   "dist_yd": 1.446,
+   "det": 6,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "O7",
+   "f": 224,
+   "dist_yd": 1.105,
+   "det": 9,
+   "why": "weak_team"
+  },
+  {
+   "slot": "O7",
+   "f": 243,
+   "dist_yd": 1.033,
+   "det": 6,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "O7",
+   "f": 245,
+   "dist_yd": 1.287,
+   "det": 1,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "D1",
+   "f": 30,
+   "dist_yd": 0.127,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 44,
+   "dist_yd": 0.543,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 46,
+   "dist_yd": 0.934,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 61,
+   "dist_yd": 0.214,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 98,
+   "dist_yd": 0.795,
+   "det": 16,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 100,
+   "dist_yd": 1.33,
+   "det": 11,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 121,
+   "dist_yd": 0.771,
+   "det": 9,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 125,
+   "dist_yd": 0.483,
+   "det": 8,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 126,
+   "dist_yd": 0.551,
+   "det": 9,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 127,
+   "dist_yd": 0.601,
+   "det": 10,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 176,
+   "dist_yd": 0.644,
+   "det": 17,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 177,
+   "dist_yd": 0.207,
+   "det": 17,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 178,
+   "dist_yd": 0.035,
+   "det": 17,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 179,
+   "dist_yd": 0.142,
+   "det": 14,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 180,
+   "dist_yd": 0.087,
+   "det": 14,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 227,
+   "dist_yd": 0.148,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 228,
+   "dist_yd": 0.161,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 229,
+   "dist_yd": 0.128,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 230,
+   "dist_yd": 0.073,
+   "det": 10,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 232,
+   "dist_yd": 0.111,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 233,
+   "dist_yd": 0.166,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 234,
+   "dist_yd": 0.154,
+   "det": 8,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 235,
+   "dist_yd": 0.106,
+   "det": 11,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 244,
+   "dist_yd": 0.302,
+   "det": 5,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 245,
+   "dist_yd": 0.248,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 246,
+   "dist_yd": 0.194,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 247,
+   "dist_yd": 0.185,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 250,
+   "dist_yd": 0.339,
+   "det": 12,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 296,
+   "dist_yd": 0.565,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 324,
+   "dist_yd": 0.709,
+   "det": 5,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 325,
+   "dist_yd": 1.441,
+   "det": 10,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 327,
+   "dist_yd": 0.408,
+   "det": 5,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D1",
+   "f": 328,
+   "dist_yd": 0.344,
+   "det": 4,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D2",
+   "f": 46,
+   "dist_yd": 0.286,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D2",
+   "f": 47,
+   "dist_yd": 0.598,
+   "det": 4,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D2",
+   "f": 89,
+   "dist_yd": 0.401,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D2",
+   "f": 90,
+   "dist_yd": 0.415,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D2",
+   "f": 91,
+   "dist_yd": 0.463,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D2",
+   "f": 237,
+   "dist_yd": 0.1,
+   "det": 4,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D2",
+   "f": 245,
+   "dist_yd": 0.141,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D2",
+   "f": 259,
+   "dist_yd": 1.439,
+   "det": 0,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "D2",
+   "f": 267,
+   "dist_yd": 0.294,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D2",
+   "f": 268,
+   "dist_yd": 0.341,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D2",
+   "f": 269,
+   "dist_yd": 0.568,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D3",
+   "f": 32,
+   "dist_yd": 0.804,
+   "det": 12,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D3",
+   "f": 33,
+   "dist_yd": 0.76,
+   "det": 15,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D3",
+   "f": 34,
+   "dist_yd": 1.264,
+   "det": 17,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D3",
+   "f": 112,
+   "dist_yd": 0.882,
+   "det": 8,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "D3",
+   "f": 113,
+   "dist_yd": 0.76,
+   "det": 4,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "D3",
+   "f": 114,
+   "dist_yd": 1.158,
+   "det": 5,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "D3",
+   "f": 115,
+   "dist_yd": 1.058,
+   "det": 7,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "D3",
+   "f": 197,
+   "dist_yd": 0.787,
+   "det": 8,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D3",
+   "f": 198,
+   "dist_yd": 0.641,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D3",
+   "f": 199,
+   "dist_yd": 0.75,
+   "det": 8,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D3",
+   "f": 200,
+   "dist_yd": 0.713,
+   "det": 12,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D3",
+   "f": 201,
+   "dist_yd": 0.242,
+   "det": 5,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D3",
+   "f": 202,
+   "dist_yd": 0.351,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D3",
+   "f": 203,
+   "dist_yd": 0.883,
+   "det": 5,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D3",
+   "f": 205,
+   "dist_yd": 1.03,
+   "det": 15,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D3",
+   "f": 209,
+   "dist_yd": 1.027,
+   "det": 9,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D3",
+   "f": 223,
+   "dist_yd": 0.753,
+   "det": 17,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D3",
+   "f": 254,
+   "dist_yd": 0.345,
+   "det": 8,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D3",
+   "f": 257,
+   "dist_yd": 0.503,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D3",
+   "f": 325,
+   "dist_yd": 1.106,
+   "det": 9,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D4",
+   "f": 141,
+   "dist_yd": 0.291,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D4",
+   "f": 143,
+   "dist_yd": 0.445,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D4",
+   "f": 189,
+   "dist_yd": 0.255,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D4",
+   "f": 249,
+   "dist_yd": 0.16,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D4",
+   "f": 250,
+   "dist_yd": 0.103,
+   "det": 6,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D4",
+   "f": 286,
+   "dist_yd": 0.697,
+   "det": 11,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D5",
+   "f": 102,
+   "dist_yd": 1.259,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D5",
+   "f": 111,
+   "dist_yd": 1.356,
+   "det": 11,
+   "why": "eligible_unassigned"
+  },
+  {
+   "slot": "D5",
+   "f": 116,
+   "dist_yd": 0.551,
+   "det": 12,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D5",
+   "f": 120,
+   "dist_yd": 0.749,
+   "det": 8,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D5",
+   "f": 127,
+   "dist_yd": 1.078,
+   "det": 2,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D5",
+   "f": 144,
+   "dist_yd": 0.347,
+   "det": 4,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D5",
+   "f": 145,
+   "dist_yd": 0.157,
+   "det": 2,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D5",
+   "f": 154,
+   "dist_yd": 0.514,
+   "det": 16,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D5",
+   "f": 157,
+   "dist_yd": 0.283,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D5",
+   "f": 158,
+   "dist_yd": 0.09,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D5",
+   "f": 159,
+   "dist_yd": 0.184,
+   "det": 4,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D5",
+   "f": 209,
+   "dist_yd": 0.655,
+   "det": 1,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D5",
+   "f": 237,
+   "dist_yd": 0.426,
+   "det": 7,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D5",
+   "f": 244,
+   "dist_yd": 0.842,
+   "det": 4,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D6",
+   "f": 176,
+   "dist_yd": 0.164,
+   "det": 4,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D6",
+   "f": 177,
+   "dist_yd": 0.899,
+   "det": 1,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D6",
+   "f": 178,
+   "dist_yd": 1.223,
+   "det": 1,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D6",
+   "f": 187,
+   "dist_yd": 0.608,
+   "det": 4,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D6",
+   "f": 203,
+   "dist_yd": 0.345,
+   "det": 3,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D7",
+   "f": 20,
+   "dist_yd": 0.94,
+   "det": 12,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D7",
+   "f": 50,
+   "dist_yd": 0.458,
+   "det": 16,
+   "why": "weak_team"
+  },
+  {
+   "slot": "D7",
+   "f": 322,
+   "dist_yd": 1.324,
+   "det": 0,
+   "why": "weak_team"
+  }
+ ]
+}

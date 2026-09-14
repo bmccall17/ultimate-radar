@@ -110,23 +110,57 @@ The fixture stores exactly that form — see `camera.per_frame` in `fixtures/`.
 {"schema":"ultimate-radar/detections@1",
  "frames":[{"f":0,"dets":[
     {"box":[1201,540,1248,648],"score":0.91,"team":"chill","team_score":0.97,
-     "foot":[1224.5,648],"field":[63.2,27.4],"tile":3}]}]}
+     "team_p":0.993,"foot":[1224.5,648],"field":[63.2,27.4],"tile":3}]}]}
 ```
 
 `field` is present only when the frame's calibration confidence allowed it. Keep `box` — the
 correction dataset needs image space.
+
+**`team_p` is the one to read; `team_score` is kept for continuity.** `team_p` is the
+probability that this detection's kit is the team named in `team`, so the other kit is
+`1 − team_p` — there are exactly two. `weak_team` is now shorthand for `team_p < 0.9` rather
+than a separate judgement, and it no longer means "discard this": see AD-3's amendment.
+`non_player` (`"ref"` or `"crew"`) is the only flag that means discard, and downstream must
+count the two separately — conflating them is what produced the wrong justification for M4's
+recall gate.
 
 ## tracks.json — immutable
 
 ```json
 {"schema":"ultimate-radar/tracks@1",
  "slots":[{"slot":"D6","team":"chill",
-   "samples":[{"f":0,"xy":[71.0,24.6],"state":"observed","sigma":0.3,"det":12},
-              {"f":1,"xy":[71.2,24.5],"state":"predicted","sigma":0.9,"det":null}]}]}
+   "samples":[{"f":0,"xy":[71.0,24.6],"state":"observed","sigma":0.3,"det":12,
+               "assoc":{"alts":2,"margin":4.1,"chi2":1.2,"kit_p":0.99,
+                        "kit_penalty":0.02,"branch":"chi2",
+                        "runner_up":{"det":7,"xy":[73.1,25.0],"cost":5.3}}},
+              {"f":1,"xy":[71.2,24.5],"state":"predicted","sigma":0.9,"det":null},
+              {"f":40,"xy":[71.2,24.5],"state":"unknown","sigma":3.4,"det":null,
+               "anchor_f":1},
+              {"f":41,"xy":[66.0,29.8],"state":"provisional","sigma":0.8,"det":4,
+               "reacquire":{"gap_frames":40,"gap_s":2.67,
+                            "jump_from_prediction_yd":7.2}}]}]}
 ```
 
 Exactly 14 slots, each with a sample for **every** frame — no gaps, because a gap is a
 decision the viewer would have to re-make. `det` indexes back into `detections.json`.
+
+Three fields added in round 2, each because something downstream could not otherwise tell
+two different situations apart:
+
+- **`assoc.margin` is never null.** It used to be omitted whenever a slot had only one
+  candidate, which is the majority of records — D5 had zero non-null margins out of 253 — so
+  any statistic over it was mostly reading absent data, and reading the absence as zero says
+  the *least* contested slot is the most. It is now the cost gap to the best alternative,
+  where a slot with no alternative is measured against the gate ceiling: the cost at which
+  the least attractive admissible rival would have sat. Alone in the gate now reads as a
+  large margin, which is what it is. `assoc` also carries `kit_p` (the kit probability the
+  assignment was taken on), `branch` (which gate admitted it), and `runner_up`.
+- **`anchor_f`** on an `unknown` sample — the frame its position was last actually observed.
+  The position is held there rather than dead-reckoned, so the reader needs to know how old
+  it is.
+- **`reacquire`** on a `provisional` sample — the gap that preceded it and how far the
+  observation landed from the dead reckoning. `ur/issues.py` turns these into the review
+  queue; they are the only record of which observations have an unverified identity.
 
 **What `sigma` means, because it is easy to get wrong.** It is the **radius of a disc intended
 to contain the truth**, not a per-axis standard deviation. `docs/05-uncertainty.md` draws a

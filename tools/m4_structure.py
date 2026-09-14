@@ -28,9 +28,15 @@ import json
 from collections import Counter
 from pathlib import Path
 
-VALID_STATES = {"observed", "interpolated", "predicted", "unknown", "confirmed"}
+VALID_STATES = {"observed", "provisional", "interpolated", "predicted", "unknown",
+                "confirmed"}
+# A detection was matched, so the sample carries one and must have a position.
+ANCHORED_STATES = {"observed", "provisional"}
+
+# "Confidently classified", matching ur/team.py WEAK_TEAM_P.
+CONFIDENT_KIT_P = 0.9
 # M4 is allowed predicted and interpolated; confirmed arrives with M5's corrections.
-EXPECTED_STATES = {"observed", "interpolated", "predicted", "unknown"}
+EXPECTED_STATES = {"observed", "provisional", "interpolated", "predicted", "unknown"}
 
 
 def check(work: Path) -> dict:
@@ -75,25 +81,37 @@ def check(work: Path) -> dict:
                 problems.append(f"{s['slot']} f{f}: no sigma")
             elif r["xy"] is not None and not (r["sigma"] > 0):
                 problems.append(f"{s['slot']} f{f}: position with sigma {r['sigma']}")
-            if st == "observed":
+            if st in ANCHORED_STATES:
                 if r.get("det") is None:
-                    problems.append(f"{s['slot']} f{f}: observed with no detection")
+                    problems.append(f"{s['slot']} f{f}: {st} with no detection")
                 if r.get("xy") is None:
-                    problems.append(f"{s['slot']} f{f}: observed with no position")
+                    problems.append(f"{s['slot']} f{f}: {st} with no position")
             if st in ("interpolated", "predicted") and r.get("xy") is None:
                 problems.append(f"{s['slot']} f{f}: {st} with no position")
             di = r.get("det")
             if di is not None:
-                if st != "observed":
+                if st not in ANCHORED_STATES:
                     problems.append(f"{s['slot']} f{f}: {st} but carries a detection")
                 dets = by_frame.get(f, [])
                 if di >= len(dets):
                     problems.append(f"{s['slot']} f{f}: detection index {di} out of range")
                 else:
                     d = dets[di]
-                    if d.get("team") != s["team"]:
-                        problems.append(f"{s['slot']} f{f}: holds a {d.get('team')} "
-                                        f"detection but the slot is {s['team']} (AD-3)")
+                    # AD-3 as amended in round 2: a slot may hold a detection
+                    # whose nearer kit label is the other team, but only while
+                    # that call is not confident. A *confident* cross-team hold
+                    # is the failure AD-3 exists to prevent and is still a
+                    # structural error. See docs/25-round-2-ghost-audit.md R1.
+                    p_team = d.get("team_p")
+                    if p_team is None:
+                        p_own = 1.0 if d.get("team") == s["team"] else 0.0
+                    else:
+                        p_own = (float(p_team) if d.get("team") == s["team"]
+                                 else 1.0 - float(p_team))
+                    if p_own < 1.0 - CONFIDENT_KIT_P:
+                        problems.append(
+                            f"{s['slot']} f{f}: holds a {d.get('team')} detection "
+                            f"at P {p_own:.2f} but the slot is {s['team']} (AD-3)")
                 det_owner.setdefault((f, di), []).append(s["slot"])
         missing = set(range(n_frames)) - seen
         if missing:

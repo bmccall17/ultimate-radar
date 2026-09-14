@@ -56,10 +56,32 @@ Each slot, each frame, carries exactly one state.
 | State | Meaning | Positional sigma | How it is drawn |
 |---|---|---|---|
 | `observed` | A detection was matched to this slot in this frame, through a frame whose calibration residual was acceptable. | ~0.3 yd | Solid filled dot |
+| `provisional` | A detection was matched, but the slot had been estimating for ≥ 1.0 s beforehand, so **which** player this is has not been established. | as `observed` | Solid dot inside a broken ring |
 | `interpolated` | No detection, but observations exist within ±0.5 s on both sides. Straight-line fill. | 0.4–1.0 yd | Dashed outline dot |
 | `predicted` | No detection for ≤ 2.2 s. Dead reckoning from the last observed position and velocity, damped. | 0.6–3.5 yd, growing | Dashed dot inside a translucent uncertainty disc |
-| `unknown` | No detection for > 2.2 s, or never observed. | ≥ 3 yd, capped at 16 | Faint hatched disc; the dot is nearly gone |
+| `unknown` | No detection for > 2.2 s, or never observed. Position is **held at the last observation**, not dead-reckoned. | ≥ 3 yd, capped at 16 | The disc alone — **no dot at all** |
 | `confirmed` | A human placed this player here. Outranks everything. | 0.3 yd | Solid dot with a distinct ring |
+
+> **Two changes, 2026-09-14, from the round-2 ghost audit (`docs/25`).**
+>
+> **`provisional` is new.** M4 measured both of the swap detectors specified below catching
+> **0 of 2** real identity switches, because both happened across a dropout rather than as a
+> single-frame crossing. The honest response is not a better detector — nobody has labels to
+> tune one against — but a state that says what is actually known: a detection was matched,
+> so somebody is there, and the identity is unverified. It counts toward coverage and is
+> excluded from `measured` and `partial` in the propagation table below, which is the whole
+> point of having it.
+>
+> **`unknown` no longer dead-reckons.** The section "Why dead reckoning must be allowed to be
+> wrong", below, is right *while the velocity estimate still means something*. Past 2.2 s it
+> does not: the OU model has damped velocity to near zero, so the marker no longer tracks a
+> plausible run, it creeps a fraction of a yard per frame through grass nobody has looked at.
+> The argument against freezing was that a frozen dot reads as information — but so does a
+> creeping one, and the creeping one also implies a direction the filter no longer has any
+> evidence for. So an `unknown` sample reports the last position anyone actually saw, with a
+> growing sigma and an `anchor_f` saying when that was, **and the viewer draws no marker at
+> all** — only the disc. The filter keeps dead-reckoning internally, because that is still
+> the best prior for re-association; it is the *reported* position that stops moving.
 
 > **The sigma column is a containment radius, not a per-axis standard deviation.**
 > *Clarified 2026-09-13.* The gate below asks that ≥ 80 % of truths fall inside the drawn
@@ -123,7 +145,13 @@ labels the viewer shows next to it:
 |---|---|
 | `measured` | All contributing players `observed` or `confirmed`, and frame coverage ≥ 11/14. |
 | `partial` | All contributing players observed, but coverage below that. |
-| `inferred` | Any contributing player `predicted` or `unknown`. The card is dimmed and the copy says explicitly that the number should not be quoted. |
+| `inferred` | Any contributing player `predicted`, `unknown` or `provisional`. The card is dimmed and the copy says explicitly that the number should not be quoted. |
+
+> `provisional` joins `inferred` deliberately, and it is the uncomfortable one: the position
+> *is* measured, to the same precision as any observation. What is not established is whose
+> position it is, and a separation number attached to the wrong player is not a worse
+> measurement of the right thing — it is a measurement of something else. Coverage counts it,
+> because somebody really was seen; metrics do not, because they name a player.
 
 This is what earns the tool's credibility. A separation-at-release figure computed from a
 receiver the camera never saw is not a worse measurement, it is not a measurement, and
@@ -158,6 +186,17 @@ with no discontinuity at the joins. The prototype implements exactly this; port 
 
 The system finds its own likely mistakes and puts them in a queue. Three detectors earn
 their place:
+
+> **The queue changed shape in round 2.** These three detectors all try to *pick* which
+> slots are wrong. M4 measured the first two picking nothing real, and the round-2 audit
+> then measured its own replacement feature — displacement from the dead-reckoned position —
+> failing to separate its four nominated cases from sixteen others it had not nominated. Any
+> threshold that caught the smallest admitted most of the set, and **none of the twenty was
+> ever labelled**. So `contested_reacquisition` stopped picking: it now emits *every*
+> re-acquisition after a gap of 1.0 s or more, ranked by displacement from the prediction,
+> each carrying the runner-up it beat and the kit probability it was taken on. Twenty to
+> thirty clips is a bounded review; a detector tuned against an unlabelled guess is a
+> preference wearing a threshold. Set the threshold from the human labels, once they exist.
 
 - **Identity exchange.** Two same-team slots where `|A(f) − B(f−1)| < 1.6 yd` and
   `|B(f) − A(f−1)| < 1.6 yd` while both moved more than 3 yd in that frame. This finds the

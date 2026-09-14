@@ -69,6 +69,7 @@ CONTESTED_MARGIN_CHI2 = 2.0
 IMPLIED_SPEED_YD_S = 9.5
 
 ESTIMATED = {"predicted", "unknown", "interpolated"}
+ANCHORED = {"observed", "confirmed", "provisional"}
 
 
 def _xy(p: dict, f: int):
@@ -138,7 +139,7 @@ def cold_start(players: list[dict], fps: float) -> list[dict]:
     late = []
     for p in players:
         first = next((f for f, st in enumerate(p["state"])
-                      if st in ("observed", "confirmed")), None)
+                      if st in ANCHORED), None)
         if first is None:
             late.append((p, len(p["state"])))
         elif first > 0:
@@ -170,7 +171,7 @@ def reacquire_surprise(players: list[dict], fps: float) -> list[dict]:
     out = []
     for p in players:
         for f in range(1, len(p["state"])):
-            if p["state"][f] not in ("observed", "confirmed"):
+            if p["state"][f] not in ANCHORED:
                 continue
             if p["state"][f - 1] not in ESTIMATED:
                 continue
@@ -202,47 +203,68 @@ def reacquire_surprise(players: list[dict], fps: float) -> list[dict]:
 
 
 def contested_reacquisition(players: list[dict], fps: float) -> list[dict]:
-    """A slot re-acquired after a gap when more than one candidate was plausible.
+    """Every re-acquisition after a long gap, as a bounded review queue.
 
-    This is the detector M4's measurement asked for. Both identity switches it
-    found happened across a dropout, where the specified rules cannot see them:
-    there is no crossing frame, and the gap is spent in `predicted` rather than
-    `unknown`. What is true of a swap and not of a correct re-acquisition is that
-    the assignment was *contested* - the right player and the wrong one were both
-    inside the gate, and the filter picked on a margin too thin to mean anything.
+    **This detector used to pick.** It looked for a thin assignment margin, on the
+    reasoning that a swap is ambiguous rather than surprising. Round 2 measured
+    what that reasoning is worth on the four cases the ghost audit nominated, and
+    the answer is: not enough to gate on. Ranked by displacement from the dead-
+    reckoned position - the better feature - those four sit 3rd, 9th, 11th and
+    13th of the twenty re-acquisitions in this possession, interleaved with six
+    the audit never flagged. Any threshold that catches the 5.3 yd case admits
+    thirteen of the twenty. And the four were never ground truth; they were the
+    output of a worse metric.
+
+    So the detector stops guessing which are swaps and emits **all of them**,
+    ranked, each carrying what a human needs to decide: how long the slot was
+    estimating, how far the observation landed from the prediction, how contested
+    the assignment was, the kit probability it was taken on, and the runner-up it
+    beat. Twenty clips is a bounded review. A detector tuned against an unlabelled
+    guess is not a detector, it is a preference.
+
+    The tracker marks these samples `provisional` for the same reason: they are
+    observations of somebody, and whether it is the same somebody is exactly what
+    is being asked.
     """
     out = []
     for p in players:
-        assoc = p.get("assoc")
-        if not assoc:
+        reacq = p.get("reacquire")
+        assoc = p.get("assoc") or []
+        if not reacq:
             continue
-        for f in range(1, len(p["state"])):
-            a = assoc[f]
-            if not a or p["state"][f] not in ("observed", "confirmed"):
+        for f, r in enumerate(reacq):
+            if not r:
                 continue
-            if p["state"][f - 1] not in ESTIMATED:
-                continue
-            if a.get("alts", 1) < 2:
-                continue
-            margin = a.get("margin")
-            if margin is None or margin >= CONTESTED_MARGIN_CHI2:
-                continue
-            gap = 0
-            while f - 1 - gap >= 0 and p["state"][f - 1 - gap] in ESTIMATED:
-                gap += 1
+            a = assoc[f] if f < len(assoc) else None
+            jump = r.get("jump_from_prediction_yd")
+            rank_key = jump if jump is not None else 0.0
+            why = (f"{p['id']} was estimated for {r['gap_s']:.1f} s and came back "
+                   f"{jump:.1f} yd from where it was dead-reckoned"
+                   if jump is not None else
+                   f"{p['id']} was estimated for {r['gap_s']:.1f} s before this")
+            if a:
+                why += (f", on a margin of {a['margin']:.2f} over "
+                        f"{a['alts']} candidate(s), kit P {a['kit_p']:.2f}")
+            why += (". Nobody has checked whether it is the same player. If it is "
+                    "not, everything after it is the wrong player.")
             out.append({
                 "kind": "contested_reacquisition",
                 "frame": f, "t": round(f / fps, 3),
                 "slots": [p["id"]], "team": p["team"],
-                "candidates": a["alts"], "margin_chi2": margin,
-                "gap_frames": gap, "gap_s": round(gap / fps, 2),
+                "gap_frames": r["gap_frames"], "gap_s": r["gap_s"],
+                "jump_from_prediction_yd": jump,
+                "rank_by": round(float(rank_key), 3),
+                "candidates": (a or {}).get("alts"),
+                "margin_chi2": (a or {}).get("margin"),
+                "kit_p": (a or {}).get("kit_p"),
+                "branch": (a or {}).get("branch"),
+                "runner_up": (a or {}).get("runner_up"),
                 "fix": {"op": "confirm_or_swap", "slot": p["id"], "f": f},
-                "why": (f"{p['id']} was estimated for {gap / fps:.1f} s, then "
-                        f"{a['alts']} candidates were all plausible and it took one "
-                        f"on a margin of {margin:.2f} - barely more likely than the "
-                        "runner-up. If this is the wrong player, everything after "
-                        "it is the wrong player."),
+                "why": why,
             })
+    out.sort(key=lambda r: -r["rank_by"])
+    for i, r in enumerate(out):
+        r["rank"] = i + 1
     return out
 
 
@@ -283,6 +305,17 @@ def find(doc: dict, *, include_speed: bool = False) -> dict:
     issues = []
     for name, fn in DETECTORS.items():
         issues.extend(fn(players, fps))
+    # `contested_reacquisition` now emits every re-acquisition after a long gap,
+    # which is a superset of what `reacquire_surprise` finds. Two cards for one
+    # decision is the annoyance docs/05 groups cold starts to avoid, so the
+    # surprise form is kept - it still fires on the fixture, where sigmas are
+    # small enough for it to mean something - but only where it says something the
+    # other has not already said.
+    covered = {(r["slots"][0], r["frame"]) for r in issues
+               if r["kind"] == "contested_reacquisition"}
+    issues = [r for r in issues
+              if r["kind"] != "reacquire_surprise"
+              or (r["slots"][0], r["frame"]) not in covered]
     if include_speed:
         issues.extend(implied_speed(players, fps))
     issues.sort(key=lambda r: (r["frame"], r["kind"], r["slots"]))
@@ -299,12 +332,17 @@ def find(doc: dict, *, include_speed: bool = False) -> dict:
                                   "moved_yd": EXCHANGE_MOVED_YD},
             "long_blind_stretch_s": BLIND_STRETCH_S,
             "contested_reacquisition": {
-                "margin_chi2": CONTESTED_MARGIN_CHI2,
-                "added_in": "M5",
-                "why": "the surprise form fires zero times on real data - the "
-                       "largest re-acquisition over 161 is 1.73 sigma, because an "
-                       "honest covariance after a dropout admits the wrong player. "
-                       "Ambiguity is the signal that survives.",
+                "emits": "every re-acquisition the tracker marked provisional",
+                "min_gap_s": "ur.track.run REACQ_MIN_GAP_S",
+                "ranked_by": "displacement from the dead-reckoned position",
+                "changed_in": "round 2",
+                "why": "it used to fire only on a thin assignment margin. Measured "
+                       "on p0001, neither margin nor displacement separates the "
+                       "nominated cases from the rest - any threshold catching the "
+                       "smallest admits most of the set, and none of them is "
+                       "labelled. So the whole set is emitted for review and the "
+                       "threshold is set from human labels, not before them. See "
+                       "docs/25-round-2-ghost-audit.md R4.",
             },
             "reacquire_surprise": {"sigmas": REACQUIRE_SIGMAS,
                                    "min_yd": REACQUIRE_MIN_YD,
