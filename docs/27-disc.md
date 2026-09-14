@@ -145,6 +145,41 @@ holder, **the disc is plainly visible in hand on some frames** (`eval/m8/holder_
 so a human can do this quickly and reliably, and so, eventually, could a detector trained on
 what the human tags.
 
+## Next: tag, score, ask again — a loop rather than a pass
+
+*Agreed 2026-09-14. Not built; this is the shape it should take.*
+
+Reversing steps 1 and 2 gets ground truth into the problem, but tagging every throw of every
+possession by hand does not scale past the first few games. The thing that scales is a loop,
+and the loop is worth building properly the first time:
+
+1. **A human tags a few throws** on a possession — not all of them.
+2. **The inference is re-solved with those as hard constraints**, which it already supports,
+   and the spans between them get much easier: a tagged catch fixes one end of the next
+   holder run, so the search is bounded rather than free.
+3. **It scores itself** — against the tags it now has (did it recover a held-out tag?) and
+   against the physics checks it already runs.
+4. **It asks for the next tag where it is least certain**, rather than in frame order. The
+   Viterbi already computes the cost of the second-best path; the frames where that margin is
+   thinnest are exactly the ones a human should look at.
+5. **Repeat until the confidence threshold is met**, then stop asking.
+
+The payoff is that the human cost per possession *falls* as the model improves, instead of
+staying at twenty keystrokes forever, and the stopping rule is a measured confidence rather
+than "we tagged them all". It is ordinary active learning, and the two pieces it needs
+already exist: tags as hard constraints, and a solver that can report its own margin.
+
+Two things to get right when it is built:
+
+- **The confidence threshold has to be calibrated against held-out tags**, not against the
+  physics checks. The physics checks can only ever say a sequence is *implausible*; they
+  cannot say a plausible one is right. Scoring against a tag the solver was not given is the
+  only honest measure, and it is cheap — hold out every third tag.
+- **Do not let the loop train on its own output.** A confident wrong holder that gets fed
+  back as a constraint is how this fails silently, and it is the same failure mode as the
+  `identity_switches_caught: "2 of 2"` figure that was withdrawn in round 2 — a detector
+  agreeing with the analysis that produced it.
+
 ## Honest limits
 
 - **One possession, and the holder sequence in it is unverified.** Every number above scores

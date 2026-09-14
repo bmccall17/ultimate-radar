@@ -63,6 +63,9 @@ class Frame:
     n_circle: int = 0
     n_line: int = 0
     confidence: float = 0.0
+    # How far this frame's pose sits from what its neighbours predict, in yards.
+    # Reported so the two halves of `confidence` can be told apart downstream.
+    pose_disagreement_yd: float = 0.0
     note: str = ""
 
 
@@ -121,14 +124,76 @@ def icp(cam: FixedCamera, pose: Pose, px: np.ndarray,
     return cur, res
 
 
-def confidence_of(res: fit.WorldFit | None) -> float:
-    """Turn a fit into the number AD-1 says the tracker must read.
+# How much paint a fit must rest on before it is worth anything at all.
+#
+# This used to be a *ramp* rather than a floor: confidence was multiplied by
+# `(n_circle + n_line) / 500`, so a frame seeing 200 px of paint could not score
+# above 0.40 however well it fitted, and `docs/03`'s gate of 0.5 threw it away.
+#
+# **Measured, that ramp was anti-correlated with accuracy.** On p0002 the frames
+# it gated out have a median residual of 0.159 yd against 0.223 for the frames it
+# accepted; on p0003, 0.197 against 0.221. It was discarding the *better* fits,
+# because a frame that sees a small, sharply-imaged patch of the centre circle
+# fits it precisely, and a frame that sees a great deal of paint spread to the far
+# side of the pitch fits more of it less well. Across the three possessions it
+# rejected 22, 33 and 138 frames whose fits were sound - a quarter of p0003.
+#
+# `docs/03` says plainly what this number is: "confidence derives from the
+# residual". It is a statement about how far out a position from this frame is
+# likely to be, and paint count is not that. So the support test becomes what it
+# always should have been - a precondition for the fit being meaningful at all,
+# answered yes or no - and error in yards sets the value.
+MIN_SUPPORT_PX = 120
 
-    Three things make a calibration weak and they are not interchangeable, so
-    they multiply rather than average: the residual being large, there being
-    little paint to fit to, and - the one an rms hides completely - the halfway
-    line being absent, which leaves the circle alone and the rotation about its
-    axis barely constrained.
+# The scale that turns an error in yards into a confidence. Unchanged: a frame
+# whose positions are out by 0.45 yd scores e^-1.
+CONF_SCALE_YD = 0.45
+
+# Half-width of the window a frame's pose is predicted from, for the out-of-sample
+# check below, and the order of the curve fitted through it.
+#
+# **The order is 2 and that is not a detail.** With a straight line, a third of a
+# second of a real pan is not straight, and the curvature lands in the residual as
+# if it were error: on p0002, which pans 50 degrees in 18 seconds, the resulting
+# "disagreement" correlates with the pan rate at **+0.66**. It was measuring the
+# camera accelerating, and rejecting frames for it - worst on exactly the fast,
+# hard-to-calibrate possessions the check exists to help.
+#
+# A quadratic absorbs constant angular acceleration, which is what an operator's
+# hands actually produce. The same measurement on p0002 falls to **-0.04**, and
+# accepted frames go from 100 to 141 of 270. On p0001, which barely pans, it moves
+# the correlation from +0.19 to +0.14 and accepted frames from 321 to 340 - so the
+# well-behaved possession does not pay for it either.
+SMOOTH_HALF = 5
+SMOOTH_DEG = 2
+
+# A representative ground range, in yards, for converting an angular or focal
+# disagreement into the positional error it causes. The camera sits off the near
+# touchline and the play is 40-80 yd away; 60 is the middle of that and the
+# conversion is linear in it, so the choice moves every frame's number by the
+# same factor rather than reordering them.
+TYPICAL_RANGE_YD = 60.0
+
+
+def confidence_of(res: fit.WorldFit | None) -> float:
+    """The in-sample half of the confidence: how well the frame fitted its paint.
+
+    `docs/03` says confidence derives from the residual, and this is that. What it
+    no longer does is scale itself by how much paint was visible.
+
+    **The paint-count ramp was measured anti-correlated with accuracy.** It used to
+    multiply by `(n_circle + n_line) / 500`, so a frame seeing 200 px could not
+    score above 0.40 however well it fitted, and `docs/03`'s gate of 0.5 discarded
+    it. On p0002 the frames it gated out have a median residual of 0.159 yd against
+    0.223 for the frames it accepted; on p0003, 0.197 against 0.221. It was
+    throwing away the *better* fits - a frame seeing a small, sharply-imaged patch
+    of the centre circle fits it precisely, while one seeing a lot of paint spread
+    to the far side of the pitch fits more of it less well. Across three
+    possessions that cost 22, 33 and 138 sound frames, a quarter of p0003.
+
+    A floor remains, because a fit resting on almost nothing is not a measurement
+    at all; it is the amount of paint below which `res.rms_yd` stops being a
+    statistic.
     """
     # res.ok already rejects the two failures that produce a *smaller* residual
     # than a good fit: a collapsed solve and a fit to too short an arc. Without
@@ -136,12 +201,62 @@ def confidence_of(res: fit.WorldFit | None) -> float:
     # what p0003 did before this check existed.
     if res is None or not res.ok:
         return 0.0
-    quality = float(np.exp(-max(res.rms_yd, 0.0) / 0.45))
-    support = float(np.clip((res.n_circle + res.n_line) / 500.0, 0.0, 1.0))
-    # A circle with no line is a near-degenerate view: it pins the plane but
-    # leaves spin about the circle's normal weakly observed.
-    geometry = 1.0 if res.n_line >= 40 else 0.55
-    return float(np.clip(quality * support * geometry, 0.0, 1.0))
+    if res.n_circle + res.n_line < MIN_SUPPORT_PX:
+        return 0.0
+    return float(np.clip(np.exp(-max(res.rms_yd, 0.0) / CONF_SCALE_YD), 0.0, 1.0))
+
+
+def pose_disagreement_yd(frames: list["Frame"], cam) -> np.ndarray:
+    """How far each frame's pose sits from what its neighbours predict, in yards.
+
+    **This is the out-of-sample half, and it replaces a rule that guessed at it.**
+    `confidence_of` used to halve itself when the halfway line was absent, on the
+    sound geometric argument that a circle alone pins the plane but leaves spin
+    about its normal weakly observed. Measured, that proxy is right on some
+    possessions and wrong on others: on p0001 the circle-only frames deviate 3.8x
+    on pan and 11x on focal, and the penalty is earning its keep; on p0003 they are
+    *better* than the line-bearing frames on focal and equal on tilt, and the
+    penalty was discarding a quarter of the possession for nothing.
+
+    "Is the halfway line present" was never the question. The question is whether
+    the pose is well conditioned, and that can be measured instead of predicted.
+    AD-4's amendment establishes this is a fixed broadcast hard camera - it pans,
+    tilts and zooms and does not translate - so pan, tilt and focal are smooth
+    functions of time. Fit a line through each over a short window **excluding the
+    frame itself**, and the frame's distance from that line is an out-of-sample
+    error, which is exactly what an in-sample residual cannot be.
+
+    Converted to yards so it can be added to the residual rather than weighed
+    against it: an angular error theta displaces a point at range R by R*theta, and
+    a fractional focal error df/f scales the range by the same fraction.
+    """
+    n = len(frames)
+    out = np.zeros(n)
+    have = np.array([f.pose is not None and f.confidence > 0 for f in frames])
+    if have.sum() < 2 * SMOOTH_HALF:
+        return out
+
+    series = {
+        "pan": np.array([f.pose.pan if f.pose else np.nan for f in frames]),
+        "tilt": np.array([f.pose.tilt if f.pose else np.nan for f in frames]),
+        "f": np.array([f.pose.f if f.pose else np.nan for f in frames]),
+    }
+    idx = np.arange(n)
+    dev = {k: np.zeros(n) for k in series}
+    for k, v in series.items():
+        for i in range(n):
+            lo, hi = max(0, i - SMOOTH_HALF), min(n, i + SMOOTH_HALF + 1)
+            sel = (idx[lo:hi] != i) & have[lo:hi] & np.isfinite(v[lo:hi])
+            x = idx[lo:hi][sel].astype(float)
+            y = v[lo:hi][sel]
+            if len(x) < SMOOTH_DEG + 3 or not np.isfinite(v[i]):
+                continue
+            dev[k][i] = abs(v[i] - np.polyval(np.polyfit(x, y, SMOOTH_DEG), i))
+
+    fmed = float(np.nanmedian(series["f"][have])) if have.any() else 1.0
+    ang = np.hypot(dev["pan"], dev["tilt"]) * TYPICAL_RANGE_YD
+    scale = (dev["f"] / max(fmed, 1e-6)) * TYPICAL_RANGE_YD
+    return np.hypot(ang, scale)
 
 
 # --------------------------------------------------------------------------- #
@@ -205,6 +320,16 @@ def sequential_pass(cam: FixedCamera, frame_paths, a_idx: int, anchor_pose: Pose
             print(f"[calib] {tag}frame {i:4d}  rms {f.rms_yd:7.4f} yd  "
                   f"conf {f.confidence:.2f}  circle {f.n_circle:4d} line {f.n_line:4d}"
                   + (f"  [{f.note}]" if f.note else ""))
+
+    # The out-of-sample half. It can only run once every frame has a pose, which
+    # is why it is a second pass rather than part of the loop above.
+    dev = pose_disagreement_yd(frames, cam)
+    for f, d in zip(frames, dev):
+        if f.confidence <= 0.0:
+            continue
+        f.pose_disagreement_yd = float(d)
+        total = float(np.hypot(f.rms_yd if np.isfinite(f.rms_yd) else 0.0, d))
+        f.confidence = float(np.clip(np.exp(-total / CONF_SCALE_YD), 0.0, 1.0))
     return frames
 
 
@@ -364,6 +489,7 @@ def write_calibration(work: Path, res: dict, venue_info: dict) -> dict:
             "f": f.index,
             "H": [[round(float(v), 10) for v in row] for row in H],
             "residual_yd": None if not np.isfinite(f.rms_yd) else round(float(f.rms_yd), 5),
+            "pose_disagreement_yd": round(float(f.pose_disagreement_yd), 5),
             "confidence": round(float(f.confidence), 4),
             "shot": 0,
             "camera": {**f.pose.to_dict(),

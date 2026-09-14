@@ -139,6 +139,16 @@ by face or name; any tactical judgement the tool would be asserting rather than 
    **more possessions**, so the numbers stop being chaotic and a rule can be shown to
    generalise rather than to fit p0001.
 
+7. **Human tagging should become a loop, not a pass.** `docs/27` measures holder inference
+   failing without human tags and recommends reversing the build order to put tagging first.
+   The next step after that is to stop tagging exhaustively: tag a few throws, re-solve with
+   them as hard constraints, score against held-out tags, ask for the next tag where the
+   solver's own margin is thinnest, and repeat to a calibrated confidence threshold. Ordinary
+   active learning, and both pieces it needs already exist. The trap to avoid is feeding the
+   solver's own confident output back as a constraint — the same self-confirming loop that
+   produced the withdrawn "2 of 2" switch-detection figure in round 2. Written up in
+   `docs/27-disc.md`.
+
 *Added in M0 (2026-09-12):*
 
 5. **Is this a 120-yard field or a 110-yard one?** UFA rule §2.3.3 allows a 110 yd field "if
