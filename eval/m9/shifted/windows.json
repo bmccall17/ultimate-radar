@@ -1,0 +1,4222 @@
+[
+ {
+  "after_t": 788.97,
+  "before_t": 817.17,
+  "from": [
+   0,
+   0
+  ],
+  "to": [
+   0,
+   1
+  ],
+  "scorer": "MIN",
+  "goal_t": 819.22,
+  "bug_t": 819.22,
+  "clock_freeze_t": 810.22,
+  "shot": [
+   799.432,
+   810.276
+  ],
+  "shot_len_s": 10.84,
+  "start": 799.83,
+  "end": 802.22,
+  "window_s": 2.39,
+  "soft_scene_changes_inside": [],
+  "reject": "only 2.4s of unbroken shot before the goal"
+ },
+ {
+  "after_t": 894.34,
+  "before_t": 907.22,
+  "from": [
+   0,
+   1
+  ],
+  "to": [
+   1,
+   1
+  ],
+  "scorer": "ATX",
+  "goal_t": 909.34,
+  "bug_t": 909.34,
+  "clock_freeze_t": 895.59,
+  "shot": [
+   843.626,
+   899.298
+  ],
+  "shot_len_s": 55.67,
+  "start": 857.59,
+  "end": 887.59,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   859.01
+  ],
+  "calibratable_fraction": 0.625,
+  "circle_fraction": 1.0,
+  "median_paint_px": 15573,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 857.59,
+    "ok": true,
+    "paint_px": 390887,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 861.88,
+    "ok": true,
+    "paint_px": 29097,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 866.16,
+    "ok": true,
+    "paint_px": 15575,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 870.45,
+    "ok": true,
+    "paint_px": 15571,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 874.73,
+    "ok": true,
+    "paint_px": 9360,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 879.02,
+    "ok": true,
+    "paint_px": 6744,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 883.3,
+    "ok": true,
+    "paint_px": 20027,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 887.59,
+    "ok": true,
+    "paint_px": 5320,
+    "circle": true,
+    "line": true
+   }
+  ]
+ },
+ {
+  "after_t": 1021.8,
+  "before_t": 1036.65,
+  "from": [
+   1,
+   1
+  ],
+  "to": [
+   1,
+   2
+  ],
+  "scorer": "MIN",
+  "goal_t": 1038.55,
+  "bug_t": 1038.55,
+  "clock_freeze_t": 1023.55,
+  "shot": [
+   958.708,
+   1122.805
+  ],
+  "shot_len_s": 164.1,
+  "start": 985.55,
+  "end": 1015.55,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   989.14,
+   996.7,
+   1004.65,
+   1009.89
+  ],
+  "calibratable_fraction": 0.5,
+  "circle_fraction": 1.0,
+  "median_paint_px": 20470,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 985.55,
+    "ok": true,
+    "paint_px": 14789,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 989.84,
+    "ok": true,
+    "paint_px": 128540,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 994.12,
+    "ok": true,
+    "paint_px": 142513,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 998.41,
+    "ok": true,
+    "paint_px": 11783,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1002.69,
+    "ok": true,
+    "paint_px": 13954,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1006.98,
+    "ok": true,
+    "paint_px": 29214,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1011.26,
+    "ok": true,
+    "paint_px": 17159,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1015.55,
+    "ok": true,
+    "paint_px": 23782,
+    "circle": true,
+    "line": true
+   }
+  ]
+ },
+ {
+  "after_t": 1102.28,
+  "before_t": 1118.53,
+  "from": [
+   1,
+   2
+  ],
+  "to": [
+   1,
+   3
+  ],
+  "scorer": "MIN",
+  "goal_t": 1120.53,
+  "bug_t": 1120.53,
+  "clock_freeze_t": 1107.53,
+  "shot": [
+   958.708,
+   1122.805
+  ],
+  "shot_len_s": 164.1,
+  "start": 1069.53,
+  "end": 1099.53,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   1075.57,
+   1084.12
+  ],
+  "calibratable_fraction": 0.375,
+  "circle_fraction": 0.75,
+  "median_paint_px": 16326,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 1069.53,
+    "ok": true,
+    "paint_px": 5762,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 1073.82,
+    "ok": true,
+    "paint_px": 3956,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 1078.1,
+    "ok": true,
+    "paint_px": 25802,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1082.39,
+    "ok": true,
+    "paint_px": 23686,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1086.67,
+    "ok": true,
+    "paint_px": 8857,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1090.96,
+    "ok": true,
+    "paint_px": 8966,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1095.24,
+    "ok": true,
+    "paint_px": 34078,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1099.53,
+    "ok": true,
+    "paint_px": 40525,
+    "circle": true,
+    "line": true
+   }
+  ]
+ },
+ {
+  "after_t": 1195.54,
+  "before_t": 1207.19,
+  "from": [
+   1,
+   3
+  ],
+  "to": [
+   2,
+   3
+  ],
+  "scorer": "ATX",
+  "goal_t": 1204.29,
+  "bug_t": 1204.29,
+  "clock_freeze_t": 1203.79,
+  "shot": [
+   1161.193,
+   1216.999
+  ],
+  "shot_len_s": 55.81,
+  "start": 1165.79,
+  "end": 1195.79,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.875,
+  "circle_fraction": 1.0,
+  "median_paint_px": 25918,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 1165.79,
+    "ok": true,
+    "paint_px": 26545,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1170.08,
+    "ok": true,
+    "paint_px": 30591,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1174.36,
+    "ok": true,
+    "paint_px": 3891,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1178.65,
+    "ok": true,
+    "paint_px": 15190,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1182.93,
+    "ok": true,
+    "paint_px": 10258,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1187.22,
+    "ok": true,
+    "paint_px": 30335,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1191.5,
+    "ok": true,
+    "paint_px": 25292,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1195.79,
+    "ok": true,
+    "paint_px": 169814,
+    "circle": true,
+    "line": true
+   }
+  ]
+ },
+ {
+  "after_t": 1315.9,
+  "before_t": 1327.94,
+  "from": [
+   2,
+   3
+  ],
+  "to": [
+   2,
+   4
+  ],
+  "scorer": "MIN",
+  "goal_t": 1328.9,
+  "bug_t": 1328.9,
+  "clock_freeze_t": 1314.65,
+  "shot": [
+   1259.325,
+   1340.856
+  ],
+  "shot_len_s": 81.53,
+  "start": 1276.65,
+  "end": 1306.65,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.375,
+  "circle_fraction": 0.875,
+  "median_paint_px": 11486,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 1276.65,
+    "ok": true,
+    "paint_px": 47550,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1280.94,
+    "ok": true,
+    "paint_px": 6288,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1285.22,
+    "ok": true,
+    "paint_px": 17695,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1289.51,
+    "ok": true,
+    "paint_px": 16905,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1293.79,
+    "ok": true,
+    "paint_px": 16060,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1298.08,
+    "ok": true,
+    "paint_px": 6913,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1302.36,
+    "ok": true,
+    "paint_px": 4087,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1306.65,
+    "ok": true,
+    "paint_px": 6247,
+    "circle": false,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 1411.96,
+  "before_t": 1423.81,
+  "from": [
+   2,
+   4
+  ],
+  "to": [
+   3,
+   4
+  ],
+  "scorer": "ATX",
+  "goal_t": 1423.96,
+  "bug_t": 1423.96,
+  "clock_freeze_t": 1415.71,
+  "shot": [
+   1352.418,
+   1434.316
+  ],
+  "shot_len_s": 81.9,
+  "start": 1377.71,
+  "end": 1407.71,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.375,
+  "circle_fraction": 0.625,
+  "median_paint_px": 11240,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 1377.71,
+    "ok": true,
+    "paint_px": 4123,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 1382.0,
+    "ok": true,
+    "paint_px": 13862,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 1386.28,
+    "ok": true,
+    "paint_px": 11157,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1390.57,
+    "ok": true,
+    "paint_px": 11323,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1394.85,
+    "ok": true,
+    "paint_px": 9558,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1399.14,
+    "ok": true,
+    "paint_px": 20210,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 1403.42,
+    "ok": true,
+    "paint_px": 21284,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1407.71,
+    "ok": true,
+    "paint_px": 10958,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 1517.7,
+  "before_t": 1527.08,
+  "from": [
+   3,
+   4
+  ],
+  "to": [
+   3,
+   5
+  ],
+  "scorer": "MIN",
+  "goal_t": 1527.45,
+  "bug_t": 1527.45,
+  "clock_freeze_t": 1517.7,
+  "shot": [
+   1451.433,
+   1542.174
+  ],
+  "shot_len_s": 90.74,
+  "start": 1479.7,
+  "end": 1509.7,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.125,
+  "circle_fraction": 1.0,
+  "median_paint_px": 27262,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 1479.7,
+    "ok": true,
+    "paint_px": 28473,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1483.99,
+    "ok": true,
+    "paint_px": 24709,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1488.27,
+    "ok": true,
+    "paint_px": 22688,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1492.56,
+    "ok": true,
+    "paint_px": 26051,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1496.84,
+    "ok": true,
+    "paint_px": 25750,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1501.13,
+    "ok": true,
+    "paint_px": 67804,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1505.41,
+    "ok": true,
+    "paint_px": 94890,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1509.7,
+    "ok": true,
+    "paint_px": 42334,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 1617.6,
+  "before_t": 1627.34,
+  "from": [
+   3,
+   5
+  ],
+  "to": [
+   4,
+   5
+  ],
+  "scorer": "ATX",
+  "goal_t": 1629.1,
+  "bug_t": 1629.1,
+  "clock_freeze_t": 1616.85,
+  "shot": [
+   1548.313,
+   1644.61
+  ],
+  "shot_len_s": 96.3,
+  "start": 1578.85,
+  "end": 1608.85,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.375,
+  "circle_fraction": 1.0,
+  "median_paint_px": 12849,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 1578.85,
+    "ok": true,
+    "paint_px": 7320,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1583.14,
+    "ok": true,
+    "paint_px": 5123,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1587.42,
+    "ok": true,
+    "paint_px": 12423,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1591.71,
+    "ok": true,
+    "paint_px": 17952,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1595.99,
+    "ok": true,
+    "paint_px": 17088,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1600.28,
+    "ok": true,
+    "paint_px": 13276,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1604.56,
+    "ok": true,
+    "paint_px": 17447,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1608.85,
+    "ok": true,
+    "paint_px": 9135,
+    "circle": true,
+    "line": true
+   }
+  ]
+ },
+ {
+  "after_t": 1721.17,
+  "before_t": 1728.78,
+  "from": [
+   4,
+   5
+  ],
+  "to": [
+   4,
+   6
+  ],
+  "scorer": "MIN",
+  "goal_t": 1728.92,
+  "bug_t": 1728.92,
+  "clock_freeze_t": 1728.92,
+  "shot": [
+   1669.501,
+   1749.014
+  ],
+  "shot_len_s": 79.51,
+  "start": 1690.92,
+  "end": 1720.92,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.625,
+  "circle_fraction": 1.0,
+  "median_paint_px": 22475,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 1690.92,
+    "ok": true,
+    "paint_px": 14644,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1695.21,
+    "ok": true,
+    "paint_px": 18744,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1699.49,
+    "ok": true,
+    "paint_px": 17329,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1703.78,
+    "ok": true,
+    "paint_px": 26206,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1708.06,
+    "ok": true,
+    "paint_px": 29415,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1712.35,
+    "ok": true,
+    "paint_px": 27889,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1716.63,
+    "ok": true,
+    "paint_px": 17968,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1720.92,
+    "ok": true,
+    "paint_px": 36859,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 1817.5,
+  "before_t": 1835.18,
+  "from": [
+   4,
+   6
+  ],
+  "to": [
+   4,
+   7
+  ],
+  "scorer": "MIN",
+  "goal_t": 1837.25,
+  "bug_t": 1837.25,
+  "clock_freeze_t": 1823.25,
+  "shot": [
+   1763.912,
+   1842.057
+  ],
+  "shot_len_s": 78.14,
+  "start": 1785.25,
+  "end": 1815.25,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.375,
+  "circle_fraction": 0.875,
+  "median_paint_px": 7571,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 1785.25,
+    "ok": true,
+    "paint_px": 5114,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 1789.54,
+    "ok": true,
+    "paint_px": 6283,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1793.82,
+    "ok": true,
+    "paint_px": 17069,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1798.11,
+    "ok": true,
+    "paint_px": 17043,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1802.39,
+    "ok": true,
+    "paint_px": 17963,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 1806.68,
+    "ok": true,
+    "paint_px": 4583,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1810.96,
+    "ok": true,
+    "paint_px": 2218,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 1815.25,
+    "ok": true,
+    "paint_px": 8860,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 2061.28,
+  "before_t": 2068.55,
+  "from": [
+   4,
+   7
+  ],
+  "to": [
+   5,
+   7
+  ],
+  "scorer": "ATX",
+  "goal_t": 2070.28,
+  "bug_t": 2070.28,
+  "clock_freeze_t": 2061.03,
+  "shot": [
+   1977.843,
+   2068.566
+  ],
+  "shot_len_s": 90.72,
+  "start": 2023.03,
+  "end": 2053.03,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   2036.32
+  ],
+  "calibratable_fraction": 0.125,
+  "circle_fraction": 0.875,
+  "median_paint_px": 16639,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 2023.03,
+    "ok": true,
+    "paint_px": 15298,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2027.32,
+    "ok": true,
+    "paint_px": 14080,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2031.6,
+    "ok": true,
+    "paint_px": 12090,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2035.89,
+    "ok": true,
+    "paint_px": 17981,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2040.17,
+    "ok": true,
+    "paint_px": 22856,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2044.46,
+    "ok": true,
+    "paint_px": 25971,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 2048.74,
+    "ok": true,
+    "paint_px": 21583,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2053.03,
+    "ok": true,
+    "paint_px": 14343,
+    "circle": false,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 2159.94,
+  "before_t": 2170.52,
+  "from": [
+   5,
+   7
+  ],
+  "to": [
+   5,
+   8
+  ],
+  "scorer": "MIN",
+  "goal_t": 2172.19,
+  "bug_t": 2172.19,
+  "clock_freeze_t": 2158.69,
+  "shot": [
+   2135.75,
+   2164.346
+  ],
+  "shot_len_s": 28.6,
+  "start": 2136.15,
+  "end": 2150.69,
+  "window_s": 14.54,
+  "soft_scene_changes_inside": [],
+  "reject": "only 14.5s of unbroken shot before the goal"
+ },
+ {
+  "after_t": 2419.6,
+  "before_t": 2434.68,
+  "from": [
+   5,
+   8
+  ],
+  "to": [
+   6,
+   8
+  ],
+  "scorer": "ATX",
+  "goal_t": 2434.85,
+  "bug_t": 2434.85,
+  "clock_freeze_t": 2423.6,
+  "shot": [
+   2362.11,
+   2434.666
+  ],
+  "shot_len_s": 72.56,
+  "start": 2385.6,
+  "end": 2415.6,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.75,
+  "circle_fraction": 1.0,
+  "median_paint_px": 17860,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 2385.6,
+    "ok": true,
+    "paint_px": 18413,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 2389.89,
+    "ok": true,
+    "paint_px": 17660,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2394.17,
+    "ok": true,
+    "paint_px": 15678,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 2398.46,
+    "ok": true,
+    "paint_px": 19947,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 2402.74,
+    "ok": true,
+    "paint_px": 17767,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 2407.03,
+    "ok": true,
+    "paint_px": 17953,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 2411.31,
+    "ok": true,
+    "paint_px": 23373,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 2415.6,
+    "ok": true,
+    "paint_px": 8928,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 2513.53,
+  "before_t": 2525.21,
+  "from": [
+   6,
+   8
+  ],
+  "to": [
+   6,
+   9
+  ],
+  "scorer": "MIN",
+  "goal_t": 2527.03,
+  "bug_t": 2527.03,
+  "clock_freeze_t": 2511.53,
+  "shot": [
+   2474.939,
+   2520.918
+  ],
+  "shot_len_s": 45.98,
+  "start": 2475.34,
+  "end": 2503.53,
+  "window_s": 28.19,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.375,
+  "circle_fraction": 0.875,
+  "median_paint_px": 17448,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 2475.34,
+    "ok": true,
+    "paint_px": 15553,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2479.37,
+    "ok": true,
+    "paint_px": 20728,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2483.39,
+    "ok": true,
+    "paint_px": 24997,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 2487.42,
+    "ok": true,
+    "paint_px": 22937,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 2491.45,
+    "ok": true,
+    "paint_px": 19344,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 2495.48,
+    "ok": true,
+    "paint_px": 6830,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2499.5,
+    "ok": true,
+    "paint_px": 6530,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 2503.53,
+    "ok": true,
+    "paint_px": 12420,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 2674.86,
+  "before_t": 2685.43,
+  "from": [
+   6,
+   9
+  ],
+  "to": [
+   6,
+   10
+  ],
+  "scorer": "MIN",
+  "goal_t": 2687.11,
+  "bug_t": 2687.11,
+  "clock_freeze_t": 2674.11,
+  "shot": [
+   2563.161,
+   2685.449
+  ],
+  "shot_len_s": 122.29,
+  "start": 2636.11,
+  "end": 2666.11,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.375,
+  "circle_fraction": 0.875,
+  "median_paint_px": 15780,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 2636.11,
+    "ok": true,
+    "paint_px": 15316,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2640.4,
+    "ok": true,
+    "paint_px": 16245,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2644.68,
+    "ok": true,
+    "paint_px": 70818,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2648.97,
+    "ok": true,
+    "paint_px": 38178,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 2653.25,
+    "ok": true,
+    "paint_px": 7941,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 2657.54,
+    "ok": true,
+    "paint_px": 7103,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 2661.82,
+    "ok": true,
+    "paint_px": 4197,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2666.11,
+    "ok": true,
+    "paint_px": 17757,
+    "circle": true,
+    "line": true
+   }
+  ]
+ },
+ {
+  "after_t": 2756.87,
+  "before_t": 2774.29,
+  "from": [
+   6,
+   10
+  ],
+  "to": [
+   7,
+   10
+  ],
+  "scorer": "ATX",
+  "goal_t": 2772.62,
+  "bug_t": 2772.62,
+  "clock_freeze_t": 2772.12,
+  "shot": [
+   2729.076,
+   2772.286
+  ],
+  "shot_len_s": 43.21,
+  "start": 2734.12,
+  "end": 2764.12,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   2762.23
+  ],
+  "calibratable_fraction": 0.25,
+  "circle_fraction": 1.0,
+  "median_paint_px": 20586,
+  "one_shot_fraction": 0.983,
+  "per_frame": [
+   {
+    "t": 2734.12,
+    "ok": true,
+    "paint_px": 27771,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2738.41,
+    "ok": true,
+    "paint_px": 11996,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2742.69,
+    "ok": true,
+    "paint_px": 12610,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2746.98,
+    "ok": true,
+    "paint_px": 17717,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 2751.26,
+    "ok": true,
+    "paint_px": 23456,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 2755.55,
+    "ok": true,
+    "paint_px": 28841,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2759.83,
+    "ok": true,
+    "paint_px": 52716,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2764.12,
+    "ok": true,
+    "paint_px": 5959,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 2972.72,
+  "before_t": 2982.83,
+  "from": [
+   7,
+   10
+  ],
+  "to": [
+   8,
+   10
+  ],
+  "scorer": "ATX",
+  "goal_t": 2984.47,
+  "bug_t": 2984.47,
+  "clock_freeze_t": 2974.72,
+  "shot": [
+   2901.248,
+   2996.193
+  ],
+  "shot_len_s": 94.95,
+  "start": 2936.72,
+  "end": 2966.72,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.125,
+  "circle_fraction": 0.5,
+  "median_paint_px": 4666,
+  "one_shot_fraction": 0.167,
+  "per_frame": [
+   {
+    "t": 2936.72,
+    "ok": true,
+    "paint_px": 71,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 2941.01,
+    "ok": true,
+    "paint_px": 1088,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 2945.29,
+    "ok": true,
+    "paint_px": 392,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 2949.58,
+    "ok": true,
+    "paint_px": 8313,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2953.86,
+    "ok": true,
+    "paint_px": 6191,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2958.15,
+    "ok": true,
+    "paint_px": 3141,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 2962.43,
+    "ok": true,
+    "paint_px": 15636,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 2966.72,
+    "ok": true,
+    "paint_px": 31332,
+    "circle": false,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 3066.35,
+  "before_t": 3082.56,
+  "from": [
+   8,
+   10
+  ],
+  "to": [
+   8,
+   11
+  ],
+  "scorer": "MIN",
+  "goal_t": 3084.6,
+  "bug_t": 3084.6,
+  "clock_freeze_t": 3068.85,
+  "shot": [
+   3030.628,
+   3087.868
+  ],
+  "shot_len_s": 57.24,
+  "start": 3031.03,
+  "end": 3060.85,
+  "window_s": 29.82,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.5,
+  "circle_fraction": 0.75,
+  "median_paint_px": 13115,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 3031.03,
+    "ok": true,
+    "paint_px": 6058,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3035.29,
+    "ok": true,
+    "paint_px": 3249,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 3039.55,
+    "ok": true,
+    "paint_px": 5700,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 3043.81,
+    "ok": true,
+    "paint_px": 12877,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 3048.07,
+    "ok": true,
+    "paint_px": 13677,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 3052.33,
+    "ok": true,
+    "paint_px": 13354,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 3056.59,
+    "ok": true,
+    "paint_px": 20903,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 3060.85,
+    "ok": true,
+    "paint_px": 16030,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 3147.13,
+  "before_t": 3163.84,
+  "from": [
+   8,
+   11
+  ],
+  "to": [
+   9,
+   11
+  ],
+  "scorer": "ATX",
+  "goal_t": 3149.63,
+  "bug_t": 3149.63,
+  "clock_freeze_t": 3149.63,
+  "shot": [
+   3119.333,
+   3163.861
+  ],
+  "shot_len_s": 44.53,
+  "start": 3119.73,
+  "end": 3141.63,
+  "window_s": 21.9,
+  "soft_scene_changes_inside": [],
+  "reject": "only 21.9s of unbroken shot before the goal"
+ },
+ {
+  "after_t": 3248.63,
+  "before_t": 3258.97,
+  "from": [
+   9,
+   11
+  ],
+  "to": [
+   10,
+   11
+  ],
+  "scorer": "ATX",
+  "goal_t": 3260.63,
+  "bug_t": 3260.63,
+  "clock_freeze_t": 3249.38,
+  "shot": [
+   3186.45,
+   3265.162
+  ],
+  "shot_len_s": 78.71,
+  "start": 3211.38,
+  "end": 3241.38,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   3214.24,
+   3239.57
+  ],
+  "calibratable_fraction": 0.125,
+  "circle_fraction": 1.0,
+  "median_paint_px": 17568,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 3211.38,
+    "ok": true,
+    "paint_px": 21328,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3215.67,
+    "ok": true,
+    "paint_px": 34099,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3219.95,
+    "ok": true,
+    "paint_px": 13935,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3224.24,
+    "ok": true,
+    "paint_px": 11657,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3228.52,
+    "ok": true,
+    "paint_px": 14600,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3232.81,
+    "ok": true,
+    "paint_px": 20536,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3237.09,
+    "ok": true,
+    "paint_px": 11591,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 3241.38,
+    "ok": true,
+    "paint_px": 29533,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 3439.92,
+  "before_t": 3450.86,
+  "from": [
+   10,
+   11
+  ],
+  "to": [
+   11,
+   11
+  ],
+  "scorer": "ATX",
+  "goal_t": 3452.67,
+  "bug_t": 3452.67,
+  "clock_freeze_t": 3440.67,
+  "shot": [
+   3296.71,
+   3450.881
+  ],
+  "shot_len_s": 154.17,
+  "start": 3402.67,
+  "end": 3432.67,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   3413.94,
+   3417.9,
+   3423.0
+  ],
+  "calibratable_fraction": 0.125,
+  "circle_fraction": 1.0,
+  "median_paint_px": 12763,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 3402.67,
+    "ok": true,
+    "paint_px": 11815,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 3406.96,
+    "ok": true,
+    "paint_px": 9461,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3411.24,
+    "ok": true,
+    "paint_px": 11010,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3415.53,
+    "ok": true,
+    "paint_px": 21594,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3419.81,
+    "ok": true,
+    "paint_px": 31775,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3424.1,
+    "ok": true,
+    "paint_px": 16114,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3428.38,
+    "ok": true,
+    "paint_px": 13711,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3432.67,
+    "ok": true,
+    "paint_px": 8254,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 3603.68,
+  "before_t": 3615.46,
+  "from": [
+   11,
+   11
+  ],
+  "to": [
+   11,
+   12
+  ],
+  "scorer": "MIN",
+  "goal_t": 3617.18,
+  "bug_t": 3617.18,
+  "clock_freeze_t": 3602.18,
+  "shot": [
+   3503.7,
+   3621.284
+  ],
+  "shot_len_s": 117.58,
+  "start": 3564.18,
+  "end": 3594.18,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.25,
+  "circle_fraction": 1.0,
+  "median_paint_px": 9744,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 3564.18,
+    "ok": true,
+    "paint_px": 8564,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3568.47,
+    "ok": true,
+    "paint_px": 20934,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3572.75,
+    "ok": true,
+    "paint_px": 8260,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3577.04,
+    "ok": true,
+    "paint_px": 8997,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 3581.32,
+    "ok": true,
+    "paint_px": 14257,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 3585.61,
+    "ok": true,
+    "paint_px": 13974,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3589.89,
+    "ok": true,
+    "paint_px": 10492,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3594.18,
+    "ok": true,
+    "paint_px": 7591,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 3707.99,
+  "before_t": 3715.26,
+  "from": [
+   11,
+   12
+  ],
+  "to": [
+   12,
+   12
+  ],
+  "scorer": "ATX",
+  "goal_t": 3715.49,
+  "bug_t": 3715.49,
+  "clock_freeze_t": 3708.24,
+  "shot": [
+   3648.662,
+   3715.262
+  ],
+  "shot_len_s": 66.6,
+  "start": 3670.24,
+  "end": 3700.24,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   3687.53,
+   3691.67
+  ],
+  "calibratable_fraction": 0.5,
+  "circle_fraction": 1.0,
+  "median_paint_px": 23170,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 3670.24,
+    "ok": true,
+    "paint_px": 656786,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3674.53,
+    "ok": true,
+    "paint_px": 567678,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 3678.81,
+    "ok": true,
+    "paint_px": 22813,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 3683.1,
+    "ok": true,
+    "paint_px": 25053,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 3687.38,
+    "ok": true,
+    "paint_px": 23528,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 3691.67,
+    "ok": true,
+    "paint_px": 16529,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3695.95,
+    "ok": true,
+    "paint_px": 18018,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 3700.24,
+    "ok": true,
+    "paint_px": 10459,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 3802.28,
+  "before_t": 3814.33,
+  "from": [
+   12,
+   12
+  ],
+  "to": [
+   12,
+   13
+  ],
+  "scorer": "MIN",
+  "goal_t": 3816.03,
+  "bug_t": 3816.03,
+  "clock_freeze_t": 3816.03,
+  "shot": [
+   3814.344,
+   3821.084
+  ],
+  "shot_len_s": 6.74,
+  "start": 3814.74,
+  "end": 3808.03,
+  "window_s": -6.71,
+  "soft_scene_changes_inside": [],
+  "reject": "only -6.7s of unbroken shot before the goal"
+ },
+ {
+  "after_t": 3968.05,
+  "before_t": 3977.16,
+  "from": [
+   12,
+   13
+  ],
+  "to": [
+   12,
+   14
+  ],
+  "scorer": "MIN",
+  "goal_t": 3978.8,
+  "bug_t": 3978.8,
+  "clock_freeze_t": 3967.3,
+  "shot": [
+   3956.953,
+   3983.713
+  ],
+  "shot_len_s": 26.76,
+  "start": 3957.35,
+  "end": 3959.3,
+  "window_s": 1.95,
+  "soft_scene_changes_inside": [],
+  "reject": "only 1.9s of unbroken shot before the goal"
+ },
+ {
+  "after_t": 4848.36,
+  "before_t": 4861.31,
+  "from": [
+   12,
+   14
+  ],
+  "to": [
+   12,
+   15
+  ],
+  "scorer": "MIN",
+  "goal_t": 4863.36,
+  "bug_t": 4863.36,
+  "clock_freeze_t": 4849.86,
+  "shot": [
+   4671.5,
+   4882.628
+  ],
+  "shot_len_s": 211.13,
+  "start": 4811.86,
+  "end": 4841.86,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   4819.38
+  ],
+  "calibratable_fraction": 0.625,
+  "circle_fraction": 0.875,
+  "median_paint_px": 22682,
+  "one_shot_fraction": 0.7,
+  "per_frame": [
+   {
+    "t": 4811.86,
+    "ok": true,
+    "paint_px": 23236,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 4816.15,
+    "ok": true,
+    "paint_px": 24882,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 4820.43,
+    "ok": true,
+    "paint_px": 29755,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 4824.72,
+    "ok": true,
+    "paint_px": 32856,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 4829.0,
+    "ok": true,
+    "paint_px": 22129,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 4833.29,
+    "ok": true,
+    "paint_px": 16901,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 4837.57,
+    "ok": true,
+    "paint_px": 14087,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 4841.86,
+    "ok": true,
+    "paint_px": 15777,
+    "circle": true,
+    "line": true
+   }
+  ]
+ },
+ {
+  "after_t": 5049.69,
+  "before_t": 5057.24,
+  "from": [
+   12,
+   15
+  ],
+  "to": [
+   13,
+   15
+  ],
+  "scorer": "ATX",
+  "goal_t": 5058.94,
+  "bug_t": 5058.94,
+  "clock_freeze_t": 5049.19,
+  "shot": [
+   4987.015,
+   5071.633
+  ],
+  "shot_len_s": 84.62,
+  "start": 5011.19,
+  "end": 5041.19,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.625,
+  "circle_fraction": 0.875,
+  "median_paint_px": 10645,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 5011.19,
+    "ok": true,
+    "paint_px": 18861,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 5015.48,
+    "ok": true,
+    "paint_px": 11474,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5019.76,
+    "ok": true,
+    "paint_px": 14647,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5024.05,
+    "ok": true,
+    "paint_px": 9653,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 5028.33,
+    "ok": true,
+    "paint_px": 9737,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 5032.62,
+    "ok": true,
+    "paint_px": 8284,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 5036.9,
+    "ok": true,
+    "paint_px": 10458,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 5041.19,
+    "ok": true,
+    "paint_px": 10832,
+    "circle": true,
+    "line": true
+   }
+  ]
+ },
+ {
+  "after_t": 5156.0,
+  "before_t": 5166.44,
+  "from": [
+   13,
+   15
+  ],
+  "to": [
+   13,
+   16
+  ],
+  "scorer": "MIN",
+  "goal_t": 5168.25,
+  "bug_t": 5168.25,
+  "clock_freeze_t": 5154.75,
+  "shot": [
+   5109.688,
+   5161.44
+  ],
+  "shot_len_s": 51.75,
+  "start": 5116.75,
+  "end": 5146.75,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.125,
+  "circle_fraction": 0.875,
+  "median_paint_px": 8400,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 5116.75,
+    "ok": true,
+    "paint_px": 2823,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5121.04,
+    "ok": true,
+    "paint_px": 14126,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 5125.32,
+    "ok": true,
+    "paint_px": 8488,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5129.61,
+    "ok": true,
+    "paint_px": 8312,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5133.89,
+    "ok": true,
+    "paint_px": 6564,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 5138.18,
+    "ok": true,
+    "paint_px": 5878,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5142.46,
+    "ok": true,
+    "paint_px": 16036,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5146.75,
+    "ok": true,
+    "paint_px": 14071,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 5298.78,
+  "before_t": 5309.75,
+  "from": [
+   13,
+   16
+  ],
+  "to": [
+   14,
+   16
+  ],
+  "scorer": "ATX",
+  "goal_t": 5311.53,
+  "bug_t": 5311.53,
+  "clock_freeze_t": 5299.03,
+  "shot": [
+   5213.375,
+   5317.879
+  ],
+  "shot_len_s": 104.5,
+  "start": 5261.03,
+  "end": 5291.03,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   5261.06,
+   5264.81
+  ],
+  "calibratable_fraction": 0.25,
+  "circle_fraction": 0.625,
+  "median_paint_px": 11079,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 5261.03,
+    "ok": true,
+    "paint_px": 26348,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5265.32,
+    "ok": true,
+    "paint_px": 10342,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5269.6,
+    "ok": true,
+    "paint_px": 8838,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5273.89,
+    "ok": true,
+    "paint_px": 14822,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 5278.17,
+    "ok": true,
+    "paint_px": 17872,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 5282.46,
+    "ok": true,
+    "paint_px": 11817,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 5286.74,
+    "ok": true,
+    "paint_px": 8507,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 5291.03,
+    "ok": true,
+    "paint_px": 7064,
+    "circle": false,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 5403.61,
+  "before_t": 5413.56,
+  "from": [
+   14,
+   16
+  ],
+  "to": [
+   14,
+   17
+  ],
+  "scorer": "MIN",
+  "goal_t": 5415.36,
+  "bug_t": 5415.36,
+  "clock_freeze_t": 5403.61,
+  "shot": [
+   5336.464,
+   5403.615
+  ],
+  "shot_len_s": 67.15,
+  "start": 5365.61,
+  "end": 5395.61,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.25,
+  "circle_fraction": 1.0,
+  "median_paint_px": 12464,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 5365.61,
+    "ok": true,
+    "paint_px": 66781,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 5369.9,
+    "ok": true,
+    "paint_px": 205690,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5374.18,
+    "ok": true,
+    "paint_px": 359799,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5378.47,
+    "ok": true,
+    "paint_px": 2849,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5382.75,
+    "ok": true,
+    "paint_px": 10130,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5387.04,
+    "ok": true,
+    "paint_px": 14798,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 5391.32,
+    "ok": true,
+    "paint_px": 8568,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5395.61,
+    "ok": true,
+    "paint_px": 9110,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 5514.09,
+  "before_t": 5526.77,
+  "from": [
+   14,
+   17
+  ],
+  "to": [
+   15,
+   17
+  ],
+  "scorer": "ATX",
+  "goal_t": 5528.59,
+  "bug_t": 5528.59,
+  "clock_freeze_t": 5513.59,
+  "shot": [
+   5471.182,
+   5645.49
+  ],
+  "shot_len_s": 174.31,
+  "start": 5475.59,
+  "end": 5505.59,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.25,
+  "circle_fraction": 1.0,
+  "median_paint_px": 16912,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 5475.59,
+    "ok": true,
+    "paint_px": 11481,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5479.88,
+    "ok": true,
+    "paint_px": 10808,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5484.16,
+    "ok": true,
+    "paint_px": 26090,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5488.45,
+    "ok": true,
+    "paint_px": 19879,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 5492.73,
+    "ok": true,
+    "paint_px": 15409,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 5497.02,
+    "ok": true,
+    "paint_px": 16799,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5501.3,
+    "ok": true,
+    "paint_px": 17026,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5505.59,
+    "ok": true,
+    "paint_px": 22658,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 5602.78,
+  "before_t": 5619.3,
+  "from": [
+   15,
+   17
+  ],
+  "to": [
+   15,
+   18
+  ],
+  "scorer": "MIN",
+  "goal_t": 5621.28,
+  "bug_t": 5621.28,
+  "clock_freeze_t": 5607.53,
+  "shot": [
+   5471.182,
+   5645.49
+  ],
+  "shot_len_s": 174.31,
+  "start": 5569.53,
+  "end": 5599.53,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   5569.61,
+   5573.25
+  ],
+  "calibratable_fraction": 0.125,
+  "circle_fraction": 0.875,
+  "median_paint_px": 10957,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 5569.53,
+    "ok": true,
+    "paint_px": 10438,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5573.82,
+    "ok": true,
+    "paint_px": 12812,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 5578.1,
+    "ok": true,
+    "paint_px": 16794,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5582.39,
+    "ok": true,
+    "paint_px": 11477,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5586.67,
+    "ok": true,
+    "paint_px": 7640,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5590.96,
+    "ok": true,
+    "paint_px": 6127,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 5595.24,
+    "ok": true,
+    "paint_px": 12992,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5599.53,
+    "ok": true,
+    "paint_px": 9450,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 5710.25,
+  "before_t": 5721.77,
+  "from": [
+   15,
+   18
+  ],
+  "to": [
+   16,
+   18
+  ],
+  "scorer": "ATX",
+  "goal_t": 5723.5,
+  "bug_t": 5723.5,
+  "clock_freeze_t": 5709.0,
+  "shot": [
+   5652.881,
+   5721.783
+  ],
+  "shot_len_s": 68.9,
+  "start": 5671.0,
+  "end": 5701.0,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.125,
+  "circle_fraction": 1.0,
+  "median_paint_px": 18162,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 5671.0,
+    "ok": true,
+    "paint_px": 26935,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5675.29,
+    "ok": true,
+    "paint_px": 34532,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5679.57,
+    "ok": true,
+    "paint_px": 28767,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5683.86,
+    "ok": true,
+    "paint_px": 10416,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5688.14,
+    "ok": true,
+    "paint_px": 15403,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5692.43,
+    "ok": true,
+    "paint_px": 16502,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5696.71,
+    "ok": true,
+    "paint_px": 10776,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5701.0,
+    "ok": true,
+    "paint_px": 19822,
+    "circle": true,
+    "line": true
+   }
+  ]
+ },
+ {
+  "after_t": 5803.71,
+  "before_t": 5817.53,
+  "from": [
+   16,
+   18
+  ],
+  "to": [
+   16,
+   19
+  ],
+  "scorer": "MIN",
+  "goal_t": 5803.21,
+  "bug_t": 5803.21,
+  "clock_freeze_t": 5804.21,
+  "shot": [
+   5766.311,
+   5843.771
+  ],
+  "shot_len_s": 77.46,
+  "start": 5766.71,
+  "end": 5796.21,
+  "window_s": 29.5,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.0,
+  "circle_fraction": 0.75,
+  "median_paint_px": 8379,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 5766.71,
+    "ok": true,
+    "paint_px": 18682,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5770.92,
+    "ok": true,
+    "paint_px": 4924,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5775.14,
+    "ok": true,
+    "paint_px": 1705,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 5779.35,
+    "ok": true,
+    "paint_px": 8193,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 5783.57,
+    "ok": true,
+    "paint_px": 14301,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5787.78,
+    "ok": true,
+    "paint_px": 8565,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5792.0,
+    "ok": true,
+    "paint_px": 13568,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5796.21,
+    "ok": true,
+    "paint_px": 6371,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 5943.69,
+  "before_t": 5951.76,
+  "from": [
+   16,
+   19
+  ],
+  "to": [
+   17,
+   19
+  ],
+  "scorer": "ATX",
+  "goal_t": 5953.44,
+  "bug_t": 5953.44,
+  "clock_freeze_t": 5955.19,
+  "shot": [
+   5854.949,
+   5964.842
+  ],
+  "shot_len_s": 109.89,
+  "start": 5917.19,
+  "end": 5947.19,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   5943.7
+  ],
+  "calibratable_fraction": 0.125,
+  "circle_fraction": 1.0,
+  "median_paint_px": 32624,
+  "one_shot_fraction": 0.983,
+  "per_frame": [
+   {
+    "t": 5917.19,
+    "ok": true,
+    "paint_px": 40250,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5921.48,
+    "ok": true,
+    "paint_px": 45360,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5925.76,
+    "ok": true,
+    "paint_px": 38743,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 5930.05,
+    "ok": true,
+    "paint_px": 28907,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5934.33,
+    "ok": true,
+    "paint_px": 14238,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5938.62,
+    "ok": true,
+    "paint_px": 9088,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5942.9,
+    "ok": true,
+    "paint_px": 9971,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5947.19,
+    "ok": true,
+    "paint_px": 36341,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 6015.99,
+  "before_t": 6025.1,
+  "from": [
+   17,
+   19
+  ],
+  "to": [
+   17,
+   20
+  ],
+  "scorer": "MIN",
+  "goal_t": 6026.74,
+  "bug_t": 6026.74,
+  "clock_freeze_t": 6016.49,
+  "shot": [
+   5964.842,
+   6029.59
+  ],
+  "shot_len_s": 64.75,
+  "start": 5978.49,
+  "end": 6008.49,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   5982.29
+  ],
+  "calibratable_fraction": 0.0,
+  "circle_fraction": 1.0,
+  "median_paint_px": 20653,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 5978.49,
+    "ok": true,
+    "paint_px": 64552,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5982.78,
+    "ok": true,
+    "paint_px": 47424,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5987.06,
+    "ok": true,
+    "paint_px": 41364,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5991.35,
+    "ok": true,
+    "paint_px": 15989,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5995.63,
+    "ok": true,
+    "paint_px": 11015,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 5999.92,
+    "ok": true,
+    "paint_px": 25317,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6004.2,
+    "ok": true,
+    "paint_px": 7326,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6008.49,
+    "ok": true,
+    "paint_px": 13403,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 6091.14,
+  "before_t": 6107.28,
+  "from": [
+   17,
+   20
+  ],
+  "to": [
+   18,
+   20
+  ],
+  "scorer": "ATX",
+  "goal_t": 6109.39,
+  "bug_t": 6109.39,
+  "clock_freeze_t": 6094.39,
+  "shot": [
+   6057.351,
+   6137.615
+  ],
+  "shot_len_s": 80.26,
+  "start": 6057.75,
+  "end": 6086.39,
+  "window_s": 28.64,
+  "soft_scene_changes_inside": [
+   6075.19
+  ],
+  "calibratable_fraction": 0.0,
+  "circle_fraction": 1.0,
+  "median_paint_px": 27538,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 6057.75,
+    "ok": true,
+    "paint_px": 42211,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6061.84,
+    "ok": true,
+    "paint_px": 25179,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6065.93,
+    "ok": true,
+    "paint_px": 29898,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6070.02,
+    "ok": true,
+    "paint_px": 46614,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6074.12,
+    "ok": true,
+    "paint_px": 58116,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6078.21,
+    "ok": true,
+    "paint_px": 13675,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6082.3,
+    "ok": true,
+    "paint_px": 25073,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6086.39,
+    "ok": true,
+    "paint_px": 12197,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 6261.84,
+  "before_t": 6278.52,
+  "from": [
+   18,
+   20
+  ],
+  "to": [
+   18,
+   21
+  ],
+  "scorer": "MIN",
+  "goal_t": 6278.84,
+  "bug_t": 6278.84,
+  "clock_freeze_t": 6278.34,
+  "shot": [
+   6206.317,
+   6288.532
+  ],
+  "shot_len_s": 82.22,
+  "start": 6240.34,
+  "end": 6270.34,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   6268.31
+  ],
+  "calibratable_fraction": 0.375,
+  "circle_fraction": 0.75,
+  "median_paint_px": 12470,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 6240.34,
+    "ok": true,
+    "paint_px": 13125,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6244.63,
+    "ok": true,
+    "paint_px": 12757,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6248.91,
+    "ok": true,
+    "paint_px": 6233,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 6253.2,
+    "ok": true,
+    "paint_px": 7960,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6257.48,
+    "ok": true,
+    "paint_px": 12183,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 6261.77,
+    "ok": true,
+    "paint_px": 6568,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 6266.05,
+    "ok": true,
+    "paint_px": 21147,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 6270.34,
+    "ok": true,
+    "paint_px": 25378,
+    "circle": false,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 6394.4,
+  "before_t": 6402.05,
+  "from": [
+   18,
+   21
+  ],
+  "to": [
+   19,
+   21
+  ],
+  "scorer": "ATX",
+  "goal_t": 6403.9,
+  "bug_t": 6403.9,
+  "clock_freeze_t": 6394.65,
+  "shot": [
+   6307.718,
+   6405.683
+  ],
+  "shot_len_s": 97.97,
+  "start": 6356.65,
+  "end": 6386.65,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   6364.02
+  ],
+  "calibratable_fraction": 0.25,
+  "circle_fraction": 0.875,
+  "median_paint_px": 9758,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 6356.65,
+    "ok": true,
+    "paint_px": 4184,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6360.94,
+    "ok": true,
+    "paint_px": 9101,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 6365.22,
+    "ok": true,
+    "paint_px": 87736,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6369.51,
+    "ok": true,
+    "paint_px": 16867,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 6373.79,
+    "ok": true,
+    "paint_px": 13465,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 6378.08,
+    "ok": true,
+    "paint_px": 10416,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6382.36,
+    "ok": true,
+    "paint_px": 5979,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6386.65,
+    "ok": true,
+    "paint_px": 8379,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 6471.65,
+  "before_t": 6485.53,
+  "from": [
+   19,
+   21
+  ],
+  "to": [
+   19,
+   22
+  ],
+  "scorer": "MIN",
+  "goal_t": 6485.9,
+  "bug_t": 6485.9,
+  "clock_freeze_t": 6485.4,
+  "shot": [
+   6447.374,
+   6499.677
+  ],
+  "shot_len_s": 52.3,
+  "start": 6447.77,
+  "end": 6477.4,
+  "window_s": 29.63,
+  "soft_scene_changes_inside": [
+   6448.78,
+   6448.83,
+   6449.43,
+   6449.83,
+   6450.71
+  ],
+  "calibratable_fraction": 0.5,
+  "circle_fraction": 0.875,
+  "median_paint_px": 15608,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 6447.77,
+    "ok": true,
+    "paint_px": 44970,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6452.0,
+    "ok": true,
+    "paint_px": 6334,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6456.24,
+    "ok": true,
+    "paint_px": 6219,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6460.47,
+    "ok": true,
+    "paint_px": 4289,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 6464.7,
+    "ok": true,
+    "paint_px": 14190,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 6468.93,
+    "ok": true,
+    "paint_px": 17026,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 6473.17,
+    "ok": true,
+    "paint_px": 20181,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 6477.4,
+    "ok": true,
+    "paint_px": 74661,
+    "circle": true,
+    "line": true
+   }
+  ]
+ },
+ {
+  "after_t": 6899.88,
+  "before_t": 6912.09,
+  "from": [
+   19,
+   22
+  ],
+  "to": [
+   19,
+   23
+  ],
+  "scorer": "MIN",
+  "goal_t": 6913.88,
+  "bug_t": 6913.88,
+  "clock_freeze_t": 6899.38,
+  "shot": [
+   6776.153,
+   6917.944
+  ],
+  "shot_len_s": 141.79,
+  "start": 6861.38,
+  "end": 6891.38,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.5,
+  "circle_fraction": 0.875,
+  "median_paint_px": 34733,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 6861.38,
+    "ok": true,
+    "paint_px": 36844,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6865.67,
+    "ok": true,
+    "paint_px": 47877,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 6869.95,
+    "ok": true,
+    "paint_px": 48241,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6874.24,
+    "ok": true,
+    "paint_px": 24094,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 6878.52,
+    "ok": true,
+    "paint_px": 26711,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 6882.81,
+    "ok": true,
+    "paint_px": 32623,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 6887.09,
+    "ok": true,
+    "paint_px": 55619,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 6891.38,
+    "ok": true,
+    "paint_px": 32285,
+    "circle": true,
+    "line": true
+   }
+  ]
+ },
+ {
+  "after_t": 6985.66,
+  "before_t": 6996.47,
+  "from": [
+   19,
+   23
+  ],
+  "to": [
+   19,
+   24
+  ],
+  "scorer": "MIN",
+  "goal_t": 6998.16,
+  "bug_t": 6998.16,
+  "clock_freeze_t": 6984.66,
+  "shot": [
+   6961.071,
+   6992.886
+  ],
+  "shot_len_s": 31.82,
+  "start": 6961.47,
+  "end": 6976.66,
+  "window_s": 15.19,
+  "soft_scene_changes_inside": [
+   6974.23
+  ],
+  "reject": "only 15.2s of unbroken shot before the goal"
+ },
+ {
+  "after_t": 7110.65,
+  "before_t": 7119.5,
+  "from": [
+   19,
+   24
+  ],
+  "to": [
+   20,
+   24
+  ],
+  "scorer": "ATX",
+  "goal_t": 7121.15,
+  "bug_t": 7121.15,
+  "clock_freeze_t": 7111.15,
+  "shot": [
+   7044.638,
+   7123.617
+  ],
+  "shot_len_s": 78.98,
+  "start": 7073.15,
+  "end": 7103.15,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   7096.87
+  ],
+  "calibratable_fraction": 0.375,
+  "circle_fraction": 1.0,
+  "median_paint_px": 17709,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 7073.15,
+    "ok": true,
+    "paint_px": 16569,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7077.44,
+    "ok": true,
+    "paint_px": 20578,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7081.72,
+    "ok": true,
+    "paint_px": 31449,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7086.01,
+    "ok": true,
+    "paint_px": 18849,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7090.29,
+    "ok": true,
+    "paint_px": 10525,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7094.58,
+    "ok": true,
+    "paint_px": 12445,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7098.86,
+    "ok": true,
+    "paint_px": 34088,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7103.15,
+    "ok": true,
+    "paint_px": 4820,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 7201.24,
+  "before_t": 7209.55,
+  "from": [
+   20,
+   24
+  ],
+  "to": [
+   20,
+   25
+  ],
+  "scorer": "MIN",
+  "goal_t": 7211.24,
+  "bug_t": 7211.24,
+  "clock_freeze_t": 7199.24,
+  "shot": [
+   7152.178,
+   7217.31
+  ],
+  "shot_len_s": 65.13,
+  "start": 7161.24,
+  "end": 7191.24,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.125,
+  "circle_fraction": 1.0,
+  "median_paint_px": 15315,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 7161.24,
+    "ok": true,
+    "paint_px": 31889,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7165.53,
+    "ok": true,
+    "paint_px": 19035,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7169.81,
+    "ok": true,
+    "paint_px": 15769,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7174.1,
+    "ok": true,
+    "paint_px": 14861,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7178.38,
+    "ok": true,
+    "paint_px": 13520,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7182.67,
+    "ok": true,
+    "paint_px": 22565,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7186.95,
+    "ok": true,
+    "paint_px": 4344,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7191.24,
+    "ok": true,
+    "paint_px": 9004,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 7326.57,
+  "before_t": 7342.39,
+  "from": [
+   20,
+   25
+  ],
+  "to": [
+   21,
+   25
+  ],
+  "scorer": "ATX",
+  "goal_t": 7344.32,
+  "bug_t": 7344.32,
+  "clock_freeze_t": 7329.57,
+  "shot": [
+   7246.256,
+   7350.46
+  ],
+  "shot_len_s": 104.2,
+  "start": 7291.57,
+  "end": 7321.57,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.5,
+  "circle_fraction": 1.0,
+  "median_paint_px": 13099,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 7291.57,
+    "ok": true,
+    "paint_px": 18854,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7295.86,
+    "ok": true,
+    "paint_px": 16933,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7300.14,
+    "ok": true,
+    "paint_px": 18279,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7304.43,
+    "ok": true,
+    "paint_px": 11706,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7308.71,
+    "ok": true,
+    "paint_px": 10007,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7313.0,
+    "ok": true,
+    "paint_px": 12824,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7317.28,
+    "ok": true,
+    "paint_px": 13374,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7321.57,
+    "ok": true,
+    "paint_px": 12735,
+    "circle": true,
+    "line": true
+   }
+  ]
+ },
+ {
+  "after_t": 7544.92,
+  "before_t": 7556.73,
+  "from": [
+   21,
+   25
+  ],
+  "to": [
+   22,
+   25
+  ],
+  "scorer": "ATX",
+  "goal_t": 7558.42,
+  "bug_t": 7558.42,
+  "clock_freeze_t": 7559.92,
+  "shot": [
+   7508.568,
+   7565.425
+  ],
+  "shot_len_s": 56.86,
+  "start": 7521.92,
+  "end": 7551.92,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   7528.27,
+   7544.94
+  ],
+  "calibratable_fraction": 0.375,
+  "circle_fraction": 0.625,
+  "median_paint_px": 30000,
+  "one_shot_fraction": 0.95,
+  "per_frame": [
+   {
+    "t": 7521.92,
+    "ok": true,
+    "paint_px": 56415,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7526.21,
+    "ok": true,
+    "paint_px": 89696,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7530.49,
+    "ok": true,
+    "paint_px": 2712,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 7534.78,
+    "ok": true,
+    "paint_px": 3586,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 7539.06,
+    "ok": true,
+    "paint_px": 2502,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 7543.35,
+    "ok": true,
+    "paint_px": 3297,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7547.63,
+    "ok": true,
+    "paint_px": 448755,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7551.92,
+    "ok": true,
+    "paint_px": 226800,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 7636.88,
+  "before_t": 7648.79,
+  "from": [
+   22,
+   25
+  ],
+  "to": [
+   22,
+   26
+  ],
+  "scorer": "MIN",
+  "goal_t": 7650.63,
+  "bug_t": 7650.63,
+  "clock_freeze_t": 7635.38,
+  "shot": [
+   7593.569,
+   7663.022
+  ],
+  "shot_len_s": 69.45,
+  "start": 7597.38,
+  "end": 7627.38,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.5,
+  "circle_fraction": 0.875,
+  "median_paint_px": 13321,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 7597.38,
+    "ok": true,
+    "paint_px": 0,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 7601.67,
+    "ok": true,
+    "paint_px": 15715,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7605.95,
+    "ok": true,
+    "paint_px": 10876,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7610.24,
+    "ok": true,
+    "paint_px": 13171,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7614.52,
+    "ok": true,
+    "paint_px": 13339,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7618.81,
+    "ok": true,
+    "paint_px": 13304,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7623.09,
+    "ok": true,
+    "paint_px": 19262,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7627.38,
+    "ok": true,
+    "paint_px": 15455,
+    "circle": true,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 7739.85,
+  "before_t": 7749.09,
+  "from": [
+   22,
+   26
+  ],
+  "to": [
+   23,
+   26
+  ],
+  "scorer": "ATX",
+  "goal_t": 7750.85,
+  "bug_t": 7750.85,
+  "clock_freeze_t": 7739.85,
+  "shot": [
+   7663.022,
+   7761.887
+  ],
+  "shot_len_s": 98.86,
+  "start": 7701.85,
+  "end": 7731.85,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   7718.08,
+   7723.42
+  ],
+  "calibratable_fraction": 0.5,
+  "circle_fraction": 1.0,
+  "median_paint_px": 19562,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 7701.85,
+    "ok": true,
+    "paint_px": 45229,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7706.14,
+    "ok": true,
+    "paint_px": 8940,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7710.42,
+    "ok": true,
+    "paint_px": 7278,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7714.71,
+    "ok": true,
+    "paint_px": 11118,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7718.99,
+    "ok": true,
+    "paint_px": 15678,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7723.28,
+    "ok": true,
+    "paint_px": 109302,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7727.56,
+    "ok": true,
+    "paint_px": 25049,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7731.85,
+    "ok": true,
+    "paint_px": 23447,
+    "circle": true,
+    "line": true
+   }
+  ]
+ },
+ {
+  "after_t": 7899.34,
+  "before_t": 7906.52,
+  "from": [
+   23,
+   26
+  ],
+  "to": [
+   23,
+   27
+  ],
+  "scorer": "MIN",
+  "goal_t": 7908.34,
+  "bug_t": 7908.34,
+  "clock_freeze_t": 7898.09,
+  "shot": [
+   7776.519,
+   7909.201
+  ],
+  "shot_len_s": 132.68,
+  "start": 7860.09,
+  "end": 7890.09,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [],
+  "calibratable_fraction": 0.375,
+  "circle_fraction": 1.0,
+  "median_paint_px": 8106,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 7860.09,
+    "ok": true,
+    "paint_px": 8853,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7864.38,
+    "ok": true,
+    "paint_px": 6775,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7868.66,
+    "ok": true,
+    "paint_px": 6963,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7872.95,
+    "ok": true,
+    "paint_px": 8931,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7877.23,
+    "ok": true,
+    "paint_px": 7359,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7881.52,
+    "ok": true,
+    "paint_px": 6913,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7885.8,
+    "ok": true,
+    "paint_px": 14086,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7890.09,
+    "ok": true,
+    "paint_px": 15661,
+    "circle": true,
+    "line": true
+   }
+  ]
+ },
+ {
+  "after_t": 7987.03,
+  "before_t": 8000.18,
+  "from": [
+   23,
+   27
+  ],
+  "to": [
+   23,
+   28
+  ],
+  "scorer": "MIN",
+  "goal_t": 8002.28,
+  "bug_t": 8002.28,
+  "clock_freeze_t": 7985.53,
+  "shot": [
+   7940.766,
+   8006.498
+  ],
+  "shot_len_s": 65.73,
+  "start": 7947.53,
+  "end": 7977.53,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   7951.84
+  ],
+  "calibratable_fraction": 0.375,
+  "circle_fraction": 0.875,
+  "median_paint_px": 16135,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 7947.53,
+    "ok": true,
+    "paint_px": 32185,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7951.82,
+    "ok": true,
+    "paint_px": 40045,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7956.1,
+    "ok": true,
+    "paint_px": 43205,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7960.39,
+    "ok": true,
+    "paint_px": 7612,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7964.67,
+    "ok": true,
+    "paint_px": 9905,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 7968.96,
+    "ok": true,
+    "paint_px": 13472,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7973.24,
+    "ok": true,
+    "paint_px": 14982,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 7977.53,
+    "ok": true,
+    "paint_px": 17288,
+    "circle": false,
+    "line": false
+   }
+  ]
+ },
+ {
+  "after_t": 8112.89,
+  "before_t": 8122.36,
+  "from": [
+   23,
+   28
+  ],
+  "to": [
+   24,
+   28
+  ],
+  "scorer": "ATX",
+  "goal_t": 8122.39,
+  "bug_t": 8122.39,
+  "clock_freeze_t": 8112.64,
+  "shot": [
+   8042.067,
+   8136.061
+  ],
+  "shot_len_s": 93.99,
+  "start": 8074.64,
+  "end": 8104.64,
+  "window_s": 30.0,
+  "soft_scene_changes_inside": [
+   8086.73
+  ],
+  "calibratable_fraction": 0.5,
+  "circle_fraction": 0.875,
+  "median_paint_px": 25893,
+  "one_shot_fraction": 1.0,
+  "per_frame": [
+   {
+    "t": 8074.64,
+    "ok": true,
+    "paint_px": 8191,
+    "circle": false,
+    "line": false
+   },
+   {
+    "t": 8078.93,
+    "ok": true,
+    "paint_px": 15044,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 8083.21,
+    "ok": true,
+    "paint_px": 74428,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 8087.5,
+    "ok": true,
+    "paint_px": 47406,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 8091.78,
+    "ok": true,
+    "paint_px": 65851,
+    "circle": true,
+    "line": true
+   },
+   {
+    "t": 8096.07,
+    "ok": true,
+    "paint_px": 25998,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 8100.35,
+    "ok": true,
+    "paint_px": 9543,
+    "circle": true,
+    "line": false
+   },
+   {
+    "t": 8104.64,
+    "ok": true,
+    "paint_px": 25789,
+    "circle": true,
+    "line": false
+   }
+  ]
+ }
+]

@@ -194,6 +194,61 @@ kind:
 - **Build the mosaic fallback.** AD-4's amendment and `docs/28` both already name it. That
   is the fix rather than the workaround, and it is a milestone rather than an afternoon.
 
+### Can the blank tail be corrected? Three cheap answers, all measured, all no
+
+p0005's blank is one contiguous block: frames 377–450, **4.9 s**, every one of them
+carrying *"residual 0.00000 yd — the fit has collapsed, not converged"* with `n_line_px:
+0` and a focal length of 3 × 10¹⁵.
+
+**It is not that the paint has gone.** Rendering what the detector sees on those frames
+shows the opposite problem. When the camera tilts into the endzone, the near-side barrier,
+the sponsor boards, a parked van and the crowd rail arrive in the **bottom** of the frame —
+below the horizon row, so the registration mask keeps them — and they are bright,
+unsaturated and thin, which is the whole of the paint test. On frame 449 the detector
+returns **56 054 paint pixels**, most of them the barrier, and
+`find_centre_circle_ransac` fits a conic through them. Real endzone lines are visible in
+the same frame and are outnumbered.
+
+Three fixes were tried and measured before concluding anything.
+
+**1. Carry the pose through by image registration.** This camera only rotates and zooms, so
+the whole scene moves by a homography, and ORB against the non-burnt-in part of the frame
+chains all 73 frames with 1356–2862 inliers per pair. The question is drift, so it was
+measured against possessions whose calibration is already known — chain from an anchor,
+compose, and compare the field positions against the real answer:
+
+| gap carried | p0001 | p0005 |
+|---|---|---|
+| 0.7 s | 0.47 yd | 0.68 yd |
+| 1.0 s | 0.76 yd | 1.13 yd |
+| 1.5 s | 1.25 yd | 1.59 yd |
+| 4.0 s | 2.42 yd | 4.06 yd |
+
+**A carried pose is worth about one second** before it is worse than the tracker's own
+0.37 yd median error, and it passes M1's 0.75 yd gate only out to about a second. The gap
+is 4.9 s. This closes short gaps and cannot close this one.
+
+**2. Use the carried pose only to mask, and let the paint decide.** Much weaker demand on
+the pose — "the field is over there" rather than "the player is here" — and it would have
+been the right shape. It removes nothing: at frame 449 the carried pose maps the barrier
+at the bottom of the frame to field (52.9, 4.8) yd, comfortably inside the pitch. The pose
+is accurate enough in the middle of the frame and not at the edges, which is exactly where
+this needs it.
+
+**3. Require grass on both sides.** A painted line has pitch either side of it; a sponsor
+board has a crowd on one side and a hoarding on the other. Implemented as a large-component
+green mask dilated by 25 px, it removes 16 % of the paint at frame 400 and **nothing at all**
+at frame 449.
+
+So the answer is no, not cheaply, and the reason is worth keeping: **two different failures
+share one symptom.** At frame 449 the detector finds far too much, on the barrier. At
+frame 400 it finds too little — the centre circle is still in shot and is too faint at that
+range to survive the top-hat. One threshold does not move both.
+
+What would work is a per-frame field mask driven by a pose that is good at the frame edges,
+which is the mosaic AD-4's amendment and `docs/28` both already name. That is a milestone,
+not an afternoon.
+
 ### Why p0006 and p0007 fail hardest, and it is a known unbuilt thing
 
 275 of p0006's 450 frames carry the same note: *"residual 0.00000 yd is below what painted
