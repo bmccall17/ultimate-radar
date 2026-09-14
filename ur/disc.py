@@ -450,6 +450,11 @@ def _fill_flight(samples: list[dict], by: dict, fps: float,
 
 
 def plausibility(samples: list[dict], fps: float) -> dict:
+    """See `_plausibility`. Split out so the human-tagged half can be excluded."""
+    return _plausibility(samples, fps)
+
+
+def _plausibility(samples: list[dict], fps: float) -> dict:
     """Does the inferred sequence look like a possession? Measured, not assumed.
 
     There is no labelled holder anywhere in this project, so the inference cannot
@@ -469,6 +474,12 @@ def plausibility(samples: list[dict], fps: float) -> dict:
     sequence is not trustworthy, in the file, is what lets everything downstream
     decline to use it.
     """
+    # **Only inferred throws are judged.** A throw a human tagged is not a
+    # hypothesis this module gets to grade - it is the observation everything else
+    # is fitted to, and scoring it against a heuristic would let the heuristic
+    # overrule the person who watched it. Before this, five tags on p0001 left the
+    # module still reporting the possession implausible and still telling the user
+    # to "tag the throws and catches", which they had just done.
     runs, cur, start = [], object(), 0
     for s in samples:
         k = (s["holder"], s["basis"])
@@ -483,8 +494,11 @@ def plausibility(samples: list[dict], fps: float) -> dict:
     prev = None
     for a, b, _ in held:
         if prev is not None and samples[a]["xy"] and prev[1]:
-            gains.append(samples[a]["xy"][0] - prev[1][0])
-            flights.append((a - prev[0] - 1) / fps)
+            inferred = (samples[a]["source"] != "human"
+                        and samples[prev[0]]["source"] != "human")
+            if inferred:
+                gains.append(samples[a]["xy"][0] - prev[1][0])
+                flights.append((a - prev[0] - 1) / fps)
         prev = (b, samples[b]["xy"])
     alt = (sum(1 for i in range(1, len(gains)) if gains[i] * gains[i - 1] < 0)
            / max(1, len(gains) - 1)) if len(gains) > 1 else 0.0
@@ -505,6 +519,9 @@ def _write(work: Path, doc: dict, samples: list[dict], ids: list[str], *,
            verbose: bool) -> dict:
     fps = float(doc["possession"]["fps"])
     plaus = plausibility(samples, fps)
+    # Fewer than two inferred throws means there is nothing to judge, not that the
+    # judgement passed - so the inference is not trusted, and a fully tagged
+    # possession is unaffected either way because its samples are human-sourced.
     trustworthy = bool(
         plaus["throws"] >= 2
         and plaus["alternating_direction_fraction"] <= 0.5
@@ -596,10 +613,14 @@ def _write(work: Path, doc: dict, samples: list[dict], ids: list[str], *,
               f"{p['alternating_direction_fraction']:.0%} alternate direction, "
               f"net gain {p['net_gain_yd']} yd, "
               f"{p['flights_at_the_minimum_fraction']:.0%} of flights at the floor")
-        if not d["inference_trustworthy"]:
-            print("[disc] !! the inferred holder sequence is NOT a plausible "
-                  "possession. Every inferred sample is emitted as `unknown`; "
-                  "tag the throws and catches and re-run.")
+        tagged = d["human_tagged_frames"]
+        if not d["inference_trustworthy"] and tagged >= d["frames"]:
+            pass                      # nothing was inferred; nothing to warn about
+        elif not d["inference_trustworthy"]:
+            print(f"[disc] !! the {d['frames'] - tagged} frames NOT covered by a "
+                  "human tag are inferred, and that inference is not a plausible "
+                  "possession. They are emitted as `unknown`. Tag the throws and "
+                  "catches either side of them and re-run.")
     return out
 
 
