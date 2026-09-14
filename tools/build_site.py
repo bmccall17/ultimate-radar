@@ -41,7 +41,12 @@ SITE = [
     # pull to the brick mark with no play in it. Deleting a row is how a
     # possession is unpublished - delete the row, rebuild, and remove its folder.
     ("p0003",   "work/p0003", "p0003 - real",      "p0003"),
-    ("fixture", None,         "synthetic fixture", "fixture"),
+    # The synthetic fixture was published here too and has been removed. It still
+    # exists and still matters - `fixtures/possession_demo.json` is the only
+    # ground truth in the project and viewer/data.js renders it standalone - but
+    # it is a development target, not something a coach should be offered
+    # alongside real footage. Keeping it in the switcher invited exactly that
+    # confusion.
 ]
 
 def nav_html(current_sub: str) -> str:

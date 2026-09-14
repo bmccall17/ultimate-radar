@@ -10,7 +10,7 @@ organises, moves and breaks, and correct the system when it is wrong.
 |---|---|
 | **[p0001 — midfield possession](https://bmccall17.github.io/ultimate-radar/)** | 24 s, 4th quarter. 88 % tracker recall, 13 of 14 players in shot at the open. |
 | **[p0003 — endzone possession](https://bmccall17.github.io/ultimate-radar/p0003/)** | 37 s, 1st quarter, ending in a goal. Harder: only 53 % of frames clear the calibration confidence floor, and the viewer says so. |
-| **[The synthetic fixture](https://bmccall17.github.io/ultimate-radar/fixture/)** | Invented throughout. Built so the hard cases are visible on demand — players leaving the camera, estimates drifting, a planted identity swap, and the correction flow that repairs it. |
+| **The synthetic fixture** | Invented throughout. Built so the hard cases are visible on demand — players leaving the camera, estimates drifting, a planted identity swap, and the correction flow that repairs it. Not published: it is a development target, and offering it beside real footage invites the two being read as the same kind of thing. Open `viewer/index.html` with no working directory to see it. |
 
 Scrub the timeline and watch the coverage number. Every readout carries a chip saying whether
 it was **measured**, **partial** or **inferred**, and an inferred one names what it could not
