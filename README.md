@@ -1,5 +1,36 @@
 # ultimate-radar
 
+Turn one possession of broadcast Ultimate Frisbee footage into two synchronized views — an
+overlay on the video and an overhead field view — that let a coach see how a defence
+organises, moves and breaks, and correct the system when it is wrong.
+
+**[Live demo](https://USER.github.io/REPO/)** — replace with the Pages URL once published.
+
+The demo runs on a **synthetic fixture**: invented positions, invented jersey numbers, not
+derived from any real game. It exists because the hard cases have to be visible before the
+tracking is — players leaving the camera, estimates drifting, a mistaken identity, and the
+correction flow that repairs them. The page says so at the top, in its own banner.
+
+Real possessions live under `work/`, which is gitignored. This repository contains **no
+broadcast footage**. The target footage is a public UFA upload, cited in
+`docs/10-getting-the-footage.md`; getting it is one `yt-dlp` command and it stays on your disk.
+
+Two commitments shape the whole design, and everything else follows from them:
+
+- **Never pretend to know.** A single broadcast camera sees roughly 10 of 14 players at a
+  time, and the ones it misses skew toward the deep defenders who decide whether a huck is on.
+  So the overhead view draws the camera's real field of view, anything outside it is explicitly
+  inferred, and a tactical readout refuses to present itself as measured when its inputs were
+  not observed.
+- **Always be fixable.** Same-team identity swaps are what every appearance model does to
+  players in identical jerseys. The system detects its own, repairs them in one click, and
+  keeps corrections in an append-only layer that never touches the raw output.
+
+Licence: MIT, see `LICENSE`. Model and dependency licences are audited per component in
+`docs/07-licenses.md` — **no AGPL**, which rules out Ultralytics YOLO and `boxmot`.
+
+---
+
 Turn one possession of broadcast Ultimate footage into two synchronized views — an
 overlay on the video and an overhead field view — that let a coach see how a defence
 organises, moves and breaks, and correct the system when it is wrong.
