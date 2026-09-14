@@ -1,0 +1,174 @@
+{
+  "held_out_frames": [
+    115,
+    120,
+    138,
+    140,
+    146,
+    150,
+    195,
+    197,
+    207,
+    209,
+    210,
+    213,
+    216,
+    223,
+    224,
+    245,
+    248,
+    256,
+    267,
+    268
+  ],
+  "per_frame": [
+    {
+      "frame": 115,
+      "px_far": [
+        1444.75,
+        506.88
+      ],
+      "px_near": [
+        555.25,
+        560.84
+      ],
+      "err_far_yd": 18.9533,
+      "err_near_yd": 21.5476,
+      "mean_yd": 20.2505,
+      "max_yd": 21.5476
+    },
+    {
+      "frame": 120,
+      "px_far": [
+        905.35,
+        524.36
+      ],
+      "px_near": [
+        897.96,
+        620.97
+      ],
+      "err_far_yd": 3.6483,
+      "err_near_yd": 3.3212,
+      "mean_yd": 3.4847,
+      "max_yd": 3.6483
+    },
+    {
+      "frame": 138,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 140,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 146,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 150,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 195,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 197,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 207,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 209,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 210,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 213,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 216,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 223,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 224,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 245,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 248,
+      "px_far": [
+        149.87,
+        486.74
+      ],
+      "px_near": [
+        141.88,
+        639.53
+      ],
+      "err_far_yd": 2.8106,
+      "err_near_yd": 3.9621,
+      "mean_yd": 3.3863,
+      "max_yd": 3.9621
+    },
+    {
+      "frame": 256,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 267,
+      "px_far": [
+        236.11,
+        473.18
+      ],
+      "px_near": [
+        228.56,
+        620.92
+      ],
+      "err_far_yd": 2.941,
+      "err_near_yd": 3.8788,
+      "mean_yd": 3.4099,
+      "max_yd": 3.8788
+    },
+    {
+      "frame": 268,
+      "px_far": [
+        242.23,
+        472.61
+      ],
+      "px_near": [
+        234.02,
+        620.3
+      ],
+      "err_far_yd": 3.0935,
+      "err_near_yd": 3.7785,
+      "mean_yd": 3.436,
+      "max_yd": 3.7785
+    }
+  ],
+  "n_correspondences": 10,
+  "mean_error_yd": 6.7935,
+  "max_error_yd": 21.5476,
+  "gate": {
+    "mean_yd": 0.75,
+    "max_yd": 1.5
+  },
+  "pass_mean": false,
+  "pass_max": false,
+  "frame": "soccer",
+  "points": "halfway line x centre circle: soccer (0, +/-10.0066) yd",
+  "independence": "points located from the image-space line and conic only; the camera model only back-projects them",
+  "verify_by_eye": "eval/m1/m1_acceptance_points.jpg"
+}

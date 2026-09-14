@@ -1,7 +1,30 @@
-# 28 — Calibration confidence, and the frames it was throwing away
+# 28 — Calibration confidence, and the two possessions that were silently wrong
 
-**Why this exists: bringing a second and third possession up to p0001's state was blocked
-not by calibration failing, but by calibration succeeding and then being disbelieved.**
+**The headline, because it is worse than the title suggests: p0002 and p0003 have never had
+a working calibration, and p0003 has been published on the live site throughout.** Measured
+by M1's own acceptance test — reprojecting two points whose field position is known exactly —
+they were out by **6.8 and 4.6 yards**. Every in-possession signal looked healthy the whole
+time.
+
+| | p0001 | p0002 | p0003 |
+|---|---|---|---|
+| M1 acceptance, mean reprojection error | 0.10 yd **pass** | **6.79 yd fail** | **4.55 yd fail** |
+| per-frame residual (in-sample) | 0.149 | 0.217 | 0.208 |
+| pose agreement with neighbours | 0.06 | 0.05 | 0.05 |
+
+**The test existed and was never run on them.** `ur/calibrate/accept.py` has implemented M1's
+gate since the first milestone; `docs/12-m1-calibration.md` records it passing on p0001 and
+nobody ever pointed it at another possession. A test that is only ever run on the possession
+it was written for is a test of that possession.
+
+Everything below is what that led to, in the order it was found.
+
+---
+
+## Part 1 — the confidence gate, which was the visible problem and not the real one
+
+Bringing a second and third possession up to p0001's state looked like it was blocked by
+calibration succeeding and then being disbelieved.
 
 `docs/03` gates the whole pipeline on one number — *"`confidence` ∈ [0,1] derives from the
 residual… Frames below 0.5 must not produce `observed` samples"* — and `ur.detect.run`
@@ -134,6 +157,75 @@ threshold chosen to make it do so:
 
 The two halves are written out separately — `residual_yd` and `pose_disagreement_yd` — so
 anything downstream can see which one cost a frame its confidence.
+
+## Part 2 — what none of it caught
+
+After all of the above, p0002 still failed M1 acceptance at **8.7 yd** and p0003 at 4.6.
+Pinning the camera centre to the venue's measured value (below) did not fix it either. The
+montage the test writes is what explains why, and `accept.py`'s docstring says to look at it
+before quoting any number from it.
+
+**p0002 is not uniformly wrong. It is right in some frames and badly wrong in others** —
+0.17 and 0.06 yd on frames 267 and 268, 12.7 and 10.0 yd on frames 113 and 118, which sit
+immediately after a 105-frame block where no fit was possible at all. The pose is carried
+forward through that block, locks onto the wrong pixels coming out of it, and then drifts
+*smoothly* from there.
+
+That is the failure neither of the two confidence inputs can see:
+
+- **`residual_yd` is in-sample.** It is measured on the pixels the frame was fitted to, so a
+  fit that locked onto the wrong pixels scores beautifully. Those bad frames have a *better*
+  median residual than p0001's good ones.
+- **Pose agreement with neighbours is out-of-sample but not independent.** The sequential pass
+  initialises each frame from its neighbour, so a drifting stretch drifts smoothly. Being
+  consistent with your neighbours is no defence when your neighbours are wrong the same way.
+
+### The fix: check every frame against geometry that is known exactly
+
+The two points whose field position is known exactly and which appear in most frames are
+where the halfway line crosses the centre circle — soccer-frame `(0, ±10.0066)`. Find them in
+**image space only**, back-project through the frame's own camera model, and measure how far
+the answer lands from where it must be. That is a number in yards, independent of the solve,
+and it is exactly the quantity `docs/03` says confidence is about.
+
+`ur/calibrate/groundtruth.py` now runs it on **every frame** and folds the error into
+confidence, so a frame that is wrong stops producing positions instead of producing wrong
+ones. It only ever lowers confidence, and it abstains when it cannot find both features —
+`accept.py` records an earlier version of this same test calling two good frames 10 and 34
+yards wrong because its own RANSAC locked onto a spurious conic, and a check that fires
+wrongly costs you the signal you were relying on.
+
+| | before | after |
+|---|---|---|
+| **p0002 M1 acceptance** | **6.79 yd fail** | **0.145 yd pass** |
+| p0002 frames accepted | 138 (many of them wrong) | 134 (measured right) |
+
+The frame count barely moves. What changed is that the frames that survive are the ones whose
+positions are true, rather than the ones whose fit was self-consistent.
+
+## The camera centre is a venue fact too
+
+Chasing p0002 turned up a third instance of a mistake this module has now made three times.
+The camera centre was solved per possession and chosen between two candidates on **mean
+per-frame confidence** — an in-sample score, which a self-consistently wrong camera satisfies
+happily:
+
+| | camera centre (soccer yd) |
+|---|---|
+| p0001 | (0.47, −50.21, 6.98) |
+| p0002 | (−19.50, −60.00, 8.67) |
+| p0003 | (−19.50, −41.25, 6.00) |
+
+AD-4's amendment says this camera *"pans, tilts and zooms, and does not translate"*. It does
+not translate between possessions either — one fixed hard camera cannot be in three places
+twenty yards apart. `BREESE_STEVENS_CAMERA_C` now pins it to p0001's, the only one ever
+checked against known geometry, and `--fit-camera-centre` re-enables the per-possession solve
+for a new venue.
+
+**The pattern, stated once because it has now cost three defects:** the venue transform, the
+near sideline, and the camera centre are all facts about the venue. Measure each once on the
+possession with the best evidence and reuse it. Do not let a possession with worse evidence
+re-derive it and silently win on an in-sample score.
 
 ## What it does not fix
 

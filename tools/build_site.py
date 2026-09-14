@@ -6,6 +6,7 @@ Builds the public GitHub Pages site into docs/.
 Three pages, one per possession, each a self-contained folder:
 
     docs/              p0001 - real tracking, real clip          (the landing page)
+    docs/p0002/        p0002 - real tracking, real clip
     docs/p0003/        p0003 - real tracking, real clip
     docs/fixture/      the synthetic fixture, invented throughout
 
@@ -30,6 +31,7 @@ from tools.make_view import build as build_data
 # (sub-path under docs/, work dir or None for the fixture, label)
 SITE = [
     ("",        "work/p0001", "p0001 - real"),
+    ("p0002",   "work/p0002", "p0002 - real"),
     ("p0003",   "work/p0003", "p0003 - real"),
     ("fixture", None,         "synthetic fixture"),
 ]

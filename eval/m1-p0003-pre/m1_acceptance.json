@@ -1,0 +1,339 @@
+{
+  "held_out_frames": [
+    124,
+    132,
+    133,
+    209,
+    216,
+    227,
+    242,
+    287,
+    294,
+    299,
+    302,
+    317,
+    319,
+    330,
+    333,
+    334,
+    347,
+    348,
+    395,
+    433
+  ],
+  "per_frame": [
+    {
+      "frame": 124,
+      "px_far": [
+        1401.25,
+        455.25
+      ],
+      "px_near": [
+        1389.7,
+        571.24
+      ],
+      "err_far_yd": 4.5648,
+      "err_near_yd": 4.4462,
+      "mean_yd": 4.5055,
+      "max_yd": 4.5648
+    },
+    {
+      "frame": 132,
+      "px_far": [
+        1347.33,
+        459.25
+      ],
+      "px_near": [
+        1336.22,
+        570.03
+      ],
+      "err_far_yd": 4.6296,
+      "err_near_yd": 4.3949,
+      "mean_yd": 4.5123,
+      "max_yd": 4.6296
+    },
+    {
+      "frame": 133,
+      "px_far": [
+        1345.21,
+        459.5
+      ],
+      "px_near": [
+        1334.56,
+        570.69
+      ],
+      "err_far_yd": 4.6036,
+      "err_near_yd": 4.4235,
+      "mean_yd": 4.5135,
+      "max_yd": 4.6036
+    },
+    {
+      "frame": 209,
+      "px_far": [
+        847.3,
+        452.8
+      ],
+      "px_near": [
+        838.86,
+        572.06
+      ],
+      "err_far_yd": 4.4921,
+      "err_near_yd": 4.5604,
+      "mean_yd": 4.5263,
+      "max_yd": 4.5604
+    },
+    {
+      "frame": 216,
+      "px_far": [
+        888.67,
+        451.05
+      ],
+      "px_near": [
+        881.45,
+        570.34
+      ],
+      "err_far_yd": 4.4968,
+      "err_near_yd": 4.4608,
+      "mean_yd": 4.4788,
+      "max_yd": 4.4968
+    },
+    {
+      "frame": 227,
+      "px_far": [
+        972.0,
+        447.04
+      ],
+      "px_near": [
+        963.11,
+        569.41
+      ],
+      "err_far_yd": 4.4863,
+      "err_near_yd": 4.4892,
+      "mean_yd": 4.4877,
+      "max_yd": 4.4892
+    },
+    {
+      "frame": 242,
+      "px_far": [
+        1099.64,
+        442.66
+      ],
+      "px_near": [
+        1089.72,
+        569.77
+      ],
+      "err_far_yd": 4.4724,
+      "err_near_yd": 4.4771,
+      "mean_yd": 4.4747,
+      "max_yd": 4.4771
+    },
+    {
+      "frame": 287,
+      "px_far": [
+        1574.06,
+        432.88
+      ],
+      "px_near": [
+        1559.63,
+        581.84
+      ],
+      "err_far_yd": 4.3848,
+      "err_near_yd": 4.5307,
+      "mean_yd": 4.4578,
+      "max_yd": 4.5307
+    },
+    {
+      "frame": 294,
+      "px_far": [
+        1661.07,
+        433.45
+      ],
+      "px_near": [
+        1643.8,
+        585.18
+      ],
+      "err_far_yd": 4.3731,
+      "err_near_yd": 4.5135,
+      "mean_yd": 4.4433,
+      "max_yd": 4.5135
+    },
+    {
+      "frame": 299,
+      "px_far": [
+        1690.07,
+        431.76
+      ],
+      "px_near": [
+        1673.02,
+        585.86
+      ],
+      "err_far_yd": 4.3171,
+      "err_near_yd": 4.5771,
+      "mean_yd": 4.4471,
+      "max_yd": 4.5771
+    },
+    {
+      "frame": 302,
+      "px_far": [
+        1690.07,
+        431.47
+      ],
+      "px_near": [
+        1674.76,
+        585.37
+      ],
+      "err_far_yd": 4.3245,
+      "err_near_yd": 4.5396,
+      "mean_yd": 4.432,
+      "max_yd": 4.5396
+    },
+    {
+      "frame": 317,
+      "px_far": [
+        1489.31,
+        412.51
+      ],
+      "px_near": [
+        1473.25,
+        556.0
+      ],
+      "err_far_yd": 4.429,
+      "err_near_yd": 4.5127,
+      "mean_yd": 4.4708,
+      "max_yd": 4.5127
+    },
+    {
+      "frame": 319,
+      "px_far": [
+        1450.41,
+        406.54
+      ],
+      "px_near": [
+        1436.13,
+        551.86
+      ],
+      "err_far_yd": 4.4847,
+      "err_near_yd": 4.5902,
+      "mean_yd": 4.5374,
+      "max_yd": 4.5902
+    },
+    {
+      "frame": 330,
+      "px_far": [
+        1277.98,
+        392.65
+      ],
+      "px_near": [
+        1265.03,
+        531.0
+      ],
+      "err_far_yd": 4.7896,
+      "err_near_yd": 4.5473,
+      "mean_yd": 4.6684,
+      "max_yd": 4.7896
+    },
+    {
+      "frame": 333,
+      "px_far": [
+        1250.27,
+        384.04
+      ],
+      "px_near": [
+        1237.16,
+        529.1
+      ],
+      "err_far_yd": 6.0559,
+      "err_near_yd": 4.5498,
+      "mean_yd": 5.3029,
+      "max_yd": 6.0559
+    },
+    {
+      "frame": 334,
+      "px_far": [
+        1244.42,
+        392.13
+      ],
+      "px_near": [
+        1233.23,
+        528.54
+      ],
+      "err_far_yd": 4.9344,
+      "err_near_yd": 4.4702,
+      "mean_yd": 4.7023,
+      "max_yd": 4.9344
+    },
+    {
+      "frame": 347,
+      "px_far": [
+        1153.39,
+        405.95
+      ],
+      "px_near": [
+        1142.94,
+        528.3
+      ],
+      "err_far_yd": 4.3043,
+      "err_near_yd": 4.5376,
+      "mean_yd": 4.421,
+      "max_yd": 4.5376
+    },
+    {
+      "frame": 348,
+      "px_far": [
+        1146.16,
+        400.43
+      ],
+      "px_near": [
+        1134.99,
+        526.28
+      ],
+      "err_far_yd": 4.6588,
+      "err_near_yd": 4.468,
+      "mean_yd": 4.5634,
+      "max_yd": 4.6588
+    },
+    {
+      "frame": 395,
+      "px_far": [
+        906.98,
+        422.97
+      ],
+      "px_near": [
+        900.45,
+        529.45
+      ],
+      "err_far_yd": 4.5079,
+      "err_near_yd": 4.4997,
+      "mean_yd": 4.5038,
+      "max_yd": 4.5079
+    },
+    {
+      "frame": 433,
+      "px_far": [
+        1039.95,
+        408.7
+      ],
+      "px_near": [
+        1032.13,
+        505.43
+      ],
+      "err_far_yd": 4.7976,
+      "err_near_yd": 4.4737,
+      "mean_yd": 4.6357,
+      "max_yd": 4.7976
+    }
+  ],
+  "n_correspondences": 40,
+  "mean_error_yd": 4.5542,
+  "max_error_yd": 6.0559,
+  "gate": {
+    "mean_yd": 0.75,
+    "max_yd": 1.5
+  },
+  "pass_mean": false,
+  "pass_max": false,
+  "frame": "soccer",
+  "points": "halfway line x centre circle: soccer (0, +/-10.0066) yd",
+  "independence": "points located from the image-space line and conic only; the camera model only back-projects them",
+  "verify_by_eye": "eval/m1/m1_acceptance_points.jpg"
+}

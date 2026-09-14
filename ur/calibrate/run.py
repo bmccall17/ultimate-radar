@@ -37,7 +37,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from . import features, fit, mask, paint
+from . import features, fit, groundtruth, mask, paint
 from . import world as W
 from .camera import FixedCamera, Pose
 
@@ -66,6 +66,9 @@ class Frame:
     # How far this frame's pose sits from what its neighbours predict, in yards.
     # Reported so the two halves of `confidence` can be told apart downstream.
     pose_disagreement_yd: float = 0.0
+    # Reprojection error at the two exactly-known points, or None where the
+    # geometry could not be detected. None is "not tested", never "passed".
+    known_geometry_err_yd: float | None = None
     note: str = ""
 
 
@@ -328,13 +331,41 @@ def sequential_pass(cam: FixedCamera, frame_paths, a_idx: int, anchor_pose: Pose
         if f.confidence <= 0.0:
             continue
         f.pose_disagreement_yd = float(d)
-        total = float(np.hypot(f.rms_yd if np.isfinite(f.rms_yd) else 0.0, d))
+        # ...and the independent third: how far this frame puts two points whose
+        # field position is known exactly. Neither of the other two can catch a
+        # stretch that locked onto the wrong pixels and then drifted smoothly,
+        # because both are computed from the same solve. See groundtruth.py.
+        bgr = cv2.imread(str(f.path))
+        f.known_geometry_err_yd = groundtruth.check_frame(bgr, region, cam, f.pose)
+        gt = groundtruth.penalty_yd(f.known_geometry_err_yd)
+        total = float(np.sqrt((f.rms_yd if np.isfinite(f.rms_yd) else 0.0) ** 2
+                              + d ** 2 + gt ** 2))
         f.confidence = float(np.clip(np.exp(-total / CONF_SCALE_YD), 0.0, 1.0))
+    if verbose:
+        tested = [f.known_geometry_err_yd for f in frames
+                  if f.known_geometry_err_yd is not None]
+        if tested:
+            print(f"[calib] {tag}known-geometry check: {len(tested)} of "
+                  f"{len(frames)} frames testable, median error "
+                  f"{np.median(tested):.3f} yd, "
+                  f"{sum(1 for e in tested if e > 1.0)} over 1 yd")
     return frames
 
 
 def calibrate(work: Path, *, anchor_stride: int = 20, bundle_n: int = 9,
+              camera_c: tuple[float, float, float] | None = None,
               verbose: bool = True) -> dict:
+    """Solve every frame's pose. `camera_c` pins the camera centre.
+
+    **Pin it whenever the venue has been measured.** The centre is a venue fact,
+    not a per-possession one - AD-4's amendment says this camera pans, tilts and
+    zooms and does not translate, and it does not translate between possessions
+    either. Solving it per possession and choosing between candidates on mean
+    per-frame confidence is an *in-sample* decision, and a self-consistently wrong
+    camera satisfies it: p0002 and p0003 each landed ~20 yd from p0001's camera
+    and failed the M1 reprojection gate by factors of 6 and 10 while reporting
+    healthy residuals throughout. See ur/calibrate/venue.py BREESE_STEVENS_CAMERA_C.
+    """
     rng = np.random.default_rng(SEED)
     frame_paths = sorted((work / "frames").glob("*.jpg"))
     if not frame_paths:
@@ -354,10 +385,22 @@ def calibrate(work: Path, *, anchor_stride: int = 20, bundle_n: int = 9,
     h, w = bgr.shape[:2]
     px, pm = paint_pixels(bgr, rm.mask, rng=rng)
     dist = paint.distance_field(pm)
+    if camera_c is not None:
+        # A one-point grid: the pose is still solved per frame, only the centre
+        # is given. Everything downstream is unchanged, which is the point -
+        # this removes a free parameter rather than adding a special case.
+        grid = {"sx": np.array([float(camera_c[0])]),
+                "sy": np.array([float(camera_c[1])]),
+                "sz": np.array([float(camera_c[2])])}
+        if verbose:
+            print(f"[calib] camera centre pinned to the venue's measured value "
+                  f"{tuple(round(float(v), 4) for v in camera_c)}")
+    else:
+        grid = {"sx": np.linspace(-26, 26, 9),
+                "sy": np.linspace(-60, -30, 9),
+                "sz": np.linspace(6, 22, 7)}
     cands = fit.bootstrap(dist, w, h, W.soccer_features(), ell, top_k=5,
-                          c_grid={"sx": np.linspace(-26, 26, 9),
-                                  "sy": np.linspace(-60, -30, 9),
-                                  "sz": np.linspace(6, 22, 7)})
+                          c_grid=grid)
     if not cands:
         raise RuntimeError("bootstrap found no plausible camera")
 
@@ -375,7 +418,9 @@ def calibrate(work: Path, *, anchor_stride: int = 20, bundle_n: int = 9,
     # --- pin the camera centre over several pans ---------------------------- #
     step = max(1, len(frames) // (bundle_n + 1))
     bundle_idx, obs, poses = [], [], []
-    for i in range(step, len(frames) - 1, step):
+    if camera_c is not None:
+        bundle_n = 0          # nothing to pin; the centre is given
+    for i in (range(step, len(frames) - 1, step) if camera_c is None else ()):
         b = cv2.imread(str(frames[i].path))
         p_i, _ = paint_pixels(b, rm.mask, rng=rng)
         pose_i, res_i = icp(cam, anchor_res.pose, p_i, rng)
@@ -389,7 +434,7 @@ def calibrate(work: Path, *, anchor_stride: int = 20, bundle_n: int = 9,
         poses.append(pose_i)
     cam_anchor = cam
     cam_bundled = None
-    if len(obs) >= 3:
+    if camera_c is None and len(obs) >= 3:
         cam_bundled, _ = fit.bundle_world(cam_anchor, poses, obs)
         if verbose:
             print(f"[calib] bundled over {len(obs)} frames -> "
@@ -490,6 +535,8 @@ def write_calibration(work: Path, res: dict, venue_info: dict) -> dict:
             "H": [[round(float(v), 10) for v in row] for row in H],
             "residual_yd": None if not np.isfinite(f.rms_yd) else round(float(f.rms_yd), 5),
             "pose_disagreement_yd": round(float(f.pose_disagreement_yd), 5),
+            "known_geometry_err_yd": (None if f.known_geometry_err_yd is None
+                                      else round(float(f.known_geometry_err_yd), 4)),
             "confidence": round(float(f.confidence), 4),
             "shot": 0,
             "camera": {**f.pose.to_dict(),
@@ -542,6 +589,12 @@ def main(argv: list[str] | None = None) -> int:
                         "bundle and leaves the centre at the anchor's estimate - "
                         "a diagnostic, since the bundle is the step that can move "
                         "a good anchor solve to a camera that does not exist.")
+    p.add_argument("--fit-camera-centre", action="store_true",
+                   help="solve the camera centre from this possession instead of "
+                        "using the venue's measured one. Only for a new venue: "
+                        "per-possession solves landed 20 yd out on p0002 and "
+                        "p0003 while reporting healthy residuals. See "
+                        "ur/calibrate/venue.py BREESE_STEVENS_CAMERA_C.")
     p.add_argument("--near-sideline", type=float, default=None,
                    help="soccer-frame y of the near ultimate sideline. Defaults to "
                         "the evidenced value for this venue; pass a value for a "
@@ -551,7 +604,9 @@ def main(argv: list[str] | None = None) -> int:
     ev = Path(args.eval_dir)
     ev.mkdir(parents=True, exist_ok=True)
 
-    res = calibrate(work, bundle_n=args.bundle_n)
+    from . import venue as _V
+    cc = None if args.fit_camera_centre else _V.BREESE_STEVENS_CAMERA_C
+    res = calibrate(work, bundle_n=args.bundle_n, camera_c=cc)
     cam, frames = res["camera"], res["frames"]
     conf = np.array([f.confidence for f in frames])
     rms = np.array([f.rms_yd for f in frames])

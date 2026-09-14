@@ -1,4 +1,4 @@
-﻿# Media and derived artefacts — never committed.
+# Media and derived artefacts — never committed.
 raw/
 work/
 survey/
@@ -16,5 +16,7 @@ viewer/live-data.js
 # and they are the broadcast with overlays drawn on it.
 *.mp4
 *.webm
-# ...except the published site, which deliberately carries two clips.
+# ...except the published site, which deliberately carries one clip per
+# published possession. See tools/build_site.py for what that publishes
+# and how to unpublish one.
 !docs/**/*.mp4

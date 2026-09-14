@@ -1,0 +1,163 @@
+{
+  "held_out_frames": [
+    120,
+    125,
+    146,
+    148,
+    153,
+    161,
+    186,
+    187,
+    188,
+    189,
+    204,
+    207,
+    210,
+    213,
+    220,
+    225,
+    245,
+    248,
+    265,
+    267
+  ],
+  "per_frame": [
+    {
+      "frame": 120,
+      "px_far": [
+        905.35,
+        524.36
+      ],
+      "px_near": [
+        897.96,
+        620.97
+      ],
+      "err_far_yd": 0.2481,
+      "err_near_yd": 0.1551,
+      "mean_yd": 0.2016,
+      "max_yd": 0.2481
+    },
+    {
+      "frame": 125,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 146,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 148,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 153,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 161,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 186,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 187,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 188,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 189,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 204,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 207,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 210,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 213,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 220,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 225,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 245,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 248,
+      "px_far": [
+        149.87,
+        486.74
+      ],
+      "px_near": [
+        141.88,
+        639.53
+      ],
+      "err_far_yd": 0.1626,
+      "err_near_yd": 0.1502,
+      "mean_yd": 0.1564,
+      "max_yd": 0.1626
+    },
+    {
+      "frame": 265,
+      "px_far": [
+        225.49,
+        471.19
+      ],
+      "px_near": [
+        217.61,
+        618.68
+      ],
+      "err_far_yd": 0.0203,
+      "err_near_yd": 0.1475,
+      "mean_yd": 0.0839,
+      "max_yd": 0.1475
+    },
+    {
+      "frame": 267,
+      "px_far": [
+        236.11,
+        473.18
+      ],
+      "px_near": [
+        228.56,
+        620.92
+      ],
+      "err_far_yd": 0.1728,
+      "err_near_yd": 0.1033,
+      "mean_yd": 0.1381,
+      "max_yd": 0.1728
+    }
+  ],
+  "n_correspondences": 8,
+  "mean_error_yd": 0.145,
+  "max_error_yd": 0.2481,
+  "gate": {
+    "mean_yd": 0.75,
+    "max_yd": 1.5
+  },
+  "pass_mean": true,
+  "pass_max": true,
+  "frame": "soccer",
+  "points": "halfway line x centre circle: soccer (0, +/-10.0066) yd",
+  "independence": "points located from the image-space line and conic only; the camera model only back-projects them",
+  "verify_by_eye": "eval/m1/m1_acceptance_points.jpg"
+}

@@ -37,28 +37,10 @@ import cv2
 import numpy as np
 
 from . import features as F
+from .groundtruth import line_ellipse_intersections
 from . import fit, mask, paint
 from . import world as W
 from .verify import load
-
-
-def line_ellipse_intersections(line, ell) -> np.ndarray:
-    """Where a line crosses an ellipse, in image pixels. Up to two points."""
-    t = np.radians(ell.angle_deg)
-    R = np.array([[np.cos(t), np.sin(t)], [-np.sin(t), np.cos(t)]])
-    ra, rb = ell.axes[0] / 2.0, ell.axes[1] / 2.0
-    c = np.array(ell.centre)
-    p = R @ (np.asarray(line.p0, float) - c)
-    d = R @ np.asarray(line.d, float)
-    A = (d[0] / ra) ** 2 + (d[1] / rb) ** 2
-    B = 2.0 * (p[0] * d[0] / ra ** 2 + p[1] * d[1] / rb ** 2)
-    C = (p[0] / ra) ** 2 + (p[1] / rb) ** 2 - 1.0
-    disc = B * B - 4 * A * C
-    if A < 1e-12 or disc < 0:
-        return np.zeros((0, 2))
-    s = np.sqrt(disc)
-    return np.array([line.p0 + ((-B - s) / (2 * A)) * line.d,
-                     line.p0 + ((-B + s) / (2 * A)) * line.d])
 
 
 def run_accept(work: Path, *, n_holdout: int = 20, seed: int = 20260827,

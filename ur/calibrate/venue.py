@@ -217,6 +217,35 @@ def render_map(pm: PaintMap, path) -> None:
 # that a re-run destroys is not a measurement, it is a note.
 BREESE_STEVENS_NEAR_SIDELINE_Y = -32.75
 
+# Where the broadcast camera is, in soccer-frame yards. Same venue fact, same
+# reasoning, and it was missing for the same reason the sideline offset was:
+# a quantity that belongs to the venue was being re-derived from each
+# possession's own evidence.
+#
+# **AD-4's amendment says the camera "pans, tilts and zooms, and does not
+# translate". It does not translate between possessions either.** But
+# `ur/calibrate/run.py` solved the centre per possession and chose between two
+# candidates on mean per-frame confidence - an *in-sample* score, which a
+# self-consistently wrong camera satisfies happily. Measured by the one
+# out-of-sample test there is (`ur.calibrate.accept`, reprojecting the two
+# exactly-known halfway-line/centre-circle intersections):
+#
+#     p0001  C = ( 0.47, -50.21, 6.98)   mean reprojection error  0.106 yd
+#     p0002  C = (-19.50, -60.00, 8.67)  mean reprojection error  7.40 yd
+#     p0003  C = (-19.50, -41.25, 6.00)  mean reprojection error  4.60 yd
+#
+# One camera cannot be in three places twenty yards apart. p0001's is the only
+# one ever checked against known geometry, and it passes by a factor of seven
+# against the M1 gate, so it is the venue's camera and the other two were the
+# per-possession solve wandering off on weak evidence.
+#
+# This is the third time the same mistake has shown up in this module: the venue
+# transform (fixed above), the near sideline (fixed above), and now the camera.
+# **If a quantity describes the venue, measure it once on the possession with the
+# best evidence and reuse it - do not let a possession with worse evidence
+# re-derive it and silently win.**
+BREESE_STEVENS_CAMERA_C = (0.4658, -50.2128, 6.9763)
+
 
 def measure_transform(pm: PaintMap, field_length: float,
                       near_sideline_y: float | None = None) -> W.VenueTransform:

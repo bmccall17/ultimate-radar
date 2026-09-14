@@ -1,48 +1,48 @@
 {
   "held_out_frames": [
-    37,
-    46,
-    47,
+    31,
+    40,
+    42,
     95,
     103,
-    115,
-    130,
-    175,
-    184,
-    190,
-    194,
-    210,
-    213,
+    114,
+    129,
+    174,
+    183,
+    188,
+    192,
+    208,
+    211,
+    224,
     226,
     228,
-    230,
-    245,
-    246,
-    289,
-    327
+    242,
+    244,
+    291,
+    322
   ],
   "per_frame": [
     {
-      "frame": 37,
+      "frame": 31,
       "px_far": [
-        144.05,
-        487.18
+        105.76,
+        498.45
       ],
       "px_near": [
-        136.01,
-        643.02
+        97.9,
+        656.85
       ],
-      "err_far_yd": 0.084,
-      "err_near_yd": 0.0752,
-      "mean_yd": 0.0796,
-      "max_yd": 0.084
+      "err_far_yd": 0.1024,
+      "err_near_yd": 0.0911,
+      "mean_yd": 0.0967,
+      "max_yd": 0.1024
     },
     {
-      "frame": 46,
+      "frame": 40,
       "note": "line or conic not found; not testable"
     },
     {
-      "frame": 47,
+      "frame": 42,
       "note": "line or conic not found; not testable"
     },
     {
@@ -55,10 +55,10 @@
         314.32,
         619.91
       ],
-      "err_far_yd": 0.0574,
-      "err_near_yd": 0.0535,
-      "mean_yd": 0.0555,
-      "max_yd": 0.0574
+      "err_far_yd": 0.055,
+      "err_near_yd": 0.0699,
+      "mean_yd": 0.0624,
+      "max_yd": 0.0699
     },
     {
       "frame": 103,
@@ -70,130 +70,123 @@
         315.22,
         619.78
       ],
-      "err_far_yd": 0.0415,
-      "err_near_yd": 0.0334,
-      "mean_yd": 0.0374,
-      "max_yd": 0.0415
+      "err_far_yd": 0.0733,
+      "err_near_yd": 0.0253,
+      "mean_yd": 0.0493,
+      "max_yd": 0.0733
     },
     {
-      "frame": 115,
-      "px_far": [
-        287.08,
-        480.57
-      ],
-      "px_near": [
-        280.38,
-        619.53
-      ],
-      "err_far_yd": 0.0393,
-      "err_near_yd": 0.0491,
-      "mean_yd": 0.0442,
-      "max_yd": 0.0491
+      "frame": 114,
+      "note": "line or conic not found; not testable"
     },
     {
-      "frame": 130,
-      "px_far": [
-        183.2,
-        487.23
-      ],
-      "px_near": [
-        176.15,
-        620.58
-      ],
-      "err_far_yd": 0.2146,
-      "err_near_yd": 0.2401,
-      "mean_yd": 0.2274,
-      "max_yd": 0.2401
+      "frame": 129,
+      "note": "line or conic not found; not testable"
     },
     {
-      "frame": 175,
+      "frame": 174,
       "px_far": [
-        478.41,
-        495.24
+        469.55,
+        494.93
       ],
       "px_near": [
-        471.1,
-        626.23
+        463.21,
+        625.73
+      ],
+      "err_far_yd": 0.0597,
+      "err_near_yd": 0.1711,
+      "mean_yd": 0.1154,
+      "max_yd": 0.1711
+    },
+    {
+      "frame": 183,
+      "px_far": [
+        508.17,
+        494.07
+      ],
+      "px_near": [
+        501.09,
+        626.89
+      ],
+      "err_far_yd": 0.0234,
+      "err_near_yd": 0.1719,
+      "mean_yd": 0.0976,
+      "max_yd": 0.1719
+    },
+    {
+      "frame": 188,
+      "px_far": [
+        526.24,
+        494.85
+      ],
+      "px_near": [
+        518.79,
+        628.98
+      ],
+      "err_far_yd": 0.2159,
+      "err_near_yd": 0.0743,
+      "mean_yd": 0.1451,
+      "max_yd": 0.2159
+    },
+    {
+      "frame": 192,
+      "px_far": [
+        540.78,
+        494.24
+      ],
+      "px_near": [
+        534.01,
+        630.96
+      ],
+      "err_far_yd": 0.0854,
+      "err_near_yd": 0.0441,
+      "mean_yd": 0.0647,
+      "max_yd": 0.0854
+    },
+    {
+      "frame": 208,
+      "px_far": [
+        623.72,
+        491.67
+      ],
+      "px_near": [
+        615.23,
+        635.02
+      ],
+      "err_far_yd": 0.0541,
+      "err_near_yd": 0.1006,
+      "mean_yd": 0.0774,
+      "max_yd": 0.1006
+    },
+    {
+      "frame": 211,
+      "px_far": [
+        634.84,
+        491.18
+      ],
+      "px_near": [
+        626.01,
+        635.57
       ],
       "err_far_yd": 0.0583,
-      "err_near_yd": 0.1351,
-      "mean_yd": 0.0967,
-      "max_yd": 0.1351
+      "err_near_yd": 0.1573,
+      "mean_yd": 0.1078,
+      "max_yd": 0.1573
     },
     {
-      "frame": 184,
+      "frame": 224,
       "px_far": [
-        511.06,
-        494.23
+        608.47,
+        487.43
       ],
       "px_near": [
-        503.93,
-        628.86
+        598.91,
+        642.09
       ],
-      "err_far_yd": 0.0213,
-      "err_near_yd": 0.0337,
-      "mean_yd": 0.0275,
-      "max_yd": 0.0337
-    },
-    {
-      "frame": 190,
-      "px_far": [
-        538.03,
-        493.97
-      ],
-      "px_near": [
-        531.64,
-        629.02
-      ],
-      "err_far_yd": 0.1061,
-      "err_near_yd": 0.1531,
-      "mean_yd": 0.1296,
-      "max_yd": 0.1531
-    },
-    {
-      "frame": 194,
-      "px_far": [
-        551.83,
-        493.6
-      ],
-      "px_near": [
-        543.98,
-        631.07
-      ],
-      "err_far_yd": 0.038,
-      "err_near_yd": 0.077,
-      "mean_yd": 0.0575,
-      "max_yd": 0.077
-    },
-    {
-      "frame": 210,
-      "px_far": [
-        630.96,
-        491.35
-      ],
-      "px_near": [
-        622.29,
-        637.12
-      ],
-      "err_far_yd": 0.0086,
-      "err_near_yd": 0.0306,
-      "mean_yd": 0.0196,
-      "max_yd": 0.0306
-    },
-    {
-      "frame": 213,
-      "px_far": [
-        634.35,
-        491.64
-      ],
-      "px_near": [
-        625.62,
-        636.47
-      ],
-      "err_far_yd": 0.1357,
-      "err_near_yd": 0.1712,
-      "mean_yd": 0.1534,
-      "max_yd": 0.1712
+      "err_far_yd": 0.0222,
+      "err_near_yd": 0.0808,
+      "mean_yd": 0.0515,
+      "max_yd": 0.0808
     },
     {
       "frame": 226,
@@ -205,10 +198,10 @@
         590.49,
         643.64
       ],
-      "err_far_yd": 0.1171,
-      "err_near_yd": 0.0828,
-      "mean_yd": 0.1,
-      "max_yd": 0.1171
+      "err_far_yd": 0.1042,
+      "err_near_yd": 0.0737,
+      "mean_yd": 0.089,
+      "max_yd": 0.1042
     },
     {
       "frame": 228,
@@ -220,79 +213,53 @@
         571.27,
         643.79
       ],
-      "err_far_yd": 0.0255,
-      "err_near_yd": 0.1523,
-      "mean_yd": 0.0889,
-      "max_yd": 0.1523
+      "err_far_yd": 0.0545,
+      "err_near_yd": 0.1519,
+      "mean_yd": 0.1032,
+      "max_yd": 0.1519
     },
     {
-      "frame": 230,
+      "frame": 242,
       "px_far": [
-        574.51,
-        487.47
+        492.0,
+        483.28
       ],
       "px_near": [
-        567.67,
-        644.64
+        481.37,
+        653.45
       ],
-      "err_far_yd": 0.1559,
-      "err_near_yd": 0.1595,
-      "mean_yd": 0.1577,
-      "max_yd": 0.1595
+      "err_far_yd": 0.0275,
+      "err_near_yd": 0.0582,
+      "mean_yd": 0.0429,
+      "max_yd": 0.0582
     },
     {
-      "frame": 245,
+      "frame": 244,
       "px_far": [
-        448.49,
-        482.59
+        466.1,
+        483.03
       ],
       "px_near": [
-        437.43,
-        655.43
+        455.03,
+        654.76
       ],
-      "err_far_yd": 0.0566,
-      "err_near_yd": 0.0665,
-      "mean_yd": 0.0616,
-      "max_yd": 0.0665
+      "err_far_yd": 0.0345,
+      "err_near_yd": 0.0587,
+      "mean_yd": 0.0466,
+      "max_yd": 0.0587
     },
     {
-      "frame": 246,
-      "px_far": [
-        432.31,
-        484.56
-      ],
-      "px_near": [
-        420.56,
-        657.68
-      ],
-      "err_far_yd": 0.1322,
-      "err_near_yd": 0.0678,
-      "mean_yd": 0.1,
-      "max_yd": 0.1322
-    },
-    {
-      "frame": 289,
+      "frame": 291,
       "note": "line or conic not found; not testable"
     },
     {
-      "frame": 327,
-      "px_far": [
-        79.52,
-        485.44
-      ],
-      "px_near": [
-        69.24,
-        678.25
-      ],
-      "err_far_yd": 0.4096,
-      "err_near_yd": 0.1028,
-      "mean_yd": 0.2562,
-      "max_yd": 0.4096
+      "frame": 322,
+      "note": "line or conic not found; not testable"
     }
   ],
-  "n_correspondences": 34,
-  "mean_error_yd": 0.0996,
-  "max_error_yd": 0.4096,
+  "n_correspondences": 28,
+  "mean_error_yd": 0.0821,
+  "max_error_yd": 0.2159,
   "gate": {
     "mean_yd": 0.75,
     "max_yd": 1.5
