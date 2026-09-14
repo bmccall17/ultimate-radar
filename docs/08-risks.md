@@ -105,6 +105,40 @@ by face or name; any tactical judgement the tool would be asserting rather than 
    explicit "contribute this possession" action? Defaulting to automatic collects more data;
    defaulting to explicit is the better habit.
 
+*Added after round 2 (2026-09-14):*
+
+6. **Player tracking is a standing refinement programme, not a finished stage.** Round 2
+   took p0001's per-player recall from 0.8846 to 0.9701 and removed three whole classes of
+   error — a kit classifier that deleted real players, ghosts asserting positions the camera
+   could see were empty, and slots re-acquiring onto officials. Every one of those was found
+   by **watching one possession**, and none of them by a statistic. That is the shape of the
+   problem: each new possession, each new game, each new lighting condition and kit pairing
+   will surface rules this tracker does not yet have.
+
+   So treat the association rules as a living model. The things most likely to need real
+   learning rather than another hand-written rule, in the order they are likely to bite:
+
+   - **Appearance beyond torso luminance.** A shadowed dark-kit player and a black-and-grey
+     striped referee are the same L\*, which is why no 1-D model of it can separate them
+     (`docs/26` §1 records two better-calibrated fits that both failed on exactly that
+     population). A learned re-identification embedding is the obvious next instrument, and
+     the licence register in `docs/07` already rules out most of the published ones — pick
+     the permissive option before building on it.
+   - **A detector fine-tuned on this sport.** `docs/26` §6 measures the tracker taking 95 %
+     of a ceiling the *detections* impose. Above about 0.77 observed fraction on p0001,
+     tracking work cannot help; only more and better detections can.
+   - **Learned motion priors.** σ_v = 2.6 yd/s is a single number for every player in every
+     situation. A handler pivoting and a deep cutter accelerating are not the same process.
+   - **Identity switches, once they are labelled.** The review queue exists precisely so a
+     human's verdicts accumulate into the first labelled set; nothing can be tuned against
+     them until they do.
+
+   **Do not tune any of this on one possession.** `docs/26` §7 measures these statistics
+   moving a full standard error under changes that should not matter, because one flipped
+   assignment early in a possession changes every assignment after it. The next real step is
+   **more possessions**, so the numbers stop being chaotic and a rule can be shown to
+   generalise rather than to fit p0001.
+
 *Added in M0 (2026-09-12):*
 
 5. **Is this a 120-yard field or a 110-yard one?** UFA rule §2.3.3 allows a 110 yd field "if

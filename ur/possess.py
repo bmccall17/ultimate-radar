@@ -105,6 +105,29 @@ def build(work: Path, *, verbose: bool = True) -> dict:
                         "box": d["box"]})
         leftovers.append(row)
 
+    # The disc, if ur.disc has run. Two shapes: `disc` is the [x, y, z] triple the
+    # viewer already draws, and `disc_meta` is the provenance beside it. They are
+    # separate because the triple is geometry and the provenance is the reason
+    # anything may or may not be computed from it - a viewer that reads only the
+    # triple gets a position, and a viewer that reads both knows whether to trust
+    # it. Nothing in this pipeline has seen a disc; see ur/disc.py.
+    disc, disc_meta = None, None
+    dpath = work / "disc.json"
+    if dpath.exists():
+        dd = json.loads(dpath.read_text(encoding="utf-8"))
+        smp = sorted(dd["samples"], key=lambda r: r["f"])
+        disc = [([*r["xy"], r["z"]] if r["xy"] is not None else None) for r in smp]
+        disc_meta = {
+            "state": [r["state"] for r in smp],
+            "basis": [r["basis"] for r in smp],
+            "holder": [r["holder"] for r in smp],
+            "sigma": [r["sigma"] for r in smp],
+            "source": [r["source"] for r in smp],
+            "trustworthy": dd["diagnostics"]["inference_trustworthy"],
+            "plausibility": dd["diagnostics"]["plausibility"],
+            "note": dd["method"]["nothing_has_seen_the_disc"],
+        }
+
     cam = cal["camera"]
     per_frame = []
     for rec in cal["frames"]:
@@ -196,6 +219,8 @@ def build(work: Path, *, verbose: bool = True) -> dict:
         "disc": None,
         "events": [],
         "players": players,
+        "disc": disc,
+        "disc_meta": disc_meta,
         "unused_detections": leftovers,
         "derived": {
             "coverage": coverage,

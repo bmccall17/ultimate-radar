@@ -214,7 +214,38 @@ manual assignment.
 ```
 
 Types: `possession_start`, `throw`, `catch`, `drop`, `block`, `turnover`, `stall`, `goal`.
-`source` is `human` or `suggested`; a `suggested` event is shown differently until confirmed.
+
+`source` is one of **three** values, and the third was added because its absence caused a
+real error: `human` (a person watched and tagged it — authoritative), `suggested` (the
+pipeline proposed it, shown differently until confirmed), or `example` (schema filler, never
+authoritative). An event written to demonstrate the schema carried `source: "human"` from M5
+until `ur/disc.py` read it as truth and forced a holder for one frame in the middle of
+another player's possession. If it is not a real observation, it is not `human`.
+
+## disc.json
+
+```json
+{"schema":"ultimate-radar/disc@1",
+ "samples":[{"f":0,"xy":[70.3,28.0],"z":1.2,"state":"predicted","basis":"held",
+             "holder":"O1","sigma":0.9,"source":"inferred"},
+            {"f":59,"xy":[72.1,29.4],"z":2.0,"state":"interpolated","basis":"flight",
+             "holder":null,"sigma":3.3,"source":"human"}]}
+```
+
+One sample per frame with a position in every one, for the same reason `tracks.json` has no
+gaps. Two orthogonal fields, and conflating them is the mistake to avoid:
+
+- **`state`** is provenance, from the same vocabulary as a player's. It is **never
+  `observed`** — nothing in this pipeline has detected a disc. `confirmed` means a human
+  tagged the holder; `predicted` means the geometry inferred one; `interpolated` is a flight
+  between two tagged endpoints; `unknown` means the position is carried and not to be
+  believed.
+- **`basis`** is *what kind of thing* the disc is doing — `held`, `flight`, `loose`,
+  `unknown` — and says nothing about how well it is known.
+
+`ur/possess.py` re-exports these as `disc` (the `[x, y, z]` triple the viewer draws) and
+`disc_meta` (the provenance beside it), plus `disc_meta.trustworthy`, which is the module's
+verdict on its own holder sequence. See `docs/27-disc.md`.
 
 ## corrections.json — append-only
 

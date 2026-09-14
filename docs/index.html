@@ -176,6 +176,11 @@ footer{color:var(--dim);font-size:12px;padding:6px 16px 26px}
       <div id="issues"></div>
     </div>
     <div class="panel">
+      <h2>Throws and catches <span class="spacer"></span>
+        <button id="tagUndo">Undo</button><button id="tagDl">Download events</button></h2>
+      <div id="tags"></div>
+    </div>
+    <div class="panel">
       <h2>Corrections <span class="spacer"></span>
         <button id="undo">Undo</button><button id="dl">Download log</button></h2>
       <div id="corrections"></div>
@@ -524,7 +529,20 @@ function lastThrow(f){
   const ev=(D.events||[]).filter(e=>e.type==="throw" && e.t*FPS<=f);
   return ev.length?ev[ev.length-1]:null;
 }
+function discTrusted(f){
+  // A disc position exists for every frame, and most of them are not worth
+  // anything. `ur.disc` scores its own holder sequence against physics and the
+  // sport, and when that fails it emits every inferred sample as `unknown` rather
+  // than as a position - so the test is the evidence state, not the presence of
+  // a number. docs/27.
+  const m=D.disc_meta;
+  if(!m) return !!(D.disc&&D.disc[f]);
+  const st=m.state[f];
+  return !!(D.disc&&D.disc[f]) && (st==="confirmed"||st==="interpolated");
+}
 function discHolder(f){
+  const m=D.disc_meta;
+  if(m) return discTrusted(f) ? m.holder[f] : null;
   if(!D.disc||!D.disc[f]) return null;
   const d=D.disc[f]; let best=null,bd=3.0;
   for(const p of PL.filter(p=>p.team===OFF)){ const q=at(p,f); if(!q) continue;
@@ -648,7 +666,7 @@ function drawSyntheticScene(P,s){
     g.fillStyle=J.top; g.fillRect(c[0]-w/2,c[1]-h*0.86,w,h*0.42);
     g.fillStyle="#C99A73"; g.beginPath(); g.arc(c[0],c[1]-h*0.92,h*0.11,0,7); g.fill();
   }
-  if(D.disc&&D.disc[f]){ const d=D.disc[f], dp=gp(d[0],d[1],d[2]);
+  if(discTrusted(f)){ const d=D.disc[f], dp=gp(d[0],d[1],d[2]);
     if(dp){ g.save(); g.translate(dp[0],dp[1]);
       const r=Math.max(2,900/dp[2]*0.36)*s;
       g.fillStyle="#F6F7F2"; g.beginPath(); g.ellipse(0,0,r,r*0.42,0,0,7); g.fill();
@@ -847,7 +865,7 @@ function drawRadar(){
   if(S.trails) drawTrails();
   drawFormation(S.f, false);
 
-  if(D.disc&&D.disc[S.f]){
+  if(discTrusted(S.f)){
     const d=D.disc[S.f];
     rctx.beginPath(); rctx.arc(rx(d[0]),ry(d[1]),3*RK,0,7);
     rctx.fillStyle=css("--ink"); rctx.fill();
@@ -1035,10 +1053,12 @@ function renderCards(){
          : `Defenders not tracking anyone closely: ${adrift||"—"}.`) + unseenNote));
 
   const holder=discHolder(f);
-  const discHere = !!(D.disc && D.disc[f]);
+  const discHere = discTrusted(f);
   let markV="—", markE="inferred",
       markC = discHere ? "nobody is holding the disc on this frame"
-                       : "no disc position in this data",
+              : (D.disc_meta && !D.disc_meta.trustworthy)
+                ? "the disc is not located on this possession"
+                : "no disc position in this data",
       markX = discHere
         ? "The disc is in the air, so there is no mark to measure. Step back to the "
           + "frame before the release."
@@ -1205,6 +1225,55 @@ document.getElementById("dl").onclick = () => {
   a.href=u; a.download="corrections.json"; a.click(); URL.revokeObjectURL(u);
 };
 
+/* ------------------------------------------------- throws and catches (AD-7)
+   AD-7 decided this five milestones ago: events are tagged by hand, roughly
+   twenty keystrokes a possession, and disc detection is a stretch goal. The
+   decision was right and the surface was never built, so `ur/disc.py` had nothing
+   authoritative to work from and fell back on inferring the holder from player
+   geometry - which it then measured as not working (docs/27).
+
+   Two keys. Select a player, press `t` where they release and `c` where they
+   catch. The disc is exactly pinned by those two facts: held by the thrower up to
+   the release, in flight between, held by the receiver after. Nothing here writes
+   to disk - AD-9 means there is no server - so the log downloads as events.json,
+   which goes in the possession directory and `python -m ur.disc` reads. */
+const TAGS = [];
+function addTag(type){
+  if(!S.sel){ flashTag("Select a player first — click their marker or roster row."); return; }
+  const t = +(S.f/FPS).toFixed(3);
+  TAGS.push({t, type, player:S.sel, f:S.f, source:"human"});
+  TAGS.sort((a,b)=>a.t-b.t);
+  renderTags(); draw();
+}
+function flashTag(msg){
+  const el=document.getElementById("tags");
+  el.insertAdjacentHTML("afterbegin",`<div class="issue" id="tagmsg">${msg}</div>`);
+  setTimeout(()=>{ const m=document.getElementById("tagmsg"); if(m) m.remove(); }, 2600);
+}
+function renderTags(){
+  const el=document.getElementById("tags");
+  if(!TAGS.length){
+    el.innerHTML=`<div class="empty">Nothing tagged yet. Select a player, then press
+      <b>t</b> on the frame they release and <b>c</b> on the frame they catch.
+      Two keys a throw is what turns the disc from a guess into a measurement.</div>`;
+    return;
+  }
+  el.innerHTML = TAGS.map((g,i)=>`<div class="issue">
+    <b>${g.type}</b> ${g.player} @ f${g.f} · ${g.t.toFixed(2)}s
+    <span class="why" style="display:inline">· ${i? "": "first"}</span></div>`).join("");
+}
+document.getElementById("tagUndo").onclick = () => { TAGS.pop(); renderTags(); draw(); };
+document.getElementById("tagDl").onclick = () => {
+  const blob=new Blob([JSON.stringify({schema:"ultimate-radar/events@1",
+    possession_id:D.possession.id,
+    note:"source is 'human' or 'suggested'. Tagged in the viewer; drop this in the "
+       + "possession directory and re-run `python -m ur.disc`.",
+    events:TAGS.map(({t,type,player,source})=>({t,type,player,source}))},null,1)],
+    {type:"application/json"});
+  const u=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=u; a.download="events.json"; a.click(); URL.revokeObjectURL(u);
+};
+
 /* ------------------------------------------------------------ transport */
 const scrub=document.getElementById("scrub"); scrub.max=NF-1;
 function frameTime(n){
@@ -1276,6 +1345,8 @@ addEventListener("keydown", e => {
   else if(e.key==="ArrowLeft"){ e.preventDefault();
     S.f=clamp(S.f-(e.shiftKey?Math.round(FPS/2):1),0,NF-1); seek(); }
   else if(e.key==="Escape"){ S.sel=null; draw(); }
+  else if(e.key==="t"||e.key==="T"){ e.preventDefault(); addTag("throw"); }
+  else if(e.key==="c"||e.key==="C"){ e.preventDefault(); addTag("catch"); }
 });
 
 /* ------------------------------------------------------- toggles, theme */
@@ -1519,6 +1590,6 @@ if(selfCheck.ok===false){
 // A currentTime set before the metadata arrives is dropped, so re-apply it once
 // the element knows its own duration — otherwise a link to #t=12 opens at 0.
 vid.addEventListener("loadedmetadata", () => { seekVideo(); sizeCanvases(); });
-renderIssues(); renderCorrections(); applyTheme(); sizeCanvases(); seek();
+renderIssues(); renderCorrections(); renderTags(); applyTheme(); sizeCanvases(); seek();
 })();
 </script>
