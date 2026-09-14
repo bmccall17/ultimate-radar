@@ -440,8 +440,17 @@ def calibrate(work: Path, *, anchor_stride: int = 20, bundle_n: int = 9,
             print(f"[calib] bundled over {len(obs)} frames -> "
                   f"C={np.round(cam_bundled.C, 2)}")
     elif verbose:
-        print(f"[calib] only {len(obs)} frames usable for the bundle; centre left "
-              "at the anchor's estimate")
+        # Two very different reasons land here and they used to print the same
+        # line. On every possession since the centre was pinned to the venue
+        # value, `obs` is never even collected, so the message read "only 0
+        # frames usable for the bundle" - which looks like a calibration that
+        # failed, on a run where nothing was attempted or needed.
+        if camera_c is not None:
+            print("[calib] bundle skipped: the camera centre is a venue fact, "
+                  "pinned (docs/28). --fit-camera-centre re-enables the solve.")
+        else:
+            print(f"[calib] only {len(obs)} frames usable for the bundle; centre "
+                  "left at the anchor's estimate")
 
     # --- which camera centre, decided rather than assumed -------------------- #
     #

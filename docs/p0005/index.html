@@ -1,0 +1,1622 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ultimate-radar</title>
+<!--
+  M6. The viewer, per docs/06-viewer.md.
+
+  Opens from file:// with no build step and no framework. It reads `data.js`
+  (the synthetic fixture, committed) and then `live-data.js` (a real possession,
+  gitignored, written by tools/make_view.py) — the second overwrites the first
+  when it exists, so a fresh clone renders the fixture and a working copy renders
+  the real thing, from the same page.
+
+  The prototype is the behavioural reference and its camera model is ported
+  verbatim, because the fixture has no video: it renders the synthetic positions
+  through a simulated pinhole. Real footage swaps that for <video> plus the
+  homography from calibration.json. Those are the two backends of `Projector`
+  below, and everything above it is written once.
+-->
+<style>
+:root{
+  --bg:#f6f7f4; --panel:#fff; --line:#dfe3da; --ink:#1b1f18; --dim:#6b7364;
+  --sol:#2f3a44; --sol-fill:#e9edf2; --chill:#2f6fd0; --chill-fill:#dbe7fa;
+  --warn:#8a5a00; --warn-bg:#fdf3dc; --ok:#2f6b3a; --field:#e7efe1;
+  --field-line:#b9c7ae; --scrim:rgba(246,247,244,.72); --sel:#b8860b;
+}
+:root[data-theme=dark]{
+  --bg:#11140f; --panel:#181c15; --line:#2b3126; --ink:#e7eae2; --dim:#8e9785;
+  --sol:#eef1ea; --sol-fill:#343b31; --chill:#5b9bf0; --chill-fill:#20304a;
+  --warn:#e0b05a; --warn-bg:#382d12; --ok:#7bc389; --field:#1d271a;
+  --field-line:#3c4a36; --scrim:rgba(17,20,15,.72); --sel:#d8a33a;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --bg:#11140f; --panel:#181c15; --line:#2b3126; --ink:#e7eae2; --dim:#8e9785;
+  --sol:#eef1ea; --sol-fill:#343b31; --chill:#5b9bf0; --chill-fill:#20304a;
+  --warn:#e0b05a; --warn-bg:#382d12; --ok:#7bc389; --field:#1d271a;
+  --field-line:#3c4a36; --scrim:rgba(17,20,15,.72); --sel:#d8a33a;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:14px/1.5 ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;
+  padding:12px 16px;border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:16px;font-weight:650;letter-spacing:.01em}
+.sub{color:var(--dim);font-size:13px}
+.spacer{flex:1}
+button,select{font:inherit;color:var(--ink);background:var(--panel);
+  border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
+button:hover{border-color:var(--dim)}
+button[aria-pressed=true]{background:var(--chill-fill);border-color:var(--chill)}
+:focus-visible{outline:2px solid var(--sel);outline-offset:2px}
+.banner{margin:10px 16px 0;padding:9px 12px;border-radius:6px;font-size:13px;
+  background:var(--warn-bg);color:var(--warn);border:1px solid currentColor}
+main{display:grid;grid-template-columns:1.45fr 1fr;gap:14px;padding:12px 16px}
+@media (max-width:980px){main{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+  overflow:hidden}
+.panel > h2{margin:0;padding:7px 11px;font-size:11px;font-weight:650;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--dim);
+  border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
+.panel > h2 .spacer{flex:1}
+.panel > h2 button{padding:2px 8px;font-size:11px;text-transform:none;
+  letter-spacing:0}
+.stage{position:relative;line-height:0;background:#000;overflow:hidden;
+  aspect-ratio:16/9}
+.stage video,.stage canvas{position:absolute;inset:0;display:block;
+  width:100%;height:100%}
+.stage video{object-fit:contain}
+#over,#radar{width:100%;height:auto;display:block}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 16px}
+input[type=range]{flex:1;min-width:180px;accent-color:var(--chill)}
+.mono{font:12px/1.4 ui-monospace,Consolas,monospace;color:var(--dim);
+  white-space:nowrap}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
+  gap:10px;padding:0 16px 8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+  padding:10px 12px}
+.card.inferred{opacity:.62}
+.card .lab{font-size:11px;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--dim)}
+.card .val{font-size:20px;font-weight:650;margin:2px 0 1px;line-height:1.2}
+.card .ctx{font-size:12px;color:var(--dim)}
+.card .exp{font-size:12px;margin-top:5px}
+.card .exp i{color:var(--dim);font-style:italic}
+.spark{display:block;width:100%;height:24px;margin:5px 0 1px;color:var(--dim);
+  opacity:.85}
+.chip{display:inline-block;font-size:10px;text-transform:uppercase;
+  letter-spacing:.06em;border:1px solid currentColor;border-radius:999px;
+  padding:0 6px;margin-left:6px;vertical-align:1px}
+.chip.measured{color:var(--ok)} .chip.partial{color:var(--warn)}
+.chip.inferred{color:var(--dim)}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{text-align:left;padding:4px 10px;border-bottom:1px solid var(--line)}
+th{color:var(--dim);font-weight:500;font-size:10.5px;text-transform:uppercase;
+  letter-spacing:.06em}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--chill-fill)}
+tbody tr[aria-selected=true]{background:var(--chill-fill);
+  box-shadow:inset 3px 0 0 var(--sel)}
+td.n{font:12px ui-monospace,Consolas,monospace}
+.issue{padding:8px 11px;border-bottom:1px solid var(--line);font-size:12.5px}
+.issue b{font-weight:650}
+.issue .why{color:var(--dim);margin:2px 0 5px}
+.issue button{padding:2px 8px;font-size:11.5px;margin-right:5px}
+.empty{padding:10px 12px;color:var(--dim);font-size:12.5px}
+footer{color:var(--dim);font-size:12px;padding:6px 16px 26px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;padding:6px 16px 0;
+  color:var(--dim);font-size:12px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:50%;
+  vertical-align:-1px;margin-right:5px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.switch{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
+.navlabel{color:var(--dim);font-size:11px;text-transform:uppercase;
+  letter-spacing:.06em;margin-right:2px}
+.navlink,.navhere{font:inherit;font-size:13px;border-radius:6px;padding:4px 9px;
+  border:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.navlink:hover{border-color:var(--dim)}
+.navhere{background:var(--chill-fill);border-color:var(--chill);cursor:default}
+</style>
+
+<header>
+  <h1>ultimate-radar</h1>
+  <div class="sub" id="subtitle"></div>
+  <nav class="switch" aria-label="possession"><span class="navlabel">possession</span><a class="navlink" href="../">p0001</a><a class="navlink" href="../p0003/">p0003</a><a class="navlink" href="../p0004/">p0004</a><span class="navhere" aria-current="page">p0005</span></nav><div class="spacer"></div>
+  <button id="theme" title="Theme">Theme: auto</button>
+  <button id="copylink">Copy link to this moment</button>
+</header>
+
+<div class="banner" id="provenance"></div>
+
+<main>
+  <section class="panel">
+    <h2>Camera view
+      <span class="spacer"></span>
+      <button id="tOverlay" aria-pressed="true">Overlay</button>
+      <button id="tMatch" aria-pressed="false">Matchups</button>
+      <button id="tChev" aria-pressed="true">Off-frame</button>
+    </h2>
+    <div class="stage" id="stage">
+      <video id="vid" playsinline preload="auto" hidden></video>
+      <canvas id="over" width="1280" height="720"></canvas>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Overhead
+      <span class="spacer"></span>
+      <button id="tSpace" aria-pressed="false">Space</button>
+      <button id="tTrails" aria-pressed="true">Trails</button>
+      <button id="tPin" aria-pressed="false">Pin</button>
+    </h2>
+    <canvas id="radar" width="840" height="400"></canvas>
+    <div class="legend">
+      <span><i style="background:var(--sol)"></i><span id="lgO"></span></span>
+      <span><i style="background:var(--chill)"></i><span id="lgD"></span></span>
+      <span>solid = observed · dashed = estimated · broken ring = identity unconfirmed · disc with no dot = not seen for over 2.2 s · ring = sigma, true scale</span>
+    </div>
+  </section>
+</main>
+
+<div class="bar">
+  <button id="play">Play</button>
+  <button id="prevThrow" title="Previous throw">&#8676;</button>
+  <input type="range" id="scrub" min="0" value="0" step="1">
+  <button id="nextThrow" title="Next throw">&#8677;</button>
+  <select id="speed"><option value="1">1×</option><option value="0.6">0.6×</option>
+    <option value="0.35">0.35×</option></select>
+  <span class="mono" id="readout"></span>
+</div>
+<canvas id="strip" height="26" style="width:calc(100% - 32px);margin:0 16px;
+  display:block;border:1px solid var(--line);border-radius:5px"></canvas>
+
+<div class="cards" id="cards"></div>
+
+<main>
+  <section class="panel">
+    <h2>Roster</h2>
+    <table id="roster"></table>
+  </section>
+  <section>
+    <div class="panel" style="margin-bottom:14px">
+      <h2>Needs a human <span class="spacer"></span><span class="mono" id="nIssues"></span></h2>
+      <div id="issues"></div>
+    </div>
+    <div class="panel">
+      <h2>Throws and catches <span class="spacer"></span>
+        <button id="tagUndo">Undo</button><button id="tagDl">Download events</button></h2>
+      <div id="tags"></div>
+    </div>
+    <div class="panel">
+      <h2>Corrections <span class="spacer"></span>
+        <button id="undo">Undo</button><button id="dl">Download log</button></h2>
+      <div id="corrections"></div>
+    </div>
+  </section>
+</main>
+
+<footer id="foot"></footer>
+
+<script>/* Built by tools/build_site.py - do not edit docs/, edit viewer/
+   and rebuild. Opens mid-possession: frame 0 is often before the tracker
+   has seen anyone, which reads as broken rather than as honest. */
+if(!/[#&]t=/.test(location.hash)){try{history.replaceState(null,"","#t=2.5")}catch(e){}}
+</script>
+<script src="possession.js"></script>
+<script>
+(() => {
+"use strict";
+const D = window.POSSESSION;
+if (!D) { document.body.innerHTML =
+  "<p style='padding:24px'>No data. Run <code>python -m tools.make_view work/p0001</code>, " +
+  "or restore <code>viewer/data.js</code>.</p>"; return; }
+
+const FPS = D.possession.fps, NF = D.possession.frames;
+const FL = D.field.length_yd, FW = D.field.width_yd, EZ = D.field.endzone_yd;
+const OFF = D.possession.offense, DEF = D.possession.defense;
+const PL = D.players, BY = Object.fromEntries(PL.map(p => [p.id, p]));
+const IW = D.camera.image_w, IH = D.camera.image_h;
+const C = D.camera.position_yd;
+const ESTIMATED = new Set(["predicted", "unknown", "interpolated"]);
+// A detection was matched to the slot in this frame. `provisional` belongs here
+// for drawing and for coverage - somebody really was seen there - but NOT for
+// metrics: it is a re-acquisition after a long gap, so whether it is the same
+// player is the open question. See MEASURABLE below and docs/25 R4.
+const ANCHORED = new Set(["observed", "confirmed", "provisional"]);
+const MEASURABLE = new Set(["observed", "confirmed"]);
+// docs/25 R5: past the predicted window the velocity estimate means nothing, so
+// the marker is not drawn at all - only the disc, anchored where the player was
+// last actually seen. A dot at a position nobody has looked at for three seconds
+// reads as information, which is the thing docs/05 exists to prevent.
+const NO_MARKER = new Set(["unknown"]);
+
+/* ---------------------------------------------------------------- state */
+const S = { f:0, playing:false, speed:1, sel:null, pin:null,
+            overlay:true, match:false, chev:true, space:false, trails:true };
+const hash = new URLSearchParams(location.hash.slice(1));
+if (hash.get("t")) S.f = clamp(Math.round(parseFloat(hash.get("t")) * FPS), 0, NF - 1);
+function clamp(v,a,b){ return v<a?a:v>b?b:v }
+
+/* ------------------------------------------------------------ projector
+   Two backends behind one interface. The fixture has no video and carries a
+   synthetic camera (aim + focal); a real possession carries the per-frame
+   homography H from calibration.json. Everything downstream is written once. */
+function sub(a,b){return [a[0]-b[0],a[1]-b[1],a[2]-b[2]]}
+function cross(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]]}
+function dot3(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]}
+function unit(a){const m=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/m,a[1]/m,a[2]/m]}
+function inv3(m){
+  const [a,b,c]=m[0],[d,e,f]=m[1],[g,h,i]=m[2];
+  const A=e*i-f*h, B=-(d*i-f*g), Cc=d*h-e*g, det=a*A+b*B+c*Cc;
+  if(!det) return null; const s=1/det;
+  return [[A*s,-(b*i-c*h)*s,(b*f-c*e)*s],[B*s,(a*i-c*g)*s,-(a*f-c*d)*s],
+          [Cc*s,-(a*h-b*g)*s,(a*e-b*d)*s]];
+}
+function mul3(m,x,y){
+  const w=m[2][0]*x+m[2][1]*y+m[2][2];
+  return [(m[0][0]*x+m[0][1]*y+m[0][2])/w,(m[1][0]*x+m[1][1]*y+m[1][2])/w,w];
+}
+const camCache = new Map();
+function projector(i){
+  if (camCache.has(i)) return camCache.get(i);
+  const pf = D.camera.per_frame[i];
+  let o = null;
+  if (pf && pf.H) {
+    // Real footage. H maps image pixel -> field yard; we need the inverse, and
+    // the inverse's overall scale sign is free because H is normalised on
+    // H[2][2]. On this broadcast every point in front of the camera comes back
+    // with w NEGATIVE, so take the sign from a point that must be in front.
+    const M = inv3(pf.H);
+    if (M) {
+      const g = mul3(pf.H, IW/2, IH-1);
+      const b = mul3(M, g[0], g[1]);
+      const sgn = b[2] >= 0 ? 1 : -1;
+      // The horizon. w = H20*u + H21*v + H22 vanishes along a line in the image,
+      // and rows on the far side of it map to points BEHIND the camera. Sampling
+      // the image's top edge without this returns nonsense — the frustum comes
+      // back inside out and the overhead view scrims the whole field.
+      const [a20, a21, a22] = pf.H[2];
+      const vis = Math.sign(mul3(pf.H, IW/2, IH-1)[2]) || 1;
+      const topV = u => {
+        if (Math.abs(a21) < 1e-12) return 0;
+        // Walk 1 px from the horizon into the visible half-plane.
+        const vh = -(a20*u + a22)/a21;
+        const step = Math.sign(a21*vis) || 1;
+        return clamp(vh + step, 0, IH-1);
+      };
+      o = {
+        kind:"homography",
+        project(x,y){ const q=mul3(M,x,y); return sgn*q[2]>1e-9?[q[0],q[1],sgn*q[2]]:null },
+        unproject(u,v){ const q=mul3(pf.H,u,v); return [q[0],q[1]] },
+        border(){ return borderPoly(this, topV) },
+        conf: pf.confidence,
+      };
+    }
+  } else if (pf && pf.aim) {
+    // The fixture's simulated pinhole, ported from the prototype.
+    const fwd=unit(sub([pf.aim[0],pf.aim[1],1.2],C));
+    const right=unit(cross(fwd,[0,0,1])), up=cross(right,fwd);
+    const R=[right,[-up[0],-up[1],-up[2]],fwd], f=pf.focal_px;
+    o = {
+      kind:"pinhole",
+      project(x,y,z){ const d=sub([x,y,z||0],C), cz=dot3(R[2],d);
+        return cz<=0.35?null:[dot3(R[0],d)/cz*f+IW/2, dot3(R[1],d)/cz*f+IH/2, cz] },
+      unproject(u,v){ const cd=[(u-IW/2)/f,(v-IH/2)/f,1];
+        const w=[R[0][0]*cd[0]+R[1][0]*cd[1]+R[2][0]*cd[2],
+                 R[0][1]*cd[0]+R[1][1]*cd[1]+R[2][1]*cd[2],
+                 R[0][2]*cd[0]+R[1][2]*cd[1]+R[2][2]*cd[2]];
+        let dz=w[2]; if(dz>-0.012) dz=-0.012; const s=-C[2]/dz;
+        return [C[0]+w[0]*s, C[1]+w[1]*s] },
+      // The dz clamp above already pushes an above-horizon ray far downfield
+      // rather than behind the camera, so the whole image border is safe here.
+      border(){ return borderPoly(this, () => 0) },
+      conf: 1,
+    };
+  }
+  camCache.set(i,o); return o;
+}
+function borderPoly(P, topV){
+  // The visible image region, walked as one loop: bottom edge left to right, up
+  // the right edge, back along the horizon, down the left edge.
+  const N = 13, pts = [];
+  const up = (u,v) => P.unproject(u, v);
+  for(let k=0;k<N;k++)   pts.push(up(IW*k/(N-1), IH-1));
+  const tr = topV(IW-1);
+  for(let k=1;k<N;k++)   pts.push(up(IW-1, tr + (IH-1-tr)*(N-1-k)/(N-1)));
+  for(let k=1;k<N;k++){ const u = IW*(N-1-k)/(N-1); pts.push(up(u, topV(u))); }
+  const tl = topV(0);
+  for(let k=1;k<N-1;k++) pts.push(up(0, tl + (IH-1-tl)*k/(N-1)));
+  return pts;
+}
+function clipRect(poly,x0,y0,x1,y1){
+  const ix=(a,b,ax,val)=>{const t=(val-a[ax])/((b[ax]-a[ax])||1e-9);
+    return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t]};
+  const edges=[[p=>p[0]>=x0,(a,b)=>ix(a,b,0,x0)],[p=>p[0]<=x1,(a,b)=>ix(a,b,0,x1)],
+               [p=>p[1]>=y0,(a,b)=>ix(a,b,1,y0)],[p=>p[1]<=y1,(a,b)=>ix(a,b,1,y1)]];
+  let out=poly;
+  for(const [inside,inter] of edges){
+    const src=out; out=[];
+    for(let k=0;k<src.length;k++){
+      const a=src[(k+src.length-1)%src.length], b=src[k];
+      const ia=inside(a), ib=inside(b);
+      if(ib){ if(!ia) out.push(inter(a,b)); out.push(b); } else if(ia) out.push(inter(a,b));
+    }
+    if(!out.length) return [];
+  }
+  return out;
+}
+const fruCache = new Map();
+function frustum(i){
+  if (fruCache.has(i)) return fruCache.get(i);
+  const P = projector(i);
+  let poly = [];
+  if (P) poly = clipRect(P.border().filter(p=>isFinite(p[0])&&isFinite(p[1])),
+                         -2, -2, FL+2, FW+2);
+  fruCache.set(i,poly); return poly;
+}
+
+/* ------------------------------------------------------------ corrections
+   AD-6: the log is the record; the tracks are not edited. The page keeps it in
+   memory and hands it back as corrections.json, because a file:// page cannot
+   write to disk and pretending otherwise would lose a coach's work. */
+const LOG = [];
+let logSeq = 0;
+function addCorrection(c){ LOG.push({id:"c"+(++logSeq), at:new Date().toISOString(), ...c});
+  applyLog(); renderCorrections(); }
+function undo(){ for(let k=LOG.length-1;k>=0;k--){ if(LOG[k].op!=="revert"){
+  LOG.push({id:"r"+(++logSeq), at:new Date().toISOString(), op:"revert", target:LOG[k].id});
+  break; } } applyLog(); renderCorrections(); }
+
+// Base copies, so replaying the log never compounds.
+const BASE = PL.map(p => ({est:p.est.map(v=>v?v.slice():null), state:p.state.slice(),
+                           sigma:p.sigma.slice()}));
+function applyLog(){
+  PL.forEach((p,k)=>{ p.est=BASE[k].est.map(v=>v?v.slice():null);
+    p.state=BASE[k].state.slice(); p.sigma=BASE[k].sigma.slice(); });
+  const reverted=new Set(LOG.filter(c=>c.op==="revert").map(c=>c.target));
+  for(const c of LOG){
+    if(c.op==="revert"||reverted.has(c.id)) continue;
+    if(c.op==="anchor") anchor(BY[c.slot], c.f, c.xy);
+    else if(c.op==="swap") swap(BY[c.slots[0]], BY[c.slots[1]], c.from_f);
+    else if(c.op==="confirm") confirm_(BY[c.slot], c.f);
+  }
+  invalidate();
+}
+function anchor(p,f,xy){
+  // docs/05: ramp the offset 0->1 from the last anchored frame to f, 1->0 to the
+  // next, so the corrected path still meets the machine's observations.
+  let lo=null,hi=null;
+  for(let k=f;k>=0;k--) if(ANCHORED.has(p.state[k])){lo=k;break}
+  for(let k=f;k<NF;k++) if(ANCHORED.has(p.state[k])){hi=k;break}
+  const cur = p.est[f] ? p.est[f] : xy;
+  const dx = xy[0]-cur[0], dy = xy[1]-cur[1];
+  const a = lo===null?0:lo, b = hi===null?NF-1:hi;
+  for(let k=a;k<=b;k++){
+    let w = k===f?1 : k<f ? (lo===null||f===lo?1:(k-lo)/(f-lo))
+                          : (hi===null||hi===f?1:(hi-k)/(hi-f));
+    if(w<=0) continue;
+    if(!p.est[k]){ if(k!==f) continue; p.est[k]=[xy[0],xy[1]]; }
+    else p.est[k]=[p.est[k][0]+dx*w, p.est[k][1]+dy*w];
+    p.sigma[k]=p.sigma[k]*(1-w)+0.3*w;
+  }
+  p.est[f]=[xy[0],xy[1]]; p.state[f]="confirmed"; p.sigma[f]=0.3;
+}
+function confirm_(p,f){
+  if(!p.est[f]) return;              // nothing to affirm; ur/resolve.py refuses too
+  p.state[f]="confirmed"; p.sigma[f]=0.3;
+}
+function swap(a,b,from){
+  for(const key of ["est","state","sigma"]){
+    const ta=a[key].slice(from), tb=b[key].slice(from);
+    a[key]=a[key].slice(0,from).concat(tb); b[key]=b[key].slice(0,from).concat(ta);
+  }
+}
+
+/* -------------------------------------------------------------- analysis */
+let memo = {};
+function invalidate(){ memo = {}; }
+function at(p,f){ return p.est[f] }
+function dist(a,b){ return Math.hypot(a[0]-b[0], a[1]-b[1]) }
+function coverage(f){ return PL.filter(p=>ANCHORED.has(p.state[f])).length }
+
+// Nearest opponent per defender, and how stable that has been over 2 s.
+function assignments(f){
+  const key="as"+f; if(memo[key]) return memo[key];
+  const W = Math.round(2*FPS), lo=Math.max(0,f-W);
+  const defs = PL.filter(p=>p.team===DEF), offs = PL.filter(p=>p.team===OFF);
+  const out = {};
+  for(const d of defs){
+    const tally = {};
+    for(let k=lo;k<=f;k++){
+      const dp = at(d,k); if(!dp) continue;
+      let best=null,bd=1e9;
+      for(const o of offs){ const op=at(o,k); if(!op) continue;
+        const v=dist(dp,op); if(v<bd){bd=v;best=o.id} }
+      if(best) tally[best]=(tally[best]||0)+1;
+    }
+    const n = Object.values(tally).reduce((a,b)=>a+b,0);
+    let top=null,tc=0; for(const [k,v] of Object.entries(tally)) if(v>tc){tc=v;top=k}
+    const dp=at(d,f), op=top?at(BY[top],f):null;
+    // A range between two markers is only a measurement when both markers are
+    // measurements. A defender nobody has seen for three seconds has a position
+    // the tracker is explicit about not trusting, and subtracting it from an
+    // attacker's gives a number that looks like a gap and is arithmetic on a
+    // guess. `range` is null in that case and the cards say why rather than
+    // narrating it - this is what produced "D3 at 11.4 yd, that is the story of
+    // this moment" about a slot that was a ghost in open grass.
+    const seen = ANCHORED.has(d.state[f]) && !!top && ANCHORED.has(BY[top].state[f]);
+    out[d.id]={mark:top, stability:n?tc/n:0, seen,
+               range:(seen&&dp&&op)?dist(dp,op):null};
+  }
+  memo[key]=out; return out;
+}
+// The last frame before f at which this slot had any position at all.
+function lastKnown(p,f){
+  for(let k=f-1;k>=0;k--){ const xy=at(p,k); if(xy) return {xy,f:k}; }
+  return null;
+}
+// What is off the edge of this frame, and what is off the edge of knowledge.
+// Computed in IMAGE pixels rather than canvas pixels so it survives a resize
+// and cannot disagree with drawCamera, which applies the same bound after a
+// uniform scale. Two populations, and docs/05 says both must be visible:
+//   away  - a known position that projects outside the frame -> solid chevron
+//   lost  - no position at all, a slot `unknown` long enough that dead
+//           reckoning was abandoned -> hollow chevron at the last bearing, or
+//           a flagged roster row when there is no last bearing to point at.
+function offFrame(f){
+  const key="off"+f; if(memo[key]) return memo[key];
+  const P=projector(f);
+  const away=[], lost=[], blind=[];
+  for(const p of PL){
+    const xy=at(p,f);
+    if(!xy){ (lastKnown(p,f)?lost:blind).push(p.id); continue; }
+    // Not blank for want of a position - blank because every position the
+    // estimate allows is ground the camera has searched. Same roster treatment.
+    if(p.covered && p.covered[f] && NO_MARKER.has(p.state[f])){
+      blind.push(p.id); continue;
+    }
+    if(!P) continue;
+    const q=P.project(xy[0],xy[1],0);
+    if(!q || q[0]<0 || q[0]>IW || q[1]<0 || q[1]>IH) away.push(p.id);
+  }
+  const out={away, lost, blind, marks:away.length+lost.length};
+  memo[key]=out; return out;
+}
+// docs/06: covering = stability > 0.6 AND distance < 5.5 yd.
+function scheme(f){
+  const a=assignments(f);
+  const all=Object.entries(a);
+  // Only matchups where both players were actually seen this frame can be judged.
+  // The rest are not "not covering" - they are unjudged, and the difference
+  // matters: calling an unseen defender adrift invents a defensive breakdown.
+  const rows=all.filter(([,v])=>v.seen);
+  const unseen=all.length-rows.length;
+  const cov=rows.filter(([,v])=>v.stability>0.6 && v.range!==null && v.range<5.5);
+  const adrift=rows.filter(([,v])=>!(v.stability>0.6 && v.range!==null && v.range<5.5))
+                   .map(([k,v])=>({slot:k, range:v.range}));
+  const n=cov.length;
+  // The label is judged against what could be judged, not against seven.
+  const label = !rows.length ? "Not seen"
+    : n>=Math.max(1,rows.length-1) ? "Person"
+    : n<=Math.floor(rows.length/2) ? "Zone or junk"
+    : `Person, ${rows.length-n} off`;
+  const stab = rows.length ? rows.reduce((s,[,v])=>s+v.stability,0)/rows.length : 0;
+  return {label, covering:n, judged:rows.length, unseen, adrift, stability:stab};
+}
+function series(key, fn){
+  if(!memo[key]) memo[key] = Array.from({length:NF}, (_,f)=>fn(f));
+  return memo[key];
+}
+function spark(vals){
+  // A sparkline over the whole possession, with a marker at the current frame.
+  // docs/06 asks for one on Coverage and on Shape lag: both are only readable
+  // against their own history.
+  const w=132, h=24, hi=Math.max(1, ...vals.filter(v=>v!==null&&isFinite(v)));
+  let d="", pen=false;
+  vals.forEach((v,i)=>{
+    if(v===null||!isFinite(v)){ pen=false; return; }
+    const x=(i/(NF-1)*w).toFixed(1), y=(h-1-(v/hi)*(h-2)).toFixed(1);
+    d += (pen?"L":"M")+x+" "+y+" "; pen=true;
+  });
+  const cx=(S.f/(NF-1)*w).toFixed(1);
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}"
+    preserveAspectRatio="none" aria-hidden="true">
+    <path d="${d}" fill="none" stroke="currentColor" stroke-width="1.2"/>
+    <line x1="${cx}" y1="0" x2="${cx}" y2="${h}" stroke="currentColor"
+      stroke-width="1" opacity=".55"/></svg>`;
+}
+function centroid(team,f){
+  const ps=PL.filter(p=>p.team===team).map(p=>at(p,f)).filter(Boolean);
+  if(!ps.length) return null;
+  return [ps.reduce((s,p)=>s+p[0],0)/ps.length, ps.reduce((s,p)=>s+p[1],0)/ps.length];
+}
+function shapeLag(f){ const a=centroid(OFF,f), b=centroid(DEF,f);
+  return (a&&b)?Math.abs(a[1]-b[1]):null }
+// Tags made in this session count immediately. They are not in D.events - that
+// is what the file on disk said when the page loaded - but making a tag and
+// watching the card below still say "no throw tagged yet" reads as the tagging
+// being broken, and the whole point of two keystrokes is that you see them work.
+// Declared here rather than beside the tagging pane below because the metric
+// cards read it, and a `const` referenced before its declaration runs is a
+// ReferenceError rather than an undefined.
+const TAGS = [];
+function allEvents(){
+  return (D.events||[]).concat(TAGS).slice().sort((a,b)=>a.t-b.t);
+}
+function lastThrow(f){
+  const all=allEvents();
+  const ev=all.filter(e=>e.type==="throw" && e.t*FPS<=f);
+  if(!ev.length) return null;
+  const th=ev[ev.length-1];
+  if(th.target) return th;
+  // The receiver is not a third keystroke. A `catch` tagged after a `throw` names
+  // whoever caught it, which is exactly what a target is; asking a tagger to fill
+  // a `target` field as well would be asking twice for the same fact.
+  const c=all.find(e=>e.type==="catch" && e.t>th.t);
+  return c ? Object.assign({}, th, {target:c.player, catch_t:c.t}) : th;
+}
+function discTrusted(f){
+  // A disc position exists for every frame, and most of them are not worth
+  // anything. `ur.disc` scores its own holder sequence against physics and the
+  // sport, and when that fails it emits every inferred sample as `unknown` rather
+  // than as a position - so the test is the evidence state, not the presence of
+  // a number. docs/27.
+  const m=D.disc_meta;
+  if(!m) return !!(D.disc&&D.disc[f]);
+  const st=m.state[f];
+  return !!(D.disc&&D.disc[f]) && (st==="confirmed"||st==="interpolated");
+}
+function discHolder(f){
+  const m=D.disc_meta;
+  if(m) return discTrusted(f) ? m.holder[f] : null;
+  if(!D.disc||!D.disc[f]) return null;
+  const d=D.disc[f]; let best=null,bd=3.0;
+  for(const p of PL.filter(p=>p.team===OFF)){ const q=at(p,f); if(!q) continue;
+    const v=dist(q,d); if(v<bd){bd=v;best=p.id} }
+  return best;
+}
+// docs/05: measured needs every contributor observed/confirmed AND coverage >= 11.
+function evidence(f, slots){
+  const st = slots.map(s=>BY[s]&&BY[s].state[f]).filter(Boolean);
+  if(!st.length) return "inferred";
+  if(st.some(s=>!MEASURABLE.has(s))) return "inferred";
+  return coverage(f)>=11 ? "measured" : "partial";
+}
+
+/* ---------------------------------------------------------------- render */
+const over=document.getElementById("over"), octx=over.getContext("2d");
+const radar=document.getElementById("radar"), rctx=radar.getContext("2d");
+const strip=document.getElementById("strip"), sctx=strip.getContext("2d");
+const vid=document.getElementById("vid");
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const teamColour = t => t===OFF ? css("--sol") : css("--chill");
+// Ink for the overlay canvas ONLY. That canvas is over video, whose brightness
+// has nothing to do with the theme, so these are literals rather than css(--..).
+// Team colours are the deliberate exception: they carry identity, not contrast.
+const ONVID = "rgba(255,255,255,.92)";   // near-white stroke
+const HALO  = "rgba(10,14,10,.55)";      // dark halo under it
+const WARN_ONVID = "#ffcf5c";
+
+if (D.video_src) { vid.src = D.video_src; vid.hidden = false; }
+
+function sizeCanvases(){
+  const R = Math.min(2, devicePixelRatio || 1);
+  const stage = document.getElementById("stage");
+  stage.style.aspectRatio = `${IW} / ${IH}`;
+  const sr = stage.getBoundingClientRect();
+  over.width  = Math.max(2, Math.round((sr.width  || 640) * R));
+  over.height = Math.max(2, Math.round((sr.height || 360) * R));
+  const rw = radar.parentElement.clientWidth || 420;
+  radar.style.width = "100%"; radar.style.height = "auto";
+  radar.width = Math.max(2, Math.round(rw * R));
+  radar.height = Math.round(radar.width * FW / FL * 1.06);
+  strip.width = Math.max(2, Math.round(strip.clientWidth * R));
+  draw();
+}
+addEventListener("resize", sizeCanvases);
+
+function dpr(c){
+  // Backing-store pixels per CSS pixel, measured rather than assumed: strokes
+  // and type are specified in CSS px so they look the same at 1x and 2x.
+  const w = c.getBoundingClientRect().width;
+  return w > 1 ? c.width / w : 1;
+}
+function ringPath(ctx,P,x,y,r,scale){
+  ctx.beginPath();
+  for(let k=0;k<=24;k++){
+    const th=k/24*Math.PI*2;
+    const q=P.project(x+r*Math.cos(th), y+r*Math.sin(th), 0);
+    if(!q) return false;
+    k?ctx.lineTo(q[0]*scale,q[1]*scale):ctx.moveTo(q[0]*scale,q[1]*scale);
+  }
+  ctx.closePath(); return true;
+}
+
+
+// The kit as the camera sees it, which is not the overlay palette: the rings take
+// team colour from the UI tokens, the bodies are the jerseys themselves.
+const KIT = { sol:{top:"#EFF0E9", bot:"#2A2E33"}, chill:{top:"#18294B", bot:"#0F1728"} };
+
+function drawSyntheticScene(P,s){
+  // The fixture has no footage, so nothing paints behind the overlay and the camera
+  // pane renders black with rings floating on it - which is what a fresh clone showed
+  // before this existed. Draw the scene the pinhole implies. Ported from
+  // viewer/prototype.html drawVideo(); real footage has the video and skips this.
+  const g=octx, f=S.f, W=over.width, H=over.height, BRICK=D.field.brick_yd||20;
+  const gp=(x,y,z)=>{ const q=P.project(x,y,z||0); return q?[q[0]*s,q[1]*s,q[2]]:null; };
+  const sky=g.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,"#0B1016"); sky.addColorStop(1,"#141B18");
+  g.fillStyle=sky; g.fillRect(0,0,W,H);
+  const quad=(pts,fill)=>{ const q=pts.map(t=>gp(t[0],t[1])); if(q.some(t=>!t)) return;
+    g.beginPath(); g.moveTo(q[0][0],q[0][1]);
+    for(let i=1;i<q.length;i++) g.lineTo(q[i][0],q[i][1]);
+    g.closePath(); g.fillStyle=fill; g.fill(); };
+  quad([[-40,-30],[FL+40,-30],[FL+40,FW+40],[-40,FW+40]],"#1B2A1B");
+  for(let x=0;x<FL;x+=5) quad([[x,0],[x+5,0],[x+5,FW],[x,FW]],(x/5)%2?"#31552F":"#365C33");
+  quad([[0,0],[EZ,0],[EZ,FW],[0,FW]],"rgba(20,60,90,.30)");
+  quad([[FL-EZ,0],[FL,0],[FL,FW],[FL-EZ,FW]],"rgba(120,70,20,.26)");
+  // UFA rule 2.1.3 - all field lines are painted 4" wide. Measure that width where the
+  // line actually is rather than scaling by depth: project a 4" offset at the midpoint
+  // and use the distance. A far line then thins the way a real one does.
+  const YD_4IN = 4/36;
+  const line=(a,b)=>{ const p=gp(a[0],a[1]), q=gp(b[0],b[1]); if(!p||!q) return;
+    const mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2;
+    const dx=b[0]-a[0], dy=b[1]-a[1], L=Math.hypot(dx,dy)||1;
+    const n=[-dy/L*YD_4IN, dx/L*YD_4IN];
+    const m0=gp(mx,my), m1=gp(mx+n[0],my+n[1]);
+    const wpx=(m0&&m1)?Math.hypot(m1[0]-m0[0],m1[1]-m0[1]):1;
+    g.beginPath(); g.moveTo(p[0],p[1]); g.lineTo(q[0],q[1]);
+    g.strokeStyle="rgba(240,244,238,.86)";
+    g.lineWidth=Math.max(1, Math.min(wpx, 14*s)); g.stroke(); };
+  line([0,0],[FL,0]); line([0,FW],[FL,FW]);
+  [0,EZ,FL-EZ,FL].forEach(x=>line([x,0],[x,FW]));
+  [BRICK,FL-BRICK].forEach(x=>{ line([x-0.7,FW/2],[x+0.7,FW/2]);
+                                line([x,FW/2-0.7],[x,FW/2+0.7]); });
+  g.globalAlpha=.4;
+  for(let x=EZ+10;x<FL-EZ;x+=10){ line([x,0],[x,0.9]); line([x,FW-0.9],[x,FW]); }
+  g.globalAlpha=1;
+  // Bodies come from truth, not from est. The overlay is the estimate; where the two
+  // disagree you are looking at the tracker being wrong, which is the point.
+  const at_=p=>(p.truth&&p.truth[f])||p.est[f];
+  const order=[];
+  for(const p of PL){ const xy=at_(p); if(!xy) continue;
+    const c=gp(xy[0],xy[1],0); if(c) order.push({p,xy,c}); }
+  order.sort((a,b)=>b.c[2]-a.c[2]);
+  for(const {p,xy,c} of order){
+    const head=gp(xy[0],xy[1],1.82); if(!head) continue;
+    const h=c[1]-head[1]; if(h<3) continue;
+    const w=h*0.30, J=KIT[p.team]||KIT.sol;
+    g.save(); g.globalAlpha=.32; g.fillStyle="#0B140B";
+    g.beginPath(); g.ellipse(c[0],c[1],w*0.72,w*0.28,0,0,7); g.fill(); g.restore();
+    g.fillStyle=J.bot; g.fillRect(c[0]-w/2,c[1]-h*0.46,w,h*0.46);
+    g.fillStyle=J.top; g.fillRect(c[0]-w/2,c[1]-h*0.86,w,h*0.42);
+    g.fillStyle="#C99A73"; g.beginPath(); g.arc(c[0],c[1]-h*0.92,h*0.11,0,7); g.fill();
+  }
+  if(discTrusted(f)){ const d=D.disc[f], dp=gp(d[0],d[1],d[2]);
+    if(dp){ g.save(); g.translate(dp[0],dp[1]);
+      const r=Math.max(2,900/dp[2]*0.36)*s;
+      g.fillStyle="#F6F7F2"; g.beginPath(); g.ellipse(0,0,r,r*0.42,0,0,7); g.fill();
+      g.strokeStyle="rgba(20,30,20,.55)"; g.lineWidth=Math.max(.7,r*0.13); g.stroke();
+      g.restore(); } }
+  const vg=g.createRadialGradient(W/2,H/2,H*0.35,W/2,H/2,H*0.95);
+  vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(1,"rgba(0,0,0,.42)");
+  g.fillStyle=vg; g.fillRect(0,0,W,H);
+}
+
+function drawCamera(){
+  octx.setTransform(1,0,0,1,0,0);
+  octx.clearRect(0,0,over.width,over.height);
+  const P=projector(S.f), s=over.width/IW, k=dpr(over);
+  // Scene first, then rings on top. The Overlay toggle governs the rings, not the
+  // pitch, so turning it off shows the bare view rather than a black rectangle.
+  if(vid.hidden && P && P.kind==="pinhole") drawSyntheticScene(P,s);
+  if(!S.overlay) return;
+  // s maps image pixels to canvas pixels; the stage carries the image aspect,
+  // so one scale covers both axes.
+  if(!P){
+    octx.font=`${13*k}px ui-monospace,Consolas,monospace`;
+    const msg="No calibration on this frame — nothing is drawn, because nothing is known.";
+    octx.lineWidth=4*k; octx.strokeStyle=HALO; octx.strokeText(msg,16*k,30*k);
+    octx.fillStyle=WARN_ONVID; octx.fillText(msg,16*k,30*k);
+    octx.lineWidth=1;
+    return;
+  }
+  const a=assignments(S.f), holder=discHolder(S.f);
+  const sel=S.sel, selMark = sel && a[sel] ? a[sel].mark : null;
+  const keep = id => !sel || id===sel || id===selMark ||
+                     (a[id] && a[id].mark===sel);
+
+  if(S.match){
+    // This canvas sits on VIDEO, not on the page background, so it cannot take
+    // colours from the UI palette: --dim (#6b7364) at 1.2px over floodlit grass
+    // drew 434 lit pixels and was invisible to a person. Anything on the overlay
+    // gets its own treatment - a dark halo under a near-white stroke - and is
+    // specified in literals so a theme change cannot make it disappear again.
+    octx.setLineDash([5*k,4*k]);
+    for(const [d,v] of Object.entries(a)){
+      if(!v.mark||!keep(d)) continue;
+      const p=at(BY[d],S.f), q=at(BY[v.mark],S.f); if(!p||!q) continue;
+      const pa=P.project(p[0],p[1],0), pb=P.project(q[0],q[1],0);
+      if(!pa||!pb) continue;
+      octx.beginPath(); octx.moveTo(pa[0]*s,pa[1]*s); octx.lineTo(pb[0]*s,pb[1]*s);
+      octx.strokeStyle=HALO; octx.lineWidth=4.4*k; octx.stroke();
+      octx.strokeStyle=ONVID; octx.lineWidth=2.2*k; octx.stroke();
+    }
+    octx.setLineDash([]); octx.lineWidth=1;
+  }
+
+  for(const p of PL){
+    const st=p.state[S.f], xy=at(p,S.f);
+    const col=teamColour(p.team), on=keep(p.id);
+    if(!xy){
+      // No position at all. docs/05: the viewer must never silently show
+      // nothing - a slot with a last bearing gets a hollow chevron pointing
+      // at it, one with no history at all is carried by the roster flag.
+      const lk=lastKnown(p,S.f);
+      if(S.chev && lk){ octx.globalAlpha = on?1:0.22;
+        drawChevron(p,lk.xy,col,s,k,(S.f-lk.f)/FPS); octx.globalAlpha=1; }
+      continue;
+    }
+    octx.globalAlpha = on?1:0.22;
+    const q=P.project(xy[0],xy[1],0);
+    if(!q){
+      if(S.chev) drawChevron(p,xy,col,s,k);
+      octx.globalAlpha=1; continue;
+    }
+    const u=q[0]*s, v=q[1]*s;
+    // Same bound as offFrame(), in image pixels, so the count on the control
+    // and the marks on the canvas cannot drift apart.
+    if(q[0]<0||q[0]>IW||q[1]<0||q[1]>IH){
+      if(S.chev) drawChevron(p,xy,col,s,k);
+      octx.globalAlpha=1; continue;
+    }
+    // A ground ring at ~0.95 yd so it sits on the grass, per docs/06.
+    octx.strokeStyle=col; octx.lineWidth=1.9*k;
+    octx.setLineDash(ANCHORED.has(st)?[]:[5*k,4*k]);
+    if(ringPath(octx,P,xy[0],xy[1],0.95,s)) octx.stroke();
+    octx.setLineDash([]);
+    if(ANCHORED.has(st)){ octx.fillStyle=col; octx.beginPath();
+      octx.arc(u,v,2.8*k,0,7); octx.fill(); }
+    if(st==="provisional"){ octx.strokeStyle=col; octx.lineWidth=1.3*k;
+      octx.setLineDash([2.5*k,2.5*k]); octx.beginPath();
+      octx.arc(u,v,5.6*k,0,7); octx.stroke(); octx.setLineDash([]); }
+    // Labels only for the selected player, their matchup, and the disc holder.
+    if(p.id===sel||p.id===selMark||p.id===holder){
+      const t=p.jersey?`${p.id} #${p.jersey}`:p.id;
+      octx.font=`600 ${13*k}px ui-sans-serif,system-ui`;
+      octx.lineWidth=3.5*k; octx.strokeStyle=HALO;
+      octx.strokeText(t,u+10*k,v-10*k); octx.fillStyle=col;
+      octx.fillText(t,u+10*k,v-10*k);
+    }
+    octx.globalAlpha=1;
+  }
+}
+function drawChevron(p,xy,col,s,k,staleS){
+  // docs/06: non-negotiable. Without it the overlay implies the off-frame
+  // players do not exist. `staleS` marks the weaker case - xy is not where the
+  // player is, it is where they were last seen - and is drawn hollow, because
+  // a solid chevron would claim a position the tracker has given up on.
+  const P=projector(S.f); if(!P) return;
+  const c=[FL/2,FW/2], mid=P.project(c[0],c[1],0);
+  let ang=Math.atan2(xy[1]-c[1], xy[0]-c[0]);
+  const q=P.project(xy[0],xy[1],0);
+  let u,v;
+  if(q){ u=clamp(q[0]*s,14*k,over.width-14*k); v=clamp(q[1]*s,14*k,over.height-14*k);
+         ang=Math.atan2(q[1]*s-over.height/2, q[0]*s-over.width/2); }
+  else { u=over.width/2+Math.cos(ang)*over.width*0.45;
+         v=over.height/2+Math.sin(ang)*over.height*0.45;
+         u=clamp(u,14*k,over.width-14*k); v=clamp(v,14*k,over.height-14*k); }
+  octx.save(); octx.translate(u,v); octx.rotate(ang);
+  octx.globalAlpha=0.85;
+  octx.beginPath(); octx.moveTo(10*k,0); octx.lineTo(-7*k,6*k); octx.lineTo(-7*k,-6*k);
+  octx.closePath();
+  if(staleS===undefined){ octx.fillStyle=col; octx.fill(); }
+  else { octx.strokeStyle=col; octx.lineWidth=1.8*k; octx.setLineDash([3*k,2.5*k]);
+         octx.stroke(); octx.setLineDash([]); }
+  octx.restore();
+  octx.globalAlpha=1;
+  octx.font=`${11*k}px ui-monospace,Consolas,monospace`;
+  const sig=p.sigma[S.f];
+  const lab = staleS!==undefined ? `${p.id} lost ${staleS.toFixed(1)}s`
+            : `${p.id} ±${(sig??0).toFixed(0)}yd`;
+  octx.lineWidth=3.2*k; octx.strokeStyle=HALO; octx.strokeText(lab, u+11*k, v+4*k);
+  octx.fillStyle=ONVID; octx.fillText(lab, u+11*k, v+4*k);
+  octx.lineWidth=1;
+}
+
+let RK = 1, RPAD = 20;
+const RPAD_CSS = 10;
+function rx(x){ return RPAD + x/FL*(radar.width-2*RPAD) }
+// Field y=0 is the NEAR sideline - the one the camera stands on - so it is at
+// the BOTTOM of the overhead view. Projecting frame 93's homography puts y=0 at
+// image v=1164 (below the frame) and y=53.3 at v=432: in the video y increases
+// upward, and the radar has to agree or every cutter appears on the wrong side.
+// `radarContradiction()` asserts exactly that and is the reason this is not a
+// comment. The long axis needs no flip - field x to image u correlates +0.995.
+function ry(y){ return RPAD + (FW-y)/FW*(radar.height-2*RPAD) }
+function rxi(u){ return (u-RPAD)/(radar.width-2*RPAD)*FL }
+function ryi(v){ return FW - (v-RPAD)/(radar.height-2*RPAD)*FW }
+
+function drawRadar(){
+  RK = dpr(radar); RPAD = RPAD_CSS * RK;
+  rctx.setTransform(1,0,0,1,0,0);
+  rctx.clearRect(0,0,radar.width,radar.height);
+  rctx.fillStyle=css("--field");
+  rctx.fillRect(rx(0),ry(0),rx(FL)-rx(0),ry(FW)-ry(0));
+  rctx.fillStyle=css("--field-line"); rctx.globalAlpha=.25;
+  rctx.fillRect(rx(0),ry(0),rx(EZ)-rx(0),ry(FW)-ry(0));
+  rctx.fillRect(rx(FL-EZ),ry(0),rx(FL)-rx(FL-EZ),ry(FW)-ry(0));
+  rctx.globalAlpha=1;
+
+  if(S.space) drawSpace();
+
+  const fp=frustum(S.f);
+  if(fp.length>2){
+    // Scrim everything the camera cannot see. docs/06 calls this the most
+    // important element on the page, and it is: it answers "why is that player
+    // a ghost" without a legend.
+    rctx.save();
+    rctx.beginPath(); rctx.rect(rx(0),ry(0),rx(FL)-rx(0),ry(FW)-ry(0));
+    rctx.moveTo(rx(fp[0][0]),ry(fp[0][1]));
+    for(let k=fp.length-1;k>=1;k--) rctx.lineTo(rx(fp[k][0]),ry(fp[k][1]));
+    rctx.closePath(); rctx.fillStyle=css("--scrim"); rctx.fill("evenodd");
+    rctx.restore();
+    rctx.setLineDash([6*RK,4*RK]); rctx.strokeStyle=css("--field-line");
+    rctx.lineWidth=1.4*RK;
+    rctx.beginPath(); fp.forEach((p,k)=>k?rctx.lineTo(rx(p[0]),ry(p[1]))
+                                         :rctx.moveTo(rx(p[0]),ry(p[1])));
+    rctx.closePath(); rctx.stroke(); rctx.setLineDash([]);
+  }
+
+  rctx.strokeStyle=css("--field-line"); rctx.lineWidth=1*RK;
+  for(let x=10;x<FL;x+=10){ rctx.globalAlpha=(x===EZ||x===FL-EZ)?.95:.35;
+    rctx.beginPath(); rctx.moveTo(rx(x),ry(0)); rctx.lineTo(rx(x),ry(FW)); rctx.stroke(); }
+  rctx.globalAlpha=1;
+  rctx.strokeRect(rx(0),ry(0),rx(FL)-rx(0),ry(FW)-ry(0));
+  rctx.fillStyle=css("--dim");
+  // Brick marks: where the disc starts after a pull out of bounds.
+  const brick = D.field.brick_yd;
+  if(brick){
+    rctx.lineWidth=1.2*RK;
+    for(const bx of [EZ+brick, FL-EZ-brick]){
+      const cx=rx(bx), cy=ry(FW/2), a=3*RK;
+      rctx.beginPath(); rctx.moveTo(cx-a,cy); rctx.lineTo(cx+a,cy);
+      rctx.moveTo(cx,cy-a); rctx.lineTo(cx,cy+a); rctx.stroke();
+    }
+  }
+  rctx.font=`${10*RK}px ui-sans-serif,system-ui`;
+  rctx.fillText("attacking →", rx(FL/2)-22*RK, ry(FW)-3*RK);
+
+  if(S.pin!==null) drawFormation(S.pin, true);
+  if(S.trails) drawTrails();
+  drawFormation(S.f, false);
+
+  if(discTrusted(S.f)){
+    const d=D.disc[S.f];
+    rctx.beginPath(); rctx.arc(rx(d[0]),ry(d[1]),3*RK,0,7);
+    rctx.fillStyle=css("--ink"); rctx.fill();
+  }
+}
+const hatches = new Map();
+function hatch(colour){
+  // Diagonal hatching for cells owned by a player nobody can currently see. A
+  // fainter tint would read as "less space"; hatching reads as "less certain".
+  if(hatches.has(colour)) return hatches.get(colour);
+  const c=document.createElement("canvas"); c.width=c.height=6;
+  const g=c.getContext("2d");
+  g.strokeStyle=colour; g.lineWidth=1.4; g.globalAlpha=0.85;
+  g.beginPath(); g.moveTo(-1,5); g.lineTo(5,-1); g.moveTo(1,7); g.lineTo(7,1);
+  g.stroke();
+  const pat=rctx.createPattern(c,"repeat");
+  hatches.set(colour,pat); return pat;
+}
+function owners(f){
+  // Nearest-player Voronoi at docs/06's 1 yd resolution, memoised per frame so
+  // that playing at 15 fps does not recompute it on every draw.
+  const key="vor"+f; if(memo[key]) return memo[key];
+  // A slot in NO_MARKER state owns no ground. It is not merely unobserved - the
+  // tracker has recorded that the camera was pointed at its estimate and found
+  // nobody, so letting it claim territory hands a chunk of the field to a player
+  // who is provably not standing there. A short `predicted` gap still counts, and
+  // its cells are hatched by drawSpace to say the claim rests on a guess.
+  const pts=PL.map(p=>({p, xy:at(p,f)}))
+              .filter(o=>o.xy && !NO_MARKER.has(o.p.state[f]));
+  const W=Math.ceil(FL), Hh=Math.ceil(FW), g=new Array(W*Hh).fill(null);
+  for(let x=0;x<W;x++) for(let y=0;y<Hh;y++){
+    let best=null,bd=1e9;
+    for(const o of pts){ const v=(o.xy[0]-x-0.5)**2+(o.xy[1]-y-0.5)**2;
+      if(v<bd){bd=v;best=o.p} }
+    g[y*W+x]=best;
+  }
+  memo[key]={g,W,H:Hh}; return memo[key];
+}
+function drawSpace(){
+  const {g,W,H} = owners(S.f);
+  // ry() decreases with y, so the cell height is |ry(1)-ry(0)| and each cell is
+  // anchored at ry(y)-ch+1 - its top edge - or the whole layer shifts one cell.
+  const cw = rx(1)-rx(0)+1, ch = Math.abs(ry(1)-ry(0))+1;
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+    const p=g[y*W+x]; if(!p) continue;
+    const guess=!ANCHORED.has(p.state[S.f]);
+    const col=teamColour(p.team);
+    if(guess){ rctx.globalAlpha=0.5; rctx.fillStyle=hatch(col); }
+    else { rctx.globalAlpha=0.2; rctx.fillStyle=col; }
+    rctx.fillRect(rx(x),ry(y)-ch+1,cw,ch);
+  }
+  rctx.globalAlpha=1;
+}
+function drawTrails(){
+  const back=Math.round(2.6*FPS);
+  for(const p of PL){
+    if(S.sel && p.id!==S.sel) continue;
+    for(let k=Math.max(1,S.f-back);k<=S.f;k++){
+      const a=at(p,k-1), b=at(p,k); if(!a||!b) continue;
+      rctx.globalAlpha=0.10+0.55*(1-(S.f-k)/back);
+      rctx.strokeStyle=teamColour(p.team); rctx.lineWidth=1.8*RK;
+      rctx.setLineDash(ANCHORED.has(p.state[k])?[]:[3*RK,3*RK]);
+      rctx.beginPath(); rctx.moveTo(rx(a[0]),ry(a[1])); rctx.lineTo(rx(b[0]),ry(b[1]));
+      rctx.stroke();
+    }
+  }
+  rctx.setLineDash([]); rctx.globalAlpha=1;
+}
+// The region the camera cannot see, as a clip path. A slot nothing has seen for
+// over 2.2 s is somewhere in here by definition - if it were in the lit part, the
+// detector would have found it, and the tracker says so explicitly by marking the
+// sample `falsified`. Clipping an `unknown` disc to this is the difference between
+// "this player might be anywhere in this circle, including the middle of a
+// formation you can plainly see they are not in" and the truth, which is "this
+// player is somewhere the camera is not looking".
+function clipToUnseen(ctx, f){
+  const fp=frustum(f);
+  ctx.beginPath();
+  ctx.rect(rx(0),ry(0),rx(FL)-rx(0),ry(FW)-ry(0));
+  if(fp.length>2){
+    ctx.moveTo(rx(fp[0][0]),ry(fp[0][1]));
+    for(let k=fp.length-1;k>=1;k--) ctx.lineTo(rx(fp[k][0]),ry(fp[k][1]));
+    ctx.closePath();
+  }
+  ctx.clip("evenodd");
+}
+function drawFormation(f, ghost){
+  const scale=(radar.width-2*RPAD)/FL;
+  for(const p of PL){
+    const xy=at(p,f); if(!xy) continue;
+    const st=p.state[f], col=teamColour(p.team);
+    rctx.globalAlpha = ghost?0.22:(S.sel&&p.id!==S.sel?0.35:1);
+    if(!ghost){
+      const r=Math.max(2*RK,p.sigma[f]*scale);
+      const unseen = NO_MARKER.has(st);
+      // The camera can see everywhere this player could be and has not found
+      // them, so there is no honest place on the field to draw them. The roster
+      // row carries it instead - docs/05, never silently blank.
+      if(unseen && p.covered && p.covered[f]){ rctx.globalAlpha=1; continue; }
+      rctx.save();
+      if(unseen) clipToUnseen(rctx, f);
+      rctx.beginPath(); rctx.arc(rx(xy[0]),ry(xy[1]),r,0,7);
+      rctx.fillStyle=col; rctx.globalAlpha*=0.14; rctx.fill();
+      rctx.globalAlpha/=0.14;
+      rctx.strokeStyle=col; rctx.lineWidth=1*RK;
+      rctx.setLineDash(ANCHORED.has(st)?[]:[3*RK,3*RK]); rctx.stroke(); rctx.setLineDash([]);
+      rctx.restore();
+    }
+    const rr=3.4*RK;
+    // docs/25 R5: an `unknown` slot gets its uncertainty disc and nothing else.
+    if(NO_MARKER.has(st)&&!ghost){ rctx.globalAlpha=1; continue; }
+    rctx.beginPath(); rctx.arc(rx(xy[0]),ry(xy[1]),rr,0,7);
+    if(ANCHORED.has(st)&&!ghost){ rctx.fillStyle=col; rctx.fill(); }
+    else { rctx.strokeStyle=col; rctx.lineWidth=1.6*RK; rctx.stroke(); }
+    // Provisional: the position is measured, the identity is not. A ring in the
+    // same hue, broken, says "this dot is somebody - ask whether it is this
+    // somebody" without spending a colour on it (docs/05: form, never hue).
+    if(st==="provisional"&&!ghost){
+      rctx.strokeStyle=col; rctx.lineWidth=1.4*RK;
+      rctx.setLineDash([2.5*RK,2.5*RK]);
+      rctx.beginPath(); rctx.arc(rx(xy[0]),ry(xy[1]),rr+3*RK,0,7); rctx.stroke();
+      rctx.setLineDash([]);
+    }
+    if(p.id===S.sel&&!ghost){
+      rctx.strokeStyle=css("--sel"); rctx.lineWidth=2*RK;
+      rctx.beginPath(); rctx.arc(rx(xy[0]),ry(xy[1]),rr+4*RK,0,7); rctx.stroke();
+    }
+    rctx.globalAlpha=1;
+  }
+}
+function drawStrip(){
+  sctx.setTransform(1,0,0,1,0,0);
+  sctx.clearRect(0,0,strip.width,strip.height);
+  const h=strip.height;
+  for(let f=0;f<NF;f++){
+    const c=coverage(f)/14;
+    sctx.fillStyle=`color-mix(in srgb, ${css("--chill")} ${Math.round(c*100)}%, transparent)`;
+    sctx.fillRect(f/NF*strip.width, 0, strip.width/NF+1, h);
+  }
+  for(const e of (D.events||[])){
+    const x=e.t*FPS/NF*strip.width;
+    sctx.fillStyle = e.source==="suggested"?css("--dim"):css("--warn");
+    sctx.fillRect(x-1,0,2,h*0.45);
+  }
+  sctx.fillStyle=css("--ink");
+  sctx.fillRect(S.f/NF*strip.width-1,0,2,h);
+}
+
+/* ----------------------------------------------------------------- cards */
+function card(lab,val,ctx,ev,exp,sp){
+  const say = ev==="inferred"
+    ? " <i>This one is inferred: at least one player it depends on was not seen "
+      + "on this frame. Do not quote it.</i>" : "";
+  return `<div class="card ${ev==="inferred"?"inferred":""}">
+    <div class="lab">${lab}<span class="chip ${ev}">${ev}</span></div>
+    <div class="val">${val}</div><div class="ctx">${ctx}</div>
+    ${sp||""}<div class="exp">${exp}${say}</div></div>`;
+}
+function renderCards(){
+  const f=S.f, cov=coverage(f), a=assignments(f), sc=scheme(f);
+  const offs=PL.filter(p=>p.team===OFF), defs=PL.filter(p=>p.team===DEF);
+  const out=[];
+
+  out.push(card("Coverage", `${cov} of 14`,
+    `${Math.round(cov/14*100)}% of the roster is in shot right now`,
+    cov>=11?"measured":"partial",
+    cov>=11 ? "Most of the roster is visible, so the numbers below rest on observations."
+            : `${14-cov} players are outside the frame or hidden — their markers are the system's best guess, not an observation.`,
+    spark(series("cov", coverage))));
+
+  const adrift = sc.adrift.filter(x=>x.range!==null)
+    .sort((x,y)=>y.range-x.range).slice(0,2)
+    .map(x=>`${x.slot} at ${x.range.toFixed(1)} yd`).join(", ");
+  const unseenNote = sc.unseen
+    ? ` ${sc.unseen} defender${sc.unseen===1?" was":"s were"} not seen this frame and `
+      + `${sc.unseen===1?"is":"are"} not counted either way.`
+    : "";
+  out.push(card("Defensive shape", sc.label,
+    `${sc.covering} of ${sc.judged} judged · matchup stability ${Math.round(sc.stability*100)}%`,
+    evidence(f, PL.map(p=>p.id)),
+    !sc.judged
+      ? "No defender was seen on this frame, so there is no shape to read here."
+      : (sc.covering>=sc.judged
+         ? "Every defender the camera can see is close to, and staying with, one attacker."
+         : `Defenders not tracking anyone closely: ${adrift||"—"}.`) + unseenNote));
+
+  const holder=discHolder(f);
+  const discHere = discTrusted(f);
+  let markV="—", markE="inferred",
+      markC = discHere ? "nobody is holding the disc on this frame"
+              : (D.disc_meta && !D.disc_meta.trustworthy)
+                ? "the disc is not located on this possession"
+                : "no disc position in this data",
+      markX = discHere
+        ? "The disc is in the air, so there is no mark to measure. Step back to the "
+          + "frame before the release."
+        : "Nothing here has seen the disc, so which side the mark takes cannot be "
+          + "measured (AD-7). Disc detection is a stretch goal, not a gap this "
+          + "viewer can paper over.";
+  if(holder){
+    const h=at(BY[holder],f);
+    let m=null,md=1e9;
+    for(const d of defs){ const q=at(d,f); if(!q) continue;
+      const v=dist(h,q); if(v<md){md=v;m=d} }
+    if(m){ const q=at(m,f);
+      const side = q[1]<h[1] ? "near sideline" : "far sideline";
+      markV=`${md.toFixed(1)} yd, ${side} side`;
+      markC=`${m.id} marking ${holder}; disc pushed toward the ${q[1]<h[1]?"far":"near"} sideline`;
+      markE=evidence(f,[holder,m.id]);
+      markX="The geometry only — not a force name, which depends on the thrower's handedness and broadcast video does not show it.";
+    }
+  }
+  out.push(card("Mark", markV, markC, markE, markX));
+
+  const th=lastThrow(f);
+  let sepV="—", sepC="no throw tagged yet", sepE="inferred",
+      sepX="Tag a throw and this becomes the separation at that release.";
+  if(th){
+    const tf=clamp(Math.round(th.t*FPS),0,NF-1);
+    const rec = th.target||null, recP = rec?at(BY[rec],tf):null;
+    if(recP){ let bd=1e9,bs=null;
+      for(const d of defs){ const q=at(d,tf); if(!q) continue;
+        const v=dist(recP,q); if(v<bd){bd=v;bs=d.id} }
+      sepV=`${bd.toFixed(1)} yd`; sepC=`${rec} from ${bs} at the release, ${th.t.toFixed(1)}s`;
+      sepE=evidence(tf,[rec,bs]);
+      sepX="How much room the receiver actually had when the disc left the hand.";
+    } else { sepC=`throw at ${th.t.toFixed(1)}s has no tagged target`; }
+  }
+  out.push(card("Separation at release", sepV, sepC, sepE, sepX));
+
+  let deepV="—", deepC="", deepE="inferred", deepX="";
+  const atk = D.possession.attacking_direction==="+x";
+  const live = offs.map(p=>({p,xy:at(p,f)})).filter(o=>o.xy);
+  if(live.length){
+    live.sort((u,v)=>atk?v.xy[0]-u.xy[0]:u.xy[0]-v.xy[0]);
+    const deep=live[0];
+    let bd=1e9,bs=null,goalSide=false;
+    for(const d of defs){ const q=at(d,f); if(!q) continue;
+      const v=dist(deep.xy,q); if(v<bd){bd=v;bs=d.id;
+        goalSide = atk ? q[0]>deep.xy[0] : q[0]<deep.xy[0]; } }
+    deepV=`${bd.toFixed(1)} yd`;
+    deepC=`${deep.p.id} is deepest; ${bs} is nearest and ${goalSide?"is":"is NOT"} goal-side`;
+    deepE=evidence(f,[deep.p.id,bs].filter(Boolean));
+    deepX=goalSide?"Someone is between the deep threat and the endzone."
+                  :"Nobody is between the deep threat and the endzone — the huck is on.";
+  }
+  out.push(card("Deep cover", deepV, deepC, deepE, deepX));
+
+  const lag=shapeLag(f);
+  out.push(card("Shape lag", lag===null?"—":`${lag.toFixed(1)} yd`,
+    "cross-field offset, defence vs offence centroid",
+    evidence(f, PL.map(p=>p.id)),
+    "A spike as the disc swings is the defence failing to shift with it.",
+    spark(series("lag", shapeLag))));
+
+  document.getElementById("cards").innerHTML=out.join("");
+}
+
+/* ---------------------------------------------------------------- roster */
+function renderRoster(){
+  const a=assignments(S.f);
+  const off=offFrame(S.f);
+  const rows=PL.map(p=>{
+    const st=p.state[S.f];
+    // A slot with no position and no last bearing cannot be drawn anywhere on
+    // the overlay. It is the one case left where the page would show nothing at
+    // all, so the roster carries it instead - docs/05, never silently blank.
+    // The evidence state already says `unknown`; what this adds is that the
+    // slot is absent from BOTH views, so an empty overlay is honest rather
+    // than broken.
+    const blind=off.blind.includes(p.id);
+    const covered=!!(p.covered&&p.covered[S.f]);
+    const mark=blind
+      ? ` <span class="why" style="display:inline">· ${covered
+          ? "nothing drawn — the camera can see everywhere they could be"
+          : "nothing drawn"}</span>`
+      : (p.falsified&&p.falsified[S.f]
+         ? ` <span class="why" style="display:inline">· looked for, not found</span>`
+         : "");
+    const seen=p.state.filter(s=>ANCHORED.has(s)).length;
+    const xy=at(p,S.f), prev=S.f>0?at(p,S.f-1):null;
+    const spd=(xy&&prev)?dist(xy,prev)*FPS:null;
+    const m=a[p.id];
+    return `<tr data-id="${p.id}" aria-selected="${S.sel===p.id}" tabindex="0">
+      <td style="color:${teamColour(p.team)}">${p.id}</td>
+      <td class="n">${p.jersey??"—"}</td>
+      <td>${st}${mark}</td>
+      <td class="n">${Math.round(seen/NF*100)}%</td>
+      <td class="n">${spd===null?"—":spd.toFixed(1)}</td>
+      <td>${m&&m.mark?`${m.mark} @ ${m.range===null?"—":m.range.toFixed(1)} yd`:"—"}</td></tr>`;
+  }).join("");
+  document.getElementById("roster").innerHTML =
+    `<thead><tr><th>Slot</th><th>#</th><th>Evidence now</th><th>Seen</th>
+     <th>yd/s</th><th>Guarding</th></tr></thead><tbody>${rows}</tbody>`;
+  for(const tr of document.querySelectorAll("#roster tbody tr")){
+    tr.onclick = () => { S.sel = S.sel===tr.dataset.id?null:tr.dataset.id; draw(); };
+    tr.onkeydown = e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); tr.onclick(); } };
+  }
+}
+
+/* ---------------------------------------------------------------- issues */
+function renderIssues(){
+  const list=(window.ISSUES&&window.ISSUES.issues)||[];
+  document.getElementById("nIssues").textContent = list.length?`${list.length} open`:"";
+  if(!list.length){ document.getElementById("issues").innerHTML =
+    `<div class="empty">No issues in this file. Run
+     <code>python -m ur.issues work/p0001</code> and rebuild with
+     <code>python -m tools.make_view work/p0001</code>.</div>`; return; }
+  const same = id => PL.filter(p=>BY[id]&&p.team===BY[id].team&&p.id!==id)
+                       .map(p=>`<option>${p.id}</option>`).join("");
+  document.getElementById("issues").innerHTML = list.map((r,k)=>{
+    const who = r.slots.length>4 ? `${r.slots.length} slots` : r.slots.join(", ");
+    const op = (r.fix||{}).op;
+    let act = `<button data-go="${k}">Go to ${(r.t??0).toFixed(1)}s</button>`;
+    if(op==="confirm_or_swap"){
+      act += `<button data-ok="${k}">It is ${r.slots[0]}</button>` +
+             `<select data-with="${k}"><option value="">swap with…</option>` +
+             same(r.slots[0]) + `</select>`;
+    } else {
+      act += `<span class="why" style="display:inline">then drag it on the overhead view</span>`;
+    }
+    return `<div class="issue"><b>${r.kind.replace(/_/g," ")}</b> · ${who}
+      <div class="why">${r.why}</div>${act}</div>`;
+  }).join("");
+  for(const b of document.querySelectorAll("#issues [data-go]")){
+    b.onclick = () => { const r=list[+b.dataset.go];
+      S.f=clamp((r.fix&&r.fix.f!==undefined)?r.fix.f:r.frame,0,NF-1);
+      S.sel=r.slots[0]; seek(); };
+  }
+  for(const b of document.querySelectorAll("#issues [data-ok]")){
+    b.onclick = () => { const r=list[+b.dataset.ok];
+      addCorrection({op:"confirm", slot:r.fix.slot, f:r.fix.f}); draw(); };
+  }
+  for(const s of document.querySelectorAll("#issues [data-with]")){
+    s.onchange = () => { if(!s.value) return;
+      const r=list[+s.dataset.with];
+      addCorrection({op:"swap", slots:[r.slots[0], s.value], from_f:r.fix.f});
+      s.value=""; draw(); };
+  }
+}
+function renderCorrections(){
+  provenance();
+  const el=document.getElementById("corrections");
+  const live=LOG.filter(c=>c.op!=="revert");
+  const reverted=new Set(LOG.filter(c=>c.op==="revert").map(c=>c.target));
+  if(!live.length){ el.innerHTML=`<div class="empty">Nothing corrected yet.
+    Drag an estimated marker on the overhead view to place a player.</div>`; return; }
+  el.innerHTML = live.map(c=>`<div class="issue" ${reverted.has(c.id)?'style="opacity:.45"':""}>
+    <b>${c.op}</b> ${c.slot||(c.slots||[]).join(" ↔ ")} @ f${c.f??c.from_f}
+    ${reverted.has(c.id)?" · reverted":""}</div>`).join("");
+}
+document.getElementById("undo").onclick = () => { undo(); draw(); };
+document.getElementById("dl").onclick = () => {
+  const blob=new Blob([JSON.stringify({schema:"ultimate-radar/corrections@1",
+    possession_id:D.possession.id, corrections:LOG}, null, 1)],{type:"application/json"});
+  const u=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=u; a.download="corrections.json"; a.click(); URL.revokeObjectURL(u);
+};
+
+/* ------------------------------------------------- throws and catches (AD-7)
+   AD-7 decided this five milestones ago: events are tagged by hand, roughly
+   twenty keystrokes a possession, and disc detection is a stretch goal. The
+   decision was right and the surface was never built, so `ur/disc.py` had nothing
+   authoritative to work from and fell back on inferring the holder from player
+   geometry - which it then measured as not working (docs/27).
+
+   Two keys. Select a player, press `t` where they release and `c` where they
+   catch. The disc is exactly pinned by those two facts: held by the thrower up to
+   the release, in flight between, held by the receiver after. Nothing here writes
+   to disk - AD-9 means there is no server - so the log downloads as events.json,
+   which goes in the possession directory and `python -m ur.disc` reads.
+   `TAGS` itself is declared up beside `allEvents`, which the metric cards use. */
+function addTag(type){
+  if(!S.sel){ flashTag("Select a player first — click their marker or roster row."); return; }
+  const t = +(S.f/FPS).toFixed(3);
+  TAGS.push({t, type, player:S.sel, f:S.f, source:"human"});
+  TAGS.sort((a,b)=>a.t-b.t);
+  renderTags(); draw();
+}
+function flashTag(msg){
+  const el=document.getElementById("tags");
+  el.insertAdjacentHTML("afterbegin",`<div class="issue" id="tagmsg">${msg}</div>`);
+  setTimeout(()=>{ const m=document.getElementById("tagmsg"); if(m) m.remove(); }, 2600);
+}
+function renderTags(){
+  const el=document.getElementById("tags");
+  if(!TAGS.length){
+    el.innerHTML=`<div class="empty">Nothing tagged yet. Select a player, then press
+      <b>t</b> on the frame they release and <b>c</b> on the frame they catch.
+      Two keys a throw is what turns the disc from a guess into a measurement.</div>`;
+    return;
+  }
+  el.innerHTML = TAGS.map((g,i)=>`<div class="issue">
+    <b>${g.type}</b> ${g.player} @ f${g.f} · ${g.t.toFixed(2)}s
+    <span class="why" style="display:inline">· ${i? "": "first"}</span></div>`).join("");
+}
+document.getElementById("tagUndo").onclick = () => { TAGS.pop(); renderTags(); draw(); };
+document.getElementById("tagDl").onclick = () => {
+  const blob=new Blob([JSON.stringify({schema:"ultimate-radar/events@1",
+    possession_id:D.possession.id,
+    note:"source is 'human' or 'suggested'. Tagged in the viewer; drop this in the "
+       + "possession directory and re-run `python -m ur.disc`.",
+    events:TAGS.map(({t,type,player,source})=>({t,type,player,source}))},null,1)],
+    {type:"application/json"});
+  const u=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=u; a.download="events.json"; a.click(); URL.revokeObjectURL(u);
+};
+
+/* ------------------------------------------------------------ transport */
+const scrub=document.getElementById("scrub"); scrub.max=NF-1;
+function frameTime(n){
+  const sy=D.possession.clip_frames_sync;
+  if(sy&&sy.video_fps) return (Math.ceil((n+0.5)*sy.video_fps/FPS)-1)/sy.video_fps;
+  return n/FPS;
+}
+function seekVideo(){ if(vid.hidden) return;
+  try { vid.currentTime = frameTime(S.f); } catch(_) {} }
+function seek(){ scrub.value=S.f; seekVideo();
+  location.replace("#t="+(S.f/FPS).toFixed(2)); draw(); }
+// A hash-only navigation is same-document: the page keeps its state and never
+// re-seeks, so "Copy link to this moment" worked on a fresh load and did
+// nothing in-page. seek() writes the hash itself, so this has to no-op when the
+// hash already agrees with S.f or the two bounce off each other.
+function frameFromHash(){
+  const t=new URLSearchParams(location.hash.slice(1)).get("t");
+  if(t===null) return null;
+  const v=parseFloat(t);
+  return Number.isFinite(v) ? clamp(Math.round(v*FPS),0,NF-1) : null;
+}
+addEventListener("hashchange", () => {
+  const f=frameFromHash();
+  if(f===null||f===S.f) return;
+  S.f=f; scrub.value=S.f; seekVideo(); draw();
+});
+scrub.oninput = () => { S.f=+scrub.value; seek(); };
+document.getElementById("play").onclick = togglePlay;
+function togglePlay(){
+  S.playing=!S.playing;
+  document.getElementById("play").textContent=S.playing?"Pause":"Play";
+  if(!vid.hidden){
+    vid.playbackRate=S.speed;
+    // A browser may refuse play() without a gesture it recognises. Don't let that
+    // freeze the overlay: fall through to the internal clock and drag the video
+    // along by seeking, so the picture and the markers still agree.
+    if(S.playing) { const q=vid.play(); if(q&&q.catch) q.catch(()=>{}); }
+    else vid.pause();
+  }
+  if(S.playing) tick();
+}
+document.getElementById("speed").onchange = e => { S.speed=+e.target.value;
+  if(!vid.hidden) vid.playbackRate=S.speed; };
+function throwFrames(){ return (D.events||[]).filter(e=>e.type==="throw")
+  .map(e=>clamp(Math.round(e.t*FPS),0,NF-1)).sort((a,b)=>a-b); }
+document.getElementById("prevThrow").onclick = () => {
+  const t=throwFrames().filter(x=>x<S.f).pop(); if(t!==undefined){S.f=t;seek();} };
+document.getElementById("nextThrow").onclick = () => {
+  const t=throwFrames().find(x=>x>S.f); if(t!==undefined){S.f=t;seek();} };
+let last=0;
+function tick(ts){
+  if(!S.playing) return;
+  if(!vid.hidden && !vid.paused && vid.readyState>=2){
+    const sy=D.possession.clip_frames_sync;
+    let n=Math.round(vid.currentTime*FPS-(sy&&sy.video_fps?0.5:0));
+    S.f=clamp(n,0,NF-1); scrub.value=S.f; draw();
+  } else if(ts-last > 1000/(FPS*S.speed)){
+    last=ts; S.f=(S.f+1)%NF; scrub.value=S.f;
+    if(!vid.hidden && vid.paused) vid.currentTime=frameTime(S.f);
+    draw();
+  }
+  requestAnimationFrame(tick);
+}
+addEventListener("keydown", e => {
+  if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT") return;
+  if(e.key===" "){ e.preventDefault(); togglePlay(); }
+  else if(e.key==="ArrowRight"){ e.preventDefault();
+    S.f=clamp(S.f+(e.shiftKey?Math.round(FPS/2):1),0,NF-1); seek(); }
+  else if(e.key==="ArrowLeft"){ e.preventDefault();
+    S.f=clamp(S.f-(e.shiftKey?Math.round(FPS/2):1),0,NF-1); seek(); }
+  else if(e.key==="Escape"){ S.sel=null; draw(); }
+  else if(e.key==="t"||e.key==="T"){ e.preventDefault(); addTag("throw"); }
+  else if(e.key==="c"||e.key==="C"){ e.preventDefault(); addTag("catch"); }
+});
+
+/* ------------------------------------------------------- toggles, theme */
+function toggle(id,key,after){
+  const b=document.getElementById(id);
+  b.onclick=()=>{ S[key]=!S[key]; b.setAttribute("aria-pressed",String(S[key]));
+    if(after) after(); draw(); };
+}
+toggle("tOverlay","overlay"); toggle("tMatch","match"); toggle("tChev","chev");
+// The control drew nothing at t=0 and nothing at t=12.0, which is where a
+// `#t=12` link opens, so the first thing anyone did with it was conclude it was
+// broken. It was not - there was simply nothing off-frame. Say the count.
+function syncChev(){
+  const o=offFrame(S.f), b=document.getElementById("tChev");
+  b.textContent = o.marks ? `Off-frame ${o.marks}` : "Off-frame 0";
+  b.disabled = o.marks===0;
+  b.title = o.marks===0
+    ? "Every slot with a position is inside this frame."
+    : `${o.away.length} outside the frame` +
+      (o.lost.length?`, ${o.lost.length} with no current position`:"");
+}
+toggle("tSpace","space"); toggle("tTrails","trails");
+document.getElementById("tPin").onclick = e => {
+  S.pin = S.pin===null ? S.f : null;
+  e.currentTarget.setAttribute("aria-pressed", String(S.pin!==null)); draw();
+};
+// Unguarded this sits at top level of the main script, so a browser configured
+// to block site data renders the whole page blank - which is exactly the
+// failure the build environment could not test for. The matching setItem was
+// already wrapped; this is the other half.
+let themeMode = "auto";
+try{ themeMode = localStorage.getItem("ur-theme") || "auto"; }catch(_){}
+function applyTheme(){
+  if(themeMode==="auto") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme",themeMode);
+  document.getElementById("theme").textContent="Theme: "+themeMode;
+  camCache.clear(); draw();
+}
+document.getElementById("theme").onclick = () => {
+  themeMode = themeMode==="auto"?"light":themeMode==="light"?"dark":"auto";
+  try{ localStorage.setItem("ur-theme",themeMode); }catch(_){}
+  applyTheme();
+};
+document.getElementById("copylink").onclick = async () => {
+  const u=location.href.split("#")[0]+"#t="+(S.f/FPS).toFixed(2);
+  const b=document.getElementById("copylink"), t=b.textContent;
+  let ok=false;
+  // navigator.clipboard is unavailable on file:// in most browsers, so say so
+  // rather than flashing "Copied" over a copy that never happened.
+  try{ await navigator.clipboard.writeText(u); ok=true; }catch(_){}
+  if(ok){ b.textContent="Copied"; setTimeout(()=>b.textContent=t,1200); }
+  else prompt("This page cannot reach the clipboard from file://. Copy the link:", u);
+};
+
+/* ------------------------------------------- select and drag on the radar */
+function radarHit(ev){
+  const r=radar.getBoundingClientRect();
+  const u=(ev.clientX-r.left)/r.width*radar.width;
+  const v=(ev.clientY-r.top)/r.height*radar.height;
+  const x=rxi(u), y=ryi(v);
+  let best=null,bd=3.5;
+  for(const p of PL){ const q=at(p,S.f); if(!q) continue;
+    const d=Math.hypot(q[0]-x,q[1]-y); if(d<bd){bd=d;best=p} }
+  return {p:best, x, y};
+}
+over.onclick = ev => {
+  // docs/06: click a player in either view to follow them.
+  const P=projector(S.f); if(!P) return;
+  const r=over.getBoundingClientRect();
+  const u=(ev.clientX-r.left)/r.width*IW, v=(ev.clientY-r.top)/r.height*IH;
+  let best=null, bd=60;                      // within 60 image px of the feet
+  for(const p of PL){ const xy=at(p,S.f); if(!xy) continue;
+    const q=P.project(xy[0],xy[1],0); if(!q) continue;
+    const d=Math.hypot(q[0]-u,q[1]-v); if(d<bd){bd=d;best=p.id} }
+  S.sel = best && best!==S.sel ? best : null;
+  draw();
+};
+over.style.cursor="pointer"; radar.style.cursor="crosshair";
+let drag=null;
+radar.onpointerdown = ev => {
+  const h=radarHit(ev);
+  if(!h.p) { S.sel=null; draw(); return; }
+  S.sel=h.p.id;
+  if(!ANCHORED.has(h.p.state[S.f])){ drag={id:h.p.id}; radar.setPointerCapture(ev.pointerId); }
+  draw();
+};
+radar.onpointermove = ev => {
+  if(!drag) return;
+  const h=radarHit(ev);
+  BY[drag.id].est[S.f]=[clamp(h.x,0,FL), clamp(h.y,0,FW)];
+  draw();
+};
+radar.onpointerup = ev => {
+  if(!drag) return;
+  const xy=BY[drag.id].est[S.f];
+  const id=drag.id; drag=null;
+  addCorrection({op:"anchor", slot:id, f:S.f,
+                 xy:[+xy[0].toFixed(3), +xy[1].toFixed(3)]});
+  draw();
+};
+
+/* ----------------------------------------------------------------- chrome */
+const teams=D.teams;
+document.getElementById("subtitle").textContent =
+  `${teams[OFF].name} on offence vs ${teams[DEF].name} · ${D.possession.duration_s.toFixed(1)}s`;
+document.getElementById("lgO").textContent = teams[OFF].name + " (offence)";
+document.getElementById("lgD").textContent = teams[DEF].name + " (defence)";
+const prov=document.getElementById("provenance");
+function provenance(){
+  // Reverted entries stay in the log as history but no longer count as applied,
+  // Recall and sigma containment were measured once, against hand labels that
+  // exist for exactly one possession. Printing them unqualified on a second
+  // possession tells a coach the tracker has been checked on the footage they
+  // are looking at, when it has not - the one thing docs/05 says the page must
+  // never do. Say which possession the number came from whenever it is not this
+  // one, and say plainly that this one is unmeasured.
+  function gateSentence(g, id){
+    const r = `${Math.round(g.per_player_recall*100)} % of player-frames`;
+    const s = `sigma containment ${Math.round(g.sigma_containment*100)} %`;
+    // No re-acquisition on any possession has been labelled by a human, so there
+    // is no honest switch-detection number to print. Saying nothing is wrong too:
+    // the reader would assume the queue is exhaustive. docs/25 R4.
+    const nProv = PL.reduce((n,p)=>n+p.state.filter(x=>x==="provisional").length,0);
+    const sw = g.identity_switches_caught==null
+      ? ` ${nProv} re-acquisition${nProv===1?"":"s"} are marked provisional and`
+        + ` unreviewed — no swap-detection rate has been measured.`
+      : ` Identity switches caught: ${g.identity_switches_caught}.`;
+    if(!g.measured_on || g.measured_on===id)
+      return `Tracker recall ${r}, ${s} (docs/17).${sw} `;
+    return `<b>Accuracy on this possession is unmeasured.</b> Recall ${r} and ${s} ` +
+           `were measured on <code>${g.measured_on}</code> (docs/17), against hand ` +
+           `labels that do not exist for this one. Treat them as a prior, not a ` +
+           `result. `;
+  }
+  // which is the same rule ur/resolve.py::active() uses.
+  const undone = new Set(LOG.filter(c=>c.op==="revert").map(c=>c.target));
+  const corrected = LOG.filter(c=>c.op!=="revert" && !undone.has(c.id)).length;
+  const human = `${corrected} human correction${corrected===1?"":"s"} applied.`;
+  if(D.synthetic){
+    prov.innerHTML = "<b>Synthetic demo data.</b> " + (D.notice||"") +
+      " Nothing here was measured from video. " + human;
+  } else if(D.stand_in){
+    prov.innerHTML = "<b>Stand-in identities.</b> " + (D.notice||"") + " " + human;
+  } else {
+    const sv=D.possession.source_video||{};
+    prov.innerHTML = `<b>Real footage.</b> ${sv.platform||""} ${sv.id||""} from ` +
+      `${(sv.start_s||0).toFixed(1)}s, ${D.possession.frames} frames at ` +
+      `${D.possession.fps} fps. ` +
+      (D.gates_measured===false
+        ? "This file predates the gate measurements in docs/17 — rebuild it before " +
+          "you quote a number. "
+        : D.gates
+          ? gateSentence(D.gates, D.possession.id)
+          : "") + human;
+  }
+}
+provenance();
+document.getElementById("foot").innerHTML =
+  "Evidence states per <code>docs/05-uncertainty.md</code>: solid is observed, dashed is " +
+  "an estimate, and the ring is that estimate's sigma drawn at true field scale. " +
+  "A broken ring round a solid dot is <i>provisional</i> — the slot re-acquired " +
+  "somebody after a long gap and nobody has checked it is the same player, so it " +
+  "counts for coverage but not for any metric. A disc with no dot is a slot " +
+  "nothing has seen for over 2.2 seconds: the disc is where they could be, and " +
+  "there is deliberately no marker to mistake for a position. " +
+  "Cards marked <i>inferred</i> rest on at least one player nobody saw — do not quote them.";
+
+function draw(){
+  syncChev();
+  drawCamera(); drawRadar(); drawStrip(); renderCards(); renderRoster();
+  const P=projector(S.f);
+  document.getElementById("readout").textContent =
+    `f${String(S.f).padStart(4,"0")}  ${(S.f/FPS).toFixed(2)}s  ` +
+    `coverage ${coverage(S.f)}/14` + (P&&P.conf<1?`  calib ${P.conf.toFixed(2)}`:"");
+}
+/* ------------------------------------------------------ the self-check
+   HANDOFF § 8: eight bugs across M1–M6 shared one shape — something rendered
+   plausibly and was wrong, and only a check that could CONTRADICT it caught the
+   problem. The overhead view being mirrored across the short axis was the
+   ninth. It is invisible to inspection: a radar full of players looks like a
+   radar full of players whichever way up it is.
+
+   So assert the one thing that ties the two pictures together. Take two field
+   points that differ only in y, project both through the frame's own
+   homography, and require that the one lower in the IMAGE is the one lower on
+   the RADAR. Nothing here shares code with ry(): the image side comes from the
+   calibration, the radar side from the drawing transform, and a sign error in
+   either makes them disagree.
+
+   It runs on every load, on whatever possession is loaded, and it fails loudly
+   in the page rather than in a console nobody has open. */
+function radarContradiction(){
+  const A=[FL/2, FW*0.15], B=[FL/2, FW*0.85];   // differ only in y
+  const dRadar = ry(A[1])-ry(B[1]);             // + means A is lower on radar
+  const votes=[], bad=[];
+  for(let f=0; f<NF; f++){
+    const P=projector(f); if(!P) continue;
+    // Skip frames the calibration itself does not stand behind. p0003's first
+    // build of this page passed the check on frame 56 with an image delta of
+    // 1.2e11 px - a collapsed homography, where a sign comparison is luck
+    // rather than evidence. A check that can pass on nonsense is not a check.
+    if(P.conf!==undefined && P.conf<0.5) continue;
+    const qa=P.project(A[0],A[1],0), qb=P.project(B[0],B[1],0);
+    if(!qa||!qb) continue;
+    const sane = q => Number.isFinite(q[0]) && Number.isFinite(q[1]) &&
+                      Math.abs(q[0])<10*IW && Math.abs(q[1])<10*IH;
+    if(!sane(qa)||!sane(qb)){ bad.push(f); continue; }
+    const dImage = qa[1]-qb[1];                 // + means A is lower in frame
+    if(Math.abs(dImage)<1) continue;            // the two are the same row
+    votes.push({f, dImage:+dImage.toFixed(2),
+                agrees: Math.sign(dImage)===Math.sign(dRadar)});
+    if(votes.length>=25) break;
+  }
+  const why = "field y increases upward in the image, so it must increase "+
+              "upward on the overhead view too";
+  if(!votes.length)
+    return {ok:null, why, checked:0, degenerate:bad.length,
+            note:"no frame both cleared confidence 0.5 and projected the probe "+
+                 "points to plausible pixels; the check did not run"};
+  const disagree = votes.filter(v=>!v.agrees);
+  // Every usable frame has to agree. One frame agreeing is an accident; the
+  // whole possession agreeing is the property.
+  return {ok: disagree.length===0, why, checked:votes.length,
+          degenerate:bad.length, disagreed:disagree.length,
+          f:votes[0].f, dImage:votes[0].dImage, dRadar:+dRadar.toFixed(2),
+          worst: disagree.length?disagree[0]:null};
+}
+const selfCheck = radarContradiction();
+window.__urSelfCheck = selfCheck;
+if(selfCheck.ok===false){
+  const el=document.getElementById("provenance");
+  el.innerHTML = `<b style="color:var(--warn)">Self-check failed</b> — the overhead view
+    disagrees with the camera view about which way field y runs (frame ${selfCheck.f}:
+    image Δv ${selfCheck.dImage}, radar Δy ${selfCheck.dRadar}). Every position on the
+    overhead view is mirrored. Do not read it.` + el.innerHTML;
+  console.error("[ur] radar/image orientation contradiction", selfCheck);
+} else if(selfCheck.ok===null){
+  console.warn("[ur] orientation self-check did not run", selfCheck);
+}
+
+// A currentTime set before the metadata arrives is dropped, so re-apply it once
+// the element knows its own duration — otherwise a link to #t=12 opens at 0.
+vid.addEventListener("loadedmetadata", () => { seekVideo(); sizeCanvases(); });
+renderIssues(); renderCorrections(); renderTags(); applyTheme(); sizeCanvases(); seek();
+})();
+</script>

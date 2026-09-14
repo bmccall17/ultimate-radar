@@ -52,7 +52,8 @@ def run_accept(work: Path, *, n_holdout: int = 20, seed: int = 20260827,
 
     usable = [i for i, (p, rec) in enumerate(zip(poses, cal["frames"]))
               if p is not None and rec.get("confidence", 0) >= 0.5]
-    picks = sorted(rng.choice(usable, size=n_holdout, replace=False).tolist())
+    picks = sorted(rng.choice(usable, size=min(n_holdout, len(usable)),
+                              replace=False).tolist())
 
     rows, tiles = [], []
     for i in picks:
@@ -103,8 +104,29 @@ def run_accept(work: Path, *, n_holdout: int = 20, seed: int = 20260827,
     scored = [r for r in rows if "mean_yd" in r]
     means = [r["mean_yd"] for r in scored]
     maxes = [r["max_yd"] for r in scored]
+    # **What population this number is about.** The held-out frames are drawn
+    # from the frames that already cleared the confidence gate, so on a
+    # possession where the gate rejects most of the footage this measures the
+    # good quarter and says nothing about the rest. p0006 passes at 0.35 yd on
+    # six testable frames, all of them inside a 16-frame window out of 450,
+    # because the camera spends the rest of that possession near the endzone
+    # with no centre circle in shot. The number is not wrong; read alone it is
+    # an answer to a different question. Same shape as docs/28's "a test that is
+    # only ever run on the possession it was written for is a test of that
+    # possession".
+    n_frames = len(cal["frames"])
+    span = (max(picks) - min(picks) + 1) if picks else 0
     out = {
         "held_out_frames": picks,
+        "frames": n_frames,
+        "usable_frames": len(usable),
+        "usable_fraction": round(len(usable) / max(1, n_frames), 4),
+        "testable_frames": len(scored),
+        "testable_span_frames": span,
+        "population_note": (
+            "held-out frames are sampled from the frames with confidence >= 0.5, "
+            "so mean_error_yd describes those frames and not the possession. "
+            "Read it next to usable_fraction."),
         "per_frame": rows,
         "n_correspondences": 2 * len(scored),
         "mean_error_yd": round(float(np.mean(means)), 4) if means else None,
@@ -154,7 +176,15 @@ def main(argv: list[str] | None = None) -> int:
             continue
         print(f"{r['frame']:>7} {r['err_far_yd']:>9.4f} {r['err_near_yd']:>9.4f} "
               f"{r['max_yd']:>9.4f}")
-    print(f"\n  mean error : {res['mean_error_yd']:.4f} yd  (gate < 0.75)  "
+    print(f"\n  drawn from : {res['usable_frames']} of {res['frames']} frames "
+          f"({res['usable_fraction']:.0%}) with confidence >= 0.5; "
+          f"{res['testable_frames']} were testable, spanning "
+          f"{res['testable_span_frames']} frames")
+    if res["usable_fraction"] < 0.5:
+        print("  !! this is a measurement of a minority of the possession. The "
+              "gate below is about those frames, not about this clip - see "
+              "population_note.")
+    print(f"  mean error : {res['mean_error_yd']:.4f} yd  (gate < 0.75)  "
           f"{'PASS' if res['pass_mean'] else 'FAIL'}")
     print(f"  max error  : {res['max_error_yd']:.4f} yd  (gate < 1.5)   "
           f"{'PASS' if res['pass_max'] else 'FAIL'}")

@@ -41,6 +41,15 @@ SITE = [
     # pull to the brick mark with no play in it. Deleting a row is how a
     # possession is unpublished - delete the row, rebuild, and remove its folder.
     ("p0003",   "work/p0003", "p0003 - real",      "p0003"),
+    ("p0004",   "work/p0004", "p0004 - real",      "p0004"),
+    ("p0005",   "work/p0005", "p0005 - real",      "p0005"),
+    # p0006 and p0007 were cut, calibrated, detected and tracked, and are not
+    # here. Both pass M1 acceptance - and both pass it on a quarter and a third
+    # of their frames respectively, because the camera spends the rest of each
+    # possession near the endzone with no centre circle in shot and the fit
+    # collapses. Median roster coverage is 0 of 14 in both. Publishing a page
+    # that is blank for two thirds of its scrub bar is not publishing a
+    # possession. See docs/29-scouting-possessions.md.
     # The synthetic fixture was published here too and has been removed. It still
     # exists and still matters - `fixtures/possession_demo.json` is the only
     # ground truth in the project and viewer/data.js renders it standalone - but

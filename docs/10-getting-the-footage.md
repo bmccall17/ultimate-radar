@@ -99,6 +99,18 @@ cutting, and both are visible in ten seconds of scrubbing:
   halfway line; 99 of p0002's 270 frames had neither in shot, which no amount of work
   downstream can recover (`docs/28-calibration-confidence.md`).
 
+> **Both filters are measurable off the broadcast, and `tools/scout.py` measures them.**
+> It finds every goal from the score bug, pins each to the second the game clock freezes,
+> checks the window sits inside one shot, and asks M1's own conic and line detectors
+> whether the paint is there — then writes a contact sheet, because the numbers rank
+> candidates and a person confirms them. `docs/29-scouting-possessions.md` is what it
+> found and the two things it got wrong first.
+
+```powershell
+python -m tools.scout goals --out eval/m9/goals.json
+python -m tools.scout score --goals eval/m9/goals.json --out eval/m9
+```
+
 Frame accuracy matters here: the whole pipeline indexes off frame 0 of the clip.
 
 ```powershell

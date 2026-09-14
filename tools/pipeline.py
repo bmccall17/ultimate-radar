@@ -22,7 +22,12 @@ import sys
 import time
 from pathlib import Path
 
-# (module, what it writes, whether it takes a per-possession --eval-dir)
+# (key, module, what it writes, how to name its per-possession evidence)
+#
+# The evidence path matters as much as the order. Every acceptance stage here
+# defaults its output to p0001's directory - `eval/m1`, `eval/m4` - so running
+# one on another possession would overwrite the evidence the write-ups cite.
+# `extra` gives each stage a directory of its own, keyed on the possession.
 #
 # `ur.calibrate.accept` is in the chain, not beside it. It is the only check in
 # the project that compares a frame against geometry whose position is known
@@ -40,24 +45,27 @@ from pathlib import Path
 # The second pass is cheap (it reads files, it does not re-track) and the loop is
 # not circular: `ur.disc` uses only the player positions, which the second pass
 # does not change, so possess -> disc -> possess is a fixed point.
+# `tools.m4_structure` joins them for the same reason as `ur.calibrate.accept`:
+# it costs a second, it needs no ground truth, it is the gate `docs/04` says
+# should never be interesting, and until this it was only ever run by hand on
+# p0001. Both of them also used to print FAIL and exit 0, which meant the chain
+# ran straight past a possession that had failed its gate.
 STAGES = [
-    ("calibrate", "ur.calibrate.run", "calibration.json", True),
-    ("accept", "ur.calibrate.accept", "m1_acceptance.json (the known-geometry gate)", True),
-    ("detect", "ur.detect.run", "detections.json", False),
-    ("team", "ur.team", "detections.json (team fields)", False),
-    ("track", "ur.track.run", "tracks.json", False),
-    ("possess", "ur.possess", "possession.json", False),
-    ("disc", "ur.disc", "disc.json", False),
-    ("repossess", "ur.possess", "possession.json (now carrying the disc)", False),
-    ("issues", "ur.issues", "issues.json", False),
+    ("calibrate", "ur.calibrate.run", "calibration.json",
+     lambda w: ["--eval-dir", f"eval/m1-{w.name}"]),
+    ("accept", "ur.calibrate.accept", "m1_acceptance.json (the known-geometry gate)",
+     lambda w: ["--eval-dir", f"eval/m1-{w.name}"]),
+    ("detect", "ur.detect.run", "detections.json", None),
+    ("team", "ur.team", "detections.json (team fields)", None),
+    ("track", "ur.track.run", "tracks.json", None),
+    ("possess", "ur.possess", "possession.json", None),
+    ("structure", "tools.m4_structure", "m4_structure_acceptance.json (the roster gate)",
+     lambda w: ["--out", f"eval/m4-{w.name}/m4_structure_acceptance.json"]),
+    ("disc", "ur.disc", "disc.json", None),
+    ("repossess", "ur.possess", "possession.json (now carrying the disc)", None),
+    ("issues", "ur.issues", "issues.json", None),
 ]
 
-# Calibration evidence is per possession and must not be shared. Both M1 stages
-# default to `eval/m1`, which is p0001's, so running them for another possession
-# would overwrite the evidence `docs/12-m1-calibration.md` cites. One directory
-# per possession; `eval/m1` stays as p0001's historical M1 artefacts.
-def eval_dir(work: Path) -> str:
-    return f"eval/m1-{work.name}"
 DEFAULT_FROM = "detect"
 
 
@@ -67,10 +75,10 @@ def run(work: Path, start: str, *, dry: bool = False) -> int:
         print(f"[pipeline] --from must be one of {names}", file=sys.stderr)
         return 2
     begin = names.index(start)
-    for _, mod, writes, per_possession_eval in STAGES[begin:]:
+    for _, mod, writes, extra in STAGES[begin:]:
         cmd = [sys.executable, "-m", mod, str(work)]
-        if per_possession_eval:
-            cmd += ["--eval-dir", eval_dir(work)]
+        if extra is not None:
+            cmd += extra(work)
         print(f"\n[pipeline] === {mod} -> {writes}")
         if dry:
             continue

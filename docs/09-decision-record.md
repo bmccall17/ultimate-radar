@@ -36,6 +36,15 @@ is the one-paragraph shape of it.*
   37 s, 555 frames) is processed and published alongside it. **`p0002` was deleted**: it ran
   from an out-of-bounds pull to the brick mark and contained no play worth tracking. See
   `docs/10-getting-the-footage.md` § 4 - watch a possession before cutting it.
+- **Four more were cut on 2026-09-14 and two of them are published**
+  (`docs/29-scouting-possessions.md`). `p0004` (2394.0-2424.0 s, Sol) and `p0005`
+  (3039.2-3069.2 s, **Wind Chill on offence, the first of those**) join p0001 and p0003 on
+  the site. `p0006` and `p0007` pass every stated gate and are **not** published: they are
+  framed on the endzone for most of their length, the centre circle leaves the shot, the
+  fit collapses on 275 and 250 frames respectively, and the median frame has no located
+  player on it at all. The mosaic fallback `docs/28` names is what would rescue them.
+  Finding candidates is now `tools/scout.py` rather than scrubbing: it reads all 52 goals
+  off the score bug and pins each to the second the game clock freezes.
 - **The original M0 reading still governs the plan.** `docs/00-footage-report.md` changed the
   detection plan (players are twice the assumed size), the calibration plan (soccer markings,
   not gridiron) and the shot model (one shot per possession, not three); read it before

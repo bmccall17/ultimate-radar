@@ -65,6 +65,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from ur.calibrate import features as F  # noqa: E402
 from ur.calibrate import paint  # noqa: E402
+from ur.calibrate.mask import BOOTSTRAP_HORIZON as HORIZON_ROW  # noqa: E402
 from ur.ffprobe import _bin  # noqa: E402
 
 DEFAULT_SOURCE = "raw/sol-vs-windchill-2026-semi.mp4"
@@ -361,12 +362,41 @@ def grab(source: Path, t: float) -> np.ndarray | None:
 
 
 def paint_at(args) -> dict:
-    """Ask M1's own detector M1's own question, on one frame."""
+    """Ask M1's own detector M1's own question, on one frame.
+
+    **Everything above the horizon is blacked out first, and the first version of
+    this did not do that.** Calibration never sees the crowd: `ur.calibrate.mask`
+    builds a registration mask and zeroes everything above row
+    `BOOTSTRAP_HORIZON`. Without it the detectors are looking at banners, tents
+    and a video board full of white, and `find_centre_circle_ransac` will fit a
+    conic to them.
+
+    It matters more than it sounds. Scored against the six possessions whose
+    calibrations are now known, the unmasked version cannot tell a good
+    possession from a bad one - p0003 (72 % of frames calibrate) and p0006
+    (26 %) both score 0.62. Masked, the four that calibrate score 0.50-0.62 and
+    the two that do not score 0.12 and 0.25:
+
+    | | unmasked | masked | frames that calibrate |
+    |---|---|---|---|
+    | p0001 | 0.88 | 0.50 | 92 % |
+    | p0003 | 0.62 | 0.62 | 72 % |
+    | p0004 | 0.75 | 0.62 | 64 % |
+    | p0005 | 0.50 | 0.62 | 71 % |
+    | p0006 | 0.62 | **0.12** | **26 %** |
+    | p0007 | 0.50 | **0.25** | **38 %** |
+
+    Six possessions is a thin calibration and p0001 is under-predicted at 0.50
+    against 92 %, so this ranks and rejects; it does not estimate. Anything at or
+    below 0.25 has never yet been worth cutting.
+    """
     source, t = args
     bgr = grab(Path(source), t)
     if bgr is None:
         return {"t": t, "ok": False}
+    bgr[:HORIZON_ROW] = 0
     region = cv2.bitwise_not(F.player_mask(bgr))
+    region[:HORIZON_ROW] = 0
     pm = paint.largest_components(paint.paint_mask(bgr, region=region), min_area=60)
     ell = F.find_centre_circle_ransac(pm)
     line = F.find_halfway_line(pm, ell) if ell is not None else None

@@ -157,7 +157,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"      {q}")
     print(f"\n  GATE zero phantom or missing slots: "
           f"{'PASS' if res['pass'] else 'FAIL'}")
-    return 0
+    # Non-zero on failure, for the same reason `ur/calibrate/accept.py` does:
+    # this is in `tools/pipeline.py`'s chain, the chain stops at the first
+    # non-zero exit, and a gate that prints FAIL and exits 0 is not a gate.
+    return 0 if res["pass"] else 1
 
 
 if __name__ == "__main__":
