@@ -195,6 +195,9 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             "offense": offense,
             "defense": defense,
             "attacking_direction": clip["attacking_direction"],
+            "attacking_direction_check": _direction_check(
+                players, offense, clip["attacking_direction"],
+                clip["field"]["length_yd"], clip["field"]["endzone_yd"]),
             "clip_frames_sync": {**clip["source"]["clip_frames_sync"],
                                  "video_fps": clip["source"]["video_fps"]},
         },
@@ -247,7 +250,93 @@ def build(work: Path, *, verbose: bool = True) -> dict:
               f"min {min(coverage)}, max {max(coverage)}")
         print(f"[possess] detections the tracker did not use: " +
               ", ".join(f"{k} {v}" for k, v in lo.most_common()))
+        dc = doc["possession"]["attacking_direction_check"]
+        if dc["agrees"] is False:
+            print(f"[possess] !! attacking direction: {dc['why']}")
+        elif dc["agrees"] is None:
+            print(f"[possess] attacking direction not checkable here: "
+                  f"{dc['why']}")
+        else:
+            print(f"[possess] attacking direction {dc['declared']} agrees with "
+                  f"the play: the offence moved {dc['drift_yd']:+.1f} yd")
     return doc
+
+
+MIN_DIRECTION_DRIFT_YD = 5.0
+
+
+def _direction_check(players: list[dict], offense: str, declared: str,
+                     length_yd: float, endzone_yd: float) -> dict:
+    """Which way did the offence actually go, against what `clip.json` claims?
+
+    `attacking_direction` is the one field in `clip.json` a person types from
+    memory. It is inherited by copy-paste from the previous possession more
+    easily than anything else there, and nothing downstream ever contradicts
+    it - the viewer's deep-threat card simply names the wrong player, plausibly.
+
+    **The obvious check does not work here, and it is worth saying why.** "Does
+    the offence finish inside the endzone it was attacking" would be decisive,
+    and it needs an absolute field x. `venue_transform.x_offset` is
+    `field_length / 2` with `field_length` itself unresolved
+    (`docs/08-risks.md` #5, `docs/28` "what it does not fix"), so along-pitch
+    positions carry an unmeasured offset. On p0003 - a possession that ends in a
+    goal - the leading receiver finishes at x = 87.4 with the endzone nominally
+    at 100. The endzone test would have called that no goal, and it would have
+    been the offset lying, not the tracker.
+
+    So this measures the **drift**, which the offset cancels out of: where the
+    offence centroid ends against where it started. It abstains below
+    `MIN_DIRECTION_DRIFT_YD`, and a disagreement is a flag rather than a verdict
+    - a possession can genuinely move backwards, and p0001 does, 81.9 -> 66.3 yd
+    while legitimately attacking +x.
+    """
+    offs = [p for p in players if p["team"] == offense]
+    if not offs:
+        return {"agrees": None, "why": "no offensive slot in the tracks"}
+    n = len(offs[0]["est"])
+
+    # A straight line through the whole possession rather than first minus last:
+    # the camera loses the offence for stretches at a time (p0003 has no
+    # offensive position at all in its first 55 frames), and an endpoint that
+    # happens to be missing should cost precision, not the whole measurement.
+    fs, cs = [], []
+    for f in range(n):
+        xs = [p["est"][f][0] for p in offs if p["est"][f] is not None]
+        if xs:
+            fs.append(f)
+            cs.append(float(np.mean(xs)))
+    if len(fs) < max(10, n // 10):
+        return {"agrees": None,
+                "why": f"the offence has a position on only {len(fs)} of {n} "
+                       "frames, too few to fit a direction"}
+    slope, intercept = np.polyfit(np.asarray(fs, float), np.asarray(cs), 1)
+    a = float(intercept)
+    b = float(intercept + slope * (n - 1))
+    drift = b - a
+    out = {"offence_centroid_x_start_yd": round(a, 1),
+           "offence_centroid_x_end_yd": round(b, 1),
+           "frames_with_an_offence": len(fs),
+           "drift_yd": round(drift, 1), "declared": declared,
+           "basis": "least-squares drift of the offence centroid over the "
+                    "possession. The unresolved along-pitch offset (docs/08 #5) "
+                    "cancels out of a difference"}
+    if abs(drift) < MIN_DIRECTION_DRIFT_YD:
+        out["agrees"] = None
+        out["why"] = (f"the offence moved {drift:+.1f} yd along the pitch, which "
+                      "is not enough to say which way they were attacking")
+        return out
+    measured = "+x" if drift > 0 else "-x"
+    out["measured"] = measured
+    out["agrees"] = measured == declared
+    if not out["agrees"]:
+        out["why"] = (
+            f"the offence moved {drift:+.1f} yd but clip.json says {declared}. "
+            "That is not proof - a possession can go backwards - so watch the "
+            f"clip. If it is wrong, re-run ur.ingest with "
+            f"--attacking-direction {measured} (the cut is deterministic, so "
+            "clip.mp4 and frames/ come back identical - check clip_sha256 - and "
+            "nothing downstream needs redoing), then ur.possess.")
+    return out
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -30,15 +30,26 @@ from pathlib import Path
 # were wrong by 4.6 and 6.8 yd while every in-possession signal looked healthy,
 # with one of them published for a fortnight. A gate that has to be remembered is
 # a gate that will be forgotten. See docs/28-calibration-confidence.md.
+#
+# `ur.possess` appears twice, and that is not a mistake. `ur.disc` reads
+# possession.json and `ur.possess` reads disc.json, so on a possession that has
+# never been through the chain the first pass writes a possession.json with no
+# disc in it, `ur.disc` then solves the disc, and nothing carries it back. The
+# viewer reads `possession.json`, so the symptom is a page that says "no disc
+# position in this data" on a possession whose disc.json is sitting right there.
+# The second pass is cheap (it reads files, it does not re-track) and the loop is
+# not circular: `ur.disc` uses only the player positions, which the second pass
+# does not change, so possess -> disc -> possess is a fixed point.
 STAGES = [
-    ("ur.calibrate.run", "calibration.json", True),
-    ("ur.calibrate.accept", "m1_acceptance.json (the known-geometry gate)", True),
-    ("ur.detect.run", "detections.json", False),
-    ("ur.team", "detections.json (team fields)", False),
-    ("ur.track.run", "tracks.json", False),
-    ("ur.possess", "possession.json", False),
-    ("ur.disc", "disc.json", False),
-    ("ur.issues", "issues.json", False),
+    ("calibrate", "ur.calibrate.run", "calibration.json", True),
+    ("accept", "ur.calibrate.accept", "m1_acceptance.json (the known-geometry gate)", True),
+    ("detect", "ur.detect.run", "detections.json", False),
+    ("team", "ur.team", "detections.json (team fields)", False),
+    ("track", "ur.track.run", "tracks.json", False),
+    ("possess", "ur.possess", "possession.json", False),
+    ("disc", "ur.disc", "disc.json", False),
+    ("repossess", "ur.possess", "possession.json (now carrying the disc)", False),
+    ("issues", "ur.issues", "issues.json", False),
 ]
 
 # Calibration evidence is per possession and must not be shared. Both M1 stages
@@ -50,18 +61,13 @@ def eval_dir(work: Path) -> str:
 DEFAULT_FROM = "detect"
 
 
-def _key(mod: str) -> str:
-    parts = mod.split(".")
-    return parts[-1] if parts[-1] not in ("run",) else parts[1]
-
-
 def run(work: Path, start: str, *, dry: bool = False) -> int:
-    names = [_key(m) for m, _, _ in STAGES]
+    names = [k for k, _, _, _ in STAGES]
     if start not in names:
         print(f"[pipeline] --from must be one of {names}", file=sys.stderr)
         return 2
     begin = names.index(start)
-    for mod, writes, per_possession_eval in STAGES[begin:]:
+    for _, mod, writes, per_possession_eval in STAGES[begin:]:
         cmd = [sys.executable, "-m", mod, str(work)]
         if per_possession_eval:
             cmd += ["--eval-dir", eval_dir(work)]

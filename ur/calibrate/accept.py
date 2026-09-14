@@ -159,7 +159,19 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  max error  : {res['max_error_yd']:.4f} yd  (gate < 1.5)   "
           f"{'PASS' if res['pass_max'] else 'FAIL'}")
     print(f"\n  verify the points by eye: {ev / 'm1_acceptance_points.jpg'}")
-    return 0
+
+    # A gate that prints FAIL and exits 0 is not a gate. `tools/pipeline.py` puts
+    # this stage in the chain precisely so it cannot be forgotten, and it stops at
+    # the first non-zero exit - so until this returned one, a possession could
+    # fail M1 acceptance and still be detected, tracked and published, which is
+    # the whole of docs/28 happening again one layer up. Nothing scorable at all
+    # counts as a failure too: a gate that could not be measured has not passed.
+    ok = res["pass_mean"] and res["pass_max"]
+    if not ok:
+        print("\n  M1 acceptance FAILED. Look at the montage before doing "
+              "anything else - accept.py's docstring says why, and a test that "
+              "fails for its own reasons has happened here before.")
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

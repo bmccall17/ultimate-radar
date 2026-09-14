@@ -521,9 +521,28 @@ function centroid(team,f){
 }
 function shapeLag(f){ const a=centroid(OFF,f), b=centroid(DEF,f);
   return (a&&b)?Math.abs(a[1]-b[1]):null }
+// Tags made in this session count immediately. They are not in D.events - that
+// is what the file on disk said when the page loaded - but making a tag and
+// watching the card below still say "no throw tagged yet" reads as the tagging
+// being broken, and the whole point of two keystrokes is that you see them work.
+// Declared here rather than beside the tagging pane below because the metric
+// cards read it, and a `const` referenced before its declaration runs is a
+// ReferenceError rather than an undefined.
+const TAGS = [];
+function allEvents(){
+  return (D.events||[]).concat(TAGS).slice().sort((a,b)=>a.t-b.t);
+}
 function lastThrow(f){
-  const ev=(D.events||[]).filter(e=>e.type==="throw" && e.t*FPS<=f);
-  return ev.length?ev[ev.length-1]:null;
+  const all=allEvents();
+  const ev=all.filter(e=>e.type==="throw" && e.t*FPS<=f);
+  if(!ev.length) return null;
+  const th=ev[ev.length-1];
+  if(th.target) return th;
+  // The receiver is not a third keystroke. A `catch` tagged after a `throw` names
+  // whoever caught it, which is exactly what a target is; asking a tagger to fill
+  // a `target` field as well would be asking twice for the same fact.
+  const c=all.find(e=>e.type==="catch" && e.t>th.t);
+  return c ? Object.assign({}, th, {target:c.player, catch_t:c.t}) : th;
 }
 function discTrusted(f){
   // A disc position exists for every frame, and most of them are not worth
@@ -1232,8 +1251,8 @@ document.getElementById("dl").onclick = () => {
    catch. The disc is exactly pinned by those two facts: held by the thrower up to
    the release, in flight between, held by the receiver after. Nothing here writes
    to disk - AD-9 means there is no server - so the log downloads as events.json,
-   which goes in the possession directory and `python -m ur.disc` reads. */
-const TAGS = [];
+   which goes in the possession directory and `python -m ur.disc` reads.
+   `TAGS` itself is declared up beside `allEvents`, which the metric cards use. */
 function addTag(type){
   if(!S.sel){ flashTag("Select a player first — click their marker or roster row."); return; }
   const t = +(S.f/FPS).toFixed(3);

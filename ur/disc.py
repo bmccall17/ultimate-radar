@@ -188,32 +188,37 @@ def emission_costs(doc: dict) -> tuple[list[str], np.ndarray, list[dict]]:
     return ids, cost, detail
 
 
-def viterbi(cost: np.ndarray, n_holders: int) -> list[int]:
-    """Cheapest holder path, where a change of holder must pass through flight.
+def _incoming(prev: np.ndarray, j: int, none: int) -> np.ndarray:
+    """Cost of arriving in state `j` from each previous state.
 
     The constraint is the sport: a disc does not move between two people without
     being thrown. Forbidding a direct hand-over means every change of holder has
     a flight phase between it, which is both true and what makes the output a
     sequence of throws rather than a flicker.
     """
+    if j == none:
+        # Any holder may release; flight may continue.
+        opts = prev + SWITCH_COST_YD
+        opts[none] = prev[none]
+        return opts
+    # A holder may keep holding, or may have just caught it. Nothing else.
+    opts = np.full(len(prev), np.inf)
+    opts[j] = prev[j]
+    opts[none] = prev[none] + SWITCH_COST_YD
+    return opts
+
+
+def _forward(cost: np.ndarray, none: int) -> tuple[np.ndarray, np.ndarray]:
+    """`A[f, j]` = cheapest path from frame 0 that is in state j at frame f."""
     nf, n = cost.shape
-    none = n_holders                      # index of the `none` state
-    best = cost[0].copy()
+    A = np.full((nf, n), np.inf)
     back = np.zeros((nf, n), int)
+    A[0] = cost[0]
     for f in range(1, nf):
-        prev = best
+        prev = A[f - 1]
         cur = np.full(n, np.inf)
         for j in range(n):
-            if j == none:
-                # Any holder may release; flight may continue.
-                opts = prev + SWITCH_COST_YD
-                opts[none] = prev[none]
-            else:
-                # A holder may keep holding, or may have just caught it. Nothing
-                # else: a direct hand-over is not a thing that happens.
-                opts = np.full(n, np.inf)
-                opts[j] = prev[j]
-                opts[none] = prev[none] + SWITCH_COST_YD
+            opts = _incoming(prev, j, none)
             k = int(np.argmin(opts))
             if np.isfinite(opts[k]) and np.isfinite(cost[f, j]):
                 cur[j] = opts[k] + cost[f, j]
@@ -223,11 +228,68 @@ def viterbi(cost: np.ndarray, n_holders: int) -> list[int]:
             cur[none] = (np.nanmin(prev[np.isfinite(prev)])
                          if np.isfinite(prev).any() else 0.0) + NONE_COST_YD
             back[f, none] = none
-        best = cur
-    path = [int(np.argmin(best))]
+        A[f] = cur
+    return A, back
+
+
+def _backward(cost: np.ndarray, none: int) -> np.ndarray:
+    """`B[f, j]` = cheapest completion from state j at frame f to the end."""
+    nf, n = cost.shape
+    B = np.full((nf, n), np.inf)
+    B[nf - 1] = 0.0
+    for f in range(nf - 2, -1, -1):
+        nxt = cost[f + 1] + B[f + 1]
+        for i in range(n):
+            # Where can i go? Straight on if it is a holder, into flight always,
+            # and out of flight into anybody. Same relation as `_incoming`, read
+            # the other way round.
+            opts = np.full(n, np.inf)
+            opts[none] = nxt[none] + (0.0 if i == none else SWITCH_COST_YD)
+            if i == none:
+                opts[:none] = nxt[:none] + SWITCH_COST_YD
+            else:
+                opts[i] = nxt[i]
+            B[f, i] = float(np.min(opts))
+    return B
+
+
+def viterbi(cost: np.ndarray, n_holders: int) -> list[int]:
+    """Cheapest holder path. See `_incoming` for what a legal transition is."""
+    nf, _ = cost.shape
+    none = n_holders                      # index of the `none` state
+    A, back = _forward(cost, none)
+    path = [int(np.argmin(A[nf - 1]))]
     for f in range(nf - 1, 0, -1):
         path.append(int(back[f, path[-1]]))
     return path[::-1]
+
+
+def margins(cost: np.ndarray, n_holders: int) -> np.ndarray:
+    """How much cheaper the winning holder is than the next one, per frame.
+
+    This is the number the active-learning loop in `docs/27` is built on: the
+    frames where it is smallest are the frames the solver is least sure about,
+    and those are the ones worth a human's two keystrokes. It is a **min-marginal
+    margin** - the best whole-possession path forced through each state, not the
+    per-frame emission cost - because the question is not "which holder looks
+    best here", it is "how much would the whole sequence cost if this frame were
+    somebody else". A frame whose emission costs are nearly tied but whose
+    neighbours pin it anyway is not an uncertain frame.
+
+    Units are yards, like everything else here, because the emission cost is a
+    path length. `inf` where a frame has fewer than two admissible states, which
+    is what a human tag makes it.
+    """
+    none = n_holders
+    A, _ = _forward(cost, none)
+    B = _backward(cost, none)
+    total = A + B
+    out = np.full(len(cost), np.inf)
+    for f, row in enumerate(total):
+        good = np.sort(row[np.isfinite(row)])
+        if len(good) >= 2:
+            out[f] = good[1] - good[0]
+    return out
 
 
 def _widen_flights(path: list[int], none: int, min_frames: int,
@@ -327,6 +389,22 @@ def build(work: Path, *, verbose: bool = True) -> dict:
     # frame a human has spoken for, so the Viterbi path has to go through them and
     # the spans between them are still solved rather than guessed at.
     tagged = from_events(doc, events, ids)
+    # A tag naming somebody who is not on the offensive roster is dropped by
+    # `from_events`, silently, and silence is the wrong answer: it is either a
+    # turnover inside the possession (in which case `offense` in clip.json is
+    # wrong for part of it) or a mis-click, and both are things to know about
+    # before the number that comes out is believed.
+    if verbose:
+        known = set(ids)
+        stray = sorted({e.get("player") for e in events.get("events", [])
+                        if e.get("source") == "human"
+                        and e.get("type") in ("throw", "catch")
+                        and e.get("player") not in known})
+        if stray:
+            print(f"[disc] !! {len(stray)} human tag(s) name a player who is not "
+                  f"on the offence: {stray}. They are ignored. Either the "
+                  f"possession changes hands - in which case `offense` in "
+                  f"clip.json is wrong for part of it - or the tag is a mis-click.")
     forced = cost.copy()
     for f, who in enumerate(tagged):
         if who is None:
@@ -336,6 +414,7 @@ def build(work: Path, *, verbose: bool = True) -> dict:
         forced[f, who] = 0.0 if not np.isfinite(keep) else min(keep, 0.0)
 
     path = viterbi(forced, none)
+    marg = margins(forced, none)
     _widen_flights(path, none, int(round(MIN_FLIGHT_S * fps)), tagged)
 
     # Flight spans: a run of `none` between two holders. Its endpoints are the
@@ -373,7 +452,31 @@ def build(work: Path, *, verbose: bool = True) -> dict:
 
     _fill_flight(samples, by, fps, tagged)
     _fill_unknown(samples)
-    return _write(work, doc, samples, ids, verbose=verbose)
+    for s, m in zip(samples, marg):
+        s["margin_yd"] = None if not np.isfinite(m) else round(float(m), 3)
+    return _write(work, doc, samples, ids, marg, tagged, verbose=verbose)
+
+
+def ask_next(marg: np.ndarray, tagged: list[int | None], fps: float, *,
+             n: int = 5, apart_s: float = 1.5) -> list[dict]:
+    """Where a human's next two keystrokes are worth the most.
+
+    `docs/27` step 4: ask where the solver is least sure, not in frame order.
+    Frames a human has already spoken for are excluded - their margin is infinite
+    by construction - and so is everything within `apart_s` of a moment already
+    on the list, because a thin margin is thin over a run of frames and five
+    consecutive frames of the same doubt is one question, not five.
+    """
+    order = [f for f in np.argsort(marg) if np.isfinite(marg[f])
+             and tagged[f] is None]
+    keep: list[int] = []
+    for f in order:
+        if all(abs(f - g) > apart_s * fps for g in keep):
+            keep.append(int(f))
+        if len(keep) >= n:
+            break
+    return [{"f": f, "t": round(f / fps, 2), "margin_yd": round(float(marg[f]), 3)}
+            for f in keep]
 
 
 def _fill_unknown(samples: list[dict]) -> None:
@@ -515,7 +618,8 @@ def _plausibility(samples: list[dict], fps: float) -> dict:
     }
 
 
-def _write(work: Path, doc: dict, samples: list[dict], ids: list[str], *,
+def _write(work: Path, doc: dict, samples: list[dict], ids: list[str],
+           marg: np.ndarray, tagged: list[int | None], *,
            verbose: bool) -> dict:
     fps = float(doc["possession"]["fps"])
     plaus = plausibility(samples, fps)
@@ -594,6 +698,16 @@ def _write(work: Path, doc: dict, samples: list[dict], ids: list[str], *,
                 f"{MIN_FLIGHT_S} s floor, and a possession that scores ends in the "
                 "endzone. Failing these does not prove which frames are wrong; it "
                 "proves the sequence as a whole is not a possession."),
+            "margin_yd_median": (round(float(np.median(marg[np.isfinite(marg)])), 3)
+                                 if np.isfinite(marg).any() else None),
+            "ask_next": ask_next(marg, tagged, fps),
+            "ask_next_note": (
+                "Where the solver's own second-best whole-possession path is "
+                "closest to its best, excluding frames a human has already "
+                "spoken for. docs/27: ask for the next tag where the margin is "
+                "thinnest, not in frame order. A margin is not a probability - "
+                "`tools/disc_score.py` is what turns it into one, by holding out "
+                "tags and measuring how often the solver recovers them."),
         },
         "samples": samples,
     }
