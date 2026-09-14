@@ -146,7 +146,7 @@ footer{color:var(--dim);font-size:12px;padding:6px 16px 26px}
     <div class="legend">
       <span><i style="background:var(--sol)"></i><span id="lgO"></span></span>
       <span><i style="background:var(--chill)"></i><span id="lgD"></span></span>
-      <span>solid = observed · dashed = estimated · ring = sigma, true scale</span>
+      <span>solid = observed · dashed = estimated · broken ring = identity unconfirmed · disc with no dot = not seen for over 2.2 s · ring = sigma, true scale</span>
     </div>
   </section>
 </main>
@@ -206,7 +206,17 @@ const PL = D.players, BY = Object.fromEntries(PL.map(p => [p.id, p]));
 const IW = D.camera.image_w, IH = D.camera.image_h;
 const C = D.camera.position_yd;
 const ESTIMATED = new Set(["predicted", "unknown", "interpolated"]);
-const ANCHORED = new Set(["observed", "confirmed"]);
+// A detection was matched to the slot in this frame. `provisional` belongs here
+// for drawing and for coverage - somebody really was seen there - but NOT for
+// metrics: it is a re-acquisition after a long gap, so whether it is the same
+// player is the open question. See MEASURABLE below and docs/25 R4.
+const ANCHORED = new Set(["observed", "confirmed", "provisional"]);
+const MEASURABLE = new Set(["observed", "confirmed"]);
+// docs/25 R5: past the predicted window the velocity estimate means nothing, so
+// the marker is not drawn at all - only the disc, anchored where the player was
+// last actually seen. A dot at a position nobody has looked at for three seconds
+// reads as information, which is the thing docs/05 exists to prevent.
+const NO_MARKER = new Set(["unknown"]);
 
 /* ---------------------------------------------------------------- state */
 const S = { f:0, playing:false, speed:1, sel:null, pin:null,
@@ -502,7 +512,7 @@ function discHolder(f){
 function evidence(f, slots){
   const st = slots.map(s=>BY[s]&&BY[s].state[f]).filter(Boolean);
   if(!st.length) return "inferred";
-  if(st.some(s=>s==="predicted"||s==="unknown")) return "inferred";
+  if(st.some(s=>!MEASURABLE.has(s))) return "inferred";
   return coverage(f)>=11 ? "measured" : "partial";
 }
 
@@ -700,6 +710,9 @@ function drawCamera(){
     octx.setLineDash([]);
     if(ANCHORED.has(st)){ octx.fillStyle=col; octx.beginPath();
       octx.arc(u,v,2.8*k,0,7); octx.fill(); }
+    if(st==="provisional"){ octx.strokeStyle=col; octx.lineWidth=1.3*k;
+      octx.setLineDash([2.5*k,2.5*k]); octx.beginPath();
+      octx.arc(u,v,5.6*k,0,7); octx.stroke(); octx.setLineDash([]); }
     // Labels only for the selected player, their matchup, and the disc holder.
     if(p.id===sel||p.id===selMark||p.id===holder){
       const t=p.jersey?`${p.id} #${p.jersey}`:p.id;
@@ -889,9 +902,20 @@ function drawFormation(f, ghost){
       rctx.setLineDash(ANCHORED.has(st)?[]:[3*RK,3*RK]); rctx.stroke(); rctx.setLineDash([]);
     }
     const rr=3.4*RK;
+    // docs/25 R5: an `unknown` slot gets its uncertainty disc and nothing else.
+    if(NO_MARKER.has(st)&&!ghost){ rctx.globalAlpha=1; continue; }
     rctx.beginPath(); rctx.arc(rx(xy[0]),ry(xy[1]),rr,0,7);
     if(ANCHORED.has(st)&&!ghost){ rctx.fillStyle=col; rctx.fill(); }
     else { rctx.strokeStyle=col; rctx.lineWidth=1.6*RK; rctx.stroke(); }
+    // Provisional: the position is measured, the identity is not. A ring in the
+    // same hue, broken, says "this dot is somebody - ask whether it is this
+    // somebody" without spending a colour on it (docs/05: form, never hue).
+    if(st==="provisional"&&!ghost){
+      rctx.strokeStyle=col; rctx.lineWidth=1.4*RK;
+      rctx.setLineDash([2.5*RK,2.5*RK]);
+      rctx.beginPath(); rctx.arc(rx(xy[0]),ry(xy[1]),rr+3*RK,0,7); rctx.stroke();
+      rctx.setLineDash([]);
+    }
     if(p.id===S.sel&&!ghost){
       rctx.strokeStyle=css("--sel"); rctx.lineWidth=2*RK;
       rctx.beginPath(); rctx.arc(rx(xy[0]),ry(xy[1]),rr+4*RK,0,7); rctx.stroke();
@@ -1302,8 +1326,16 @@ function provenance(){
   function gateSentence(g, id){
     const r = `${Math.round(g.per_player_recall*100)} % of player-frames`;
     const s = `sigma containment ${Math.round(g.sigma_containment*100)} %`;
+    // No re-acquisition on any possession has been labelled by a human, so there
+    // is no honest switch-detection number to print. Saying nothing is wrong too:
+    // the reader would assume the queue is exhaustive. docs/25 R4.
+    const nProv = PL.reduce((n,p)=>n+p.state.filter(x=>x==="provisional").length,0);
+    const sw = g.identity_switches_caught==null
+      ? ` ${nProv} re-acquisition${nProv===1?"":"s"} are marked provisional and`
+        + ` unreviewed — no swap-detection rate has been measured.`
+      : ` Identity switches caught: ${g.identity_switches_caught}.`;
     if(!g.measured_on || g.measured_on===id)
-      return `Tracker recall ${r}, ${s} (docs/17). `;
+      return `Tracker recall ${r}, ${s} (docs/17).${sw} `;
     return `<b>Accuracy on this possession is unmeasured.</b> Recall ${r} and ${s} ` +
            `were measured on <code>${g.measured_on}</code> (docs/17), against hand ` +
            `labels that do not exist for this one. Treat them as a prior, not a ` +
@@ -1335,6 +1367,11 @@ provenance();
 document.getElementById("foot").innerHTML =
   "Evidence states per <code>docs/05-uncertainty.md</code>: solid is observed, dashed is " +
   "an estimate, and the ring is that estimate's sigma drawn at true field scale. " +
+  "A broken ring round a solid dot is <i>provisional</i> — the slot re-acquired " +
+  "somebody after a long gap and nobody has checked it is the same player, so it " +
+  "counts for coverage but not for any metric. A disc with no dot is a slot " +
+  "nothing has seen for over 2.2 seconds: the disc is where they could be, and " +
+  "there is deliberately no marker to mistake for a position. " +
   "Cards marked <i>inferred</i> rest on at least one player nobody saw — do not quote them.";
 
 function draw(){
