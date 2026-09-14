@@ -4,7 +4,7 @@ Turn one possession of broadcast Ultimate Frisbee footage into two synchronized 
 overlay on the video and an overhead field view — that let a coach see how a defence
 organises, moves and breaks, and correct the system when it is wrong.
 
-**[Live demo](https://USER.github.io/REPO/)** — replace with the Pages URL once published.
+**[Live demo](https://bmccall17.github.io/ultimate-radar/)** — replace with the Pages URL once published.
 
 The demo runs on a **synthetic fixture**: invented positions, invented jersey numbers, not
 derived from any real game. It exists because the hard cases have to be visible before the
