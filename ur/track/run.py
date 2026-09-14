@@ -133,6 +133,29 @@ GATE_FLOOR_YD = 0.5       # degenerate case only: no sigma available at all
 # argument gives and report what it measured.
 REACH_BRANCH_MIN_GAP_S = 0.5
 
+# ...and a second condition, which is the one that stops the branch being a hole.
+#
+# **What went wrong with a bare gap threshold.** The reach test is
+# `d <= v_max*dt + 3 sigma` - a one-sided 3-sigma test on displacement, and it is
+# statistically sound. What it is not is the whole story: it bounds how far the
+# player moved and says nothing about how plausible the candidate is under the
+# motion model. On its own it admitted D3 at f62 to a detection the filter scored
+# at **chi-square 29.8**, three times the gate, on 0.02 yd of slack - an implied
+# 14.5 yd/s against a 9.5 yd/s sprint cap.
+#
+# The reason it could is arithmetic. At a half-second gap the travel budget is
+# 4.75 yd and the noise allowance on two 1 yd-ish endpoints is about 3.4 yd, so
+# **42 % of the "physical" bound is noise allowance** and the bound stops being
+# physical. This is the mirror image of the defect docs/16 found: there a 2.0 yd
+# floor made the reach *tighter* than the statistics at short gaps, here the noise
+# term makes it *looser*.
+#
+# So the branch opens only once the physical term dominates the slack it is
+# quoted with. Expressed as a ratio rather than a second magic constant, it adapts
+# to detection quality on its own: a noisy, distant candidate needs a longer gap
+# before any slot may claim it, which is the correct direction.
+REACH_NOISE_DOMINANCE = 2.0
+
 # --- round 2: team is priced, not vetoed (audit R1) ------------------------ #
 #
 # AD-3 made team a hard gate and gave the reason: a cross-team identity swap
@@ -182,6 +205,32 @@ KIT_MAX_PENALTY = float(-2.0 * np.log(KIT_BLOCK_P))
 # and no competing claim to sanity-check it, so it is the one place where an
 # uncertain kit has nothing to lose against.
 KIT_SEED_MIN_P = 0.90
+
+# **A long-gap re-acquisition is a cold start wearing a slot's history, and needs
+# the same rule.** This was the hole that let D3 spend a third of the possession
+# holding a referee. Its player was tracked to f65, went off the left of frame,
+# and at f84 the slot re-acquired 21 yd away onto a figure at the far right with
+# torso L* 58.8 and a kit probability of 0.635 - a coin flip. Nothing after that
+# could dislodge it, because once a slot is observed every frame it is never
+# stale enough to be reconsidered.
+#
+# The cold-start argument transfers exactly: after a second or more unobserved
+# there is no continuity left to sanity-check the kit call, so an uncertain kit
+# has nothing to lose against. Measured over the 30 long-gap re-acquisitions on
+# p0001, the rule separates them cleanly - the 12 it rejects sit 9.4 to 30.2 L*
+# from their own slot's kit history, against a median of 3.6 L* for ordinary
+# assignments.
+#
+# The asymmetry is what justifies a hard block rather than a penalty: being wrong
+# costs an entire wrong tracklet and every metric drawn from it, while being
+# cautious costs a few frames of waiting for a confident detection.
+#
+# A second guard on kit-history *consistency* was measured and is not shipped: no
+# re-acquisition that passes this threshold deviates further from its slot's own
+# kit profile than the 95th percentile of ordinary assignments, so the extra rule
+# would reject nothing and could not be checked. `tools/m4_ghost.py` reports the
+# deviation so it stays visible if a later possession needs it.
+KIT_REACQ_MIN_P = KIT_SEED_MIN_P
 
 # --- round 2b: seeing nothing is evidence ---------------------------------- #
 #
@@ -480,23 +529,38 @@ def associate(slots: list[Slot], dets: list[dict], gap_frames: dict[str, int],
         travel = MAX_SPEED_YD_S * dt * gap
         s_last = s.last_obs_sigma if s.last_obs_sigma is not None else GATE_FLOOR_YD
         stale_enough = gap * dt >= REACH_BRANCH_MIN_GAP_S
+        # Long enough unobserved that there is no continuity left to check a kit
+        # call against - see KIT_REACQ_MIN_P.
+        reacquiring = gap * dt >= REACQ_MIN_GAP_S
         for j, (_, z, R, det) in enumerate(dets):
             p = kit_probability(det, s.team)
             kit_p[i, j] = p
             if p < KIT_BLOCK_P:
                 continue                  # AD-3: a confident other kit, never
+            if reacquiring and p < KIT_REACQ_MIN_P:
+                continue                  # a cold start needs a confident kit
             kit_pen[i, j] = float(-2.0 * np.log(max(p, 1e-9)))
 
             s_det = float(np.sqrt(R[0, 0]))
-            reach = max(GATE_FLOOR_YD,
-                        travel + GATE_NOISE_SIGMAS * float(np.hypot(s_last, s_det)))
-            within_reach = float(np.hypot(*(z - s.track.position))) <= reach
+            noise = GATE_NOISE_SIGMAS * float(np.hypot(s_last, s_det))
+            reach = max(GATE_FLOOR_YD, travel + noise)
+            # Measured from where the player was last *seen*, not from the
+            # dead-reckoned position. The bound is on how far the player can have
+            # travelled since that observation, and the prediction has already
+            # spent some of that budget - comparing against it double-counts, and
+            # does so in the permissive direction whenever the prediction has
+            # coasted toward the candidate. Same class of type error docs/16
+            # found in the old 2.0 yd floor.
+            origin = (np.asarray(s.last_obs_xy, float)
+                      if s.last_obs_xy is not None else s.track.position)
+            within_reach = float(np.hypot(*(z - origin))) <= reach
 
             y, S = s.track.innovation(z, R)
             d2 = mahalanobis2(y, S)
             chi2[i, j] = d2
             stat_ok[i, j] = within_reach and d2 <= GATE_CHI2
-            reach_ok[i, j] = within_reach and stale_enough
+            reach_ok[i, j] = (within_reach and stale_enough
+                              and travel >= REACH_NOISE_DOMINANCE * noise)
 
     # Two passes, and the order is the whole point of the union.
     #

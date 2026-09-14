@@ -20,23 +20,31 @@ python -m tools.m4_foot     score work/p0001
 
 | | before | after | asked for |
 |---|---|---|---|
-| `observed_fraction` | 0.6786 | **0.7135** | rises |
-| anchored (observed + provisional) | 0.6786 | **0.7198** | — |
-| worst slot | D3 0.2972 | **D2 0.3750** | **≥ 0.60 — not met** |
-| near-miss slot-frames recovered | — | **157 of 218** (83.5 % of the 188 that are jointly reachable) | ≥ 150 |
+| `observed_fraction` | 0.6786 | **0.7290** | rises |
+| anchored (observed + provisional) | 0.6786 | **0.7339** | — |
+| worst slot | D3 0.2972 | **O2 0.5472** | **≥ 0.60 — not met, 12 of 14 clear it** |
+| near-miss slot-frames recovered | — | **137 of 218** — see §9, it fell as accuracy rose | ≥ 150 |
 | cross-team with both kits confident | 0 | **0** | 0 |
 | `margin`: null records | 2977 | **0** | meaningful |
-| `margin`: lowest slot median | 1.61 (on 11 of 180 records) | **10.735** (on all records) | no slot at 0.0 |
+| `margin`: lowest slot median | 1.61 (on 11 of 180 records) | **10.912** (on all records) | no slot at 0.0 |
 | `observed` samples off the field of play | 17 | **0** | 0 |
-| per-player recall @ 1.5 yd vs hand labels | 0.8846 | **0.8932** | — |
-| …misses caused by a kit call | 14 | **2** | — |
+| per-player recall @ 1.5 yd vs hand labels | 0.8846 | **0.9701** | — |
+| …total misses at 1.5 yd | 27 | **7** | — |
+| …misses caused by a kit call | 14 | **1** | — |
+| sigma containment | 80.0 % (marginal) | **80.0 % pass** | ≥ 80 % |
+| position error p95 | 1.0337 yd | **1.0336 yd** | < 1.8 |
 | …misses that were referees or crew | — | **0** | reported separately |
 | shared detections (one person, two slots) | 0 | **0** | — |
-| re-acquisitions emitted for review | 0 | **32**, ranked | all of them |
+| re-acquisitions emitted for review | 0 | **25**, ranked | all of them |
 
 Two of these need the rest of this document before they mean anything: the worst-slot
-number, which is not met and cannot be, and the near-miss count, whose denominator is not
-what it looks like.
+number, which is not met and cannot be (§6), and the near-miss count, which **went down as
+accuracy went up** and whose denominator is not what it looks like (§9).
+
+Sections 1–7 are the round-2 audit's rules. **Sections 8 and 9 are two further rounds, both
+prompted by looking at the published viewer rather than at a number** — the first found
+ghosts standing in searched, empty grass; the second found a slot holding a referee for a
+third of the possession while every acceptance gate was green.
 
 ---
 
@@ -123,12 +131,13 @@ And the four were never ground truth. So:
 - Every re-acquisition after a gap ≥ 1.0 s is marked **`provisional`** — an observation of
   somebody, with the identity unestablished. It counts for coverage and is excluded from
   every metric (`docs/05` propagation).
-- `ur.issues` emits **all 32**, ranked by displacement from the prediction, each carrying the
+- `ur.issues` emits **all of them** (25 on p0001 as it now stands), ranked by displacement
+  from the prediction, each carrying the
   gap, the margin, the kit probability, which gate admitted it, and the runner-up it beat.
 - `possession.json`'s `identity_switches_caught` is now **null** rather than the "2 of 2" it
   claimed. That figure was the detector agreeing with the analysis that produced it.
 
-Set the threshold after someone watches 32 clips. Not before.
+Set the threshold after someone watches the clips. Not before.
 
 ## 5. The sideline figure was a brittle AND, not a missing bound
 
@@ -295,6 +304,95 @@ slot with no position at all.
 
 The one remaining at f205 is a `predicted` sample with a 2.4 yd disc — a slot missing for
 under a second, which is the state doing its job.
+
+---
+
+## 9. Round 2c — two holes found by watching, not by measuring
+
+Both came from a review of the published viewer, and neither would have surfaced from any
+statistic in this document. That is the third time on this project that watching has beaten
+measuring (`docs/16` is the first two), and it is worth saying plainly: **the acceptance
+numbers were all green while a slot spent a third of the possession holding a referee.**
+
+### D3 held an official for 40 frames
+
+D3's player was tracked to f65, walked off the left of frame, and at **f84 the slot
+re-acquired 21 yd away onto a figure at the far right of the image** with torso L\* 58.8 and
+a kit probability of 0.635 — a coin flip. It held that figure from f84 to f124. It is a
+referee, and the stripe test missed it (one bright run against a threshold of three) exactly
+as `ur/team.py`'s "known leak" note says it sometimes will.
+
+**The hole was a rule that existed and was not applied where it also belonged.** A cold start
+already required a *confident* kit, on the argument that a slot with no history has nothing
+to sanity-check the call against. A slot that has been unobserved for a second or more is in
+the same position — its history is stale and its covariance is wide enough to admit most of
+the field — but had no such requirement. It does now: `KIT_REACQ_MIN_P`.
+
+The rule separates the cases cleanly rather than by a tuned threshold. Over the 30 long-gap
+re-acquisitions on p0001, the 12 it rejects sit **9.4 to 30.2 L\*** from their own slot's kit
+history; ordinary assignments sit at a median of 3.6. And the asymmetry justifies a hard
+block rather than a penalty: being wrong costs an entire wrong tracklet and every metric
+drawn from it, while being cautious costs a few frames of waiting.
+
+*A second guard on kit-history consistency was measured and not shipped: no re-acquisition
+passing the probability threshold deviates further from its slot's own profile than the 95th
+percentile of ordinary assignments, so the extra rule would reject nothing and could not be
+checked.*
+
+### The reach branch was a hole, and it was mine
+
+Round 2's R2 let a candidate in on the physical bound alone. At f62 that let D3 take a
+detection the filter scored at **χ² = 29.8** — three times the gate — on **0.02 yd** of
+slack, an implied 14.5 yd/s against a 9.5 yd/s sprint cap. The detection belonged near D7,
+which had just dropped out; D3 was merely the slot that happened to be stale enough for the
+branch to open.
+
+Two defects, both of the same kind `docs/16` found in the old 2.0 yd floor — a bound compared
+against the wrong pair of points.
+
+1. **The reach was measured from the dead-reckoned position, not from the last observation.**
+   The bound is on how far the player can have travelled *since they were last seen*, and the
+   prediction has already spent part of that budget. Comparing against it double-counts, and
+   does so permissively whenever the prediction has coasted toward the candidate.
+2. **At short gaps the noise allowance stops the bound being physical.** The test is
+   `d ≤ v_max·Δt + 3σ`, which is a sound one-sided 3-sigma test. But at a half-second gap the
+   travel budget is 4.75 yd and the allowance on two endpoints is about 3.4 yd — **42 % of
+   the "physical" bound is slack**. This is the exact mirror of the earlier defect: there a
+   floor made the reach *tighter* than the statistics at short gaps; here the noise term makes
+   it *looser*.
+
+The fix for the second is a ratio rather than another constant: the branch opens only once
+the travel term dominates the allowance it is quoted with (`REACH_NOISE_DOMINANCE = 2`). It
+adapts to detection quality on its own — a noisy, distant candidate needs a longer gap before
+any slot may claim it, which is the correct direction.
+
+**Turning the branch off entirely was measured and is worse** (recall 0.9402 against 0.9701),
+so it earns its place; it just needed a bound.
+
+### Measured
+
+| | round 2b | round 2c |
+|---|---|---|
+| **per-player recall @ 1.5 yd** | 0.9060 | **0.9701** |
+| misses at 1.5 yd | 22 | **7** |
+| `observed_fraction` | 0.7173 | **0.7290** |
+| worst slot | D3 0.328 | **O2 0.547** |
+| sigma containment | 78.4 % fail | **80.0 % pass** |
+| position error p95 | 1.1493 yd | **1.0336 yd** |
+| slots holding a mid-band figure for ≥ 8 frames | 1 (D3, 40 frames) | **0** |
+| reach-branch assignments | 24 | 11 |
+| D3 at f85 | referee, L\* 58.8, P 0.635 | **real player, L\* 41.0, P 0.988** |
+| D3 at f103 | — | acquires [59.4, 30.6], the candidate the audit's R2 worked example named |
+
+**Near-miss recovery fell, 155 → 137, and that is the right direction.** Those "recoveries"
+included slots taking referees. Ground-truth recall rising from 0.906 to 0.970 over the same
+change is the clearest possible demonstration that the near-miss set is not ground truth —
+the point made below, now with a worked example behind it.
+
+**Twelve of fourteen slots now clear 60 % observed.** O2 (0.547) and O7 (0.575) do not, and
+the attribution is unchanged: of 1341 blind slot-frames only **21** have any unused same-team
+detection within 5 yd, and the tracker now takes **95.2 %** of the detection-limited ceiling
+of 0.7710.
 
 ---
 

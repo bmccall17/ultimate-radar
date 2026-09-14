@@ -129,17 +129,17 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             # measured. Naming the possession they came from is what lets a
             # reader, and the viewer, tell the difference.
             "measured_on": "p0001",
-            "per_player_recall": 0.9060,
+            "per_player_recall": 0.9701,
             "identity_switches_caught": None,
-            "sigma_containment": 0.784,
-            "note": "Per-player recall is 0.9060 against a threshold left "
+            "sigma_containment": 0.80,
+            "note": "Per-player recall is 0.9701 against a threshold left "
                     "deliberately unset, because the statistic is chaotically "
                     "sensitive at this sample size - it moves non-monotonically "
                     "between 0.880 and 0.919 under association changes that should "
                     "not matter, which is about one standard error on 234 labelled "
-                    "players. Sigma containment is 29 of 37, below the 80 % gate and "
-                    "inside its own 95 % interval of 62.8-88.6 %; it needs a larger "
-                    "sample, not a fix. `identity_switches_caught` is null rather "
+                    "players. Sigma containment is 32 of 40, exactly the 80 % gate, "
+                    "with a Wilson 95 % interval of 65.2-89.5 % - it passes "
+                    "marginally and needs a larger sample to call. `identity_switches_caught` is null rather "
                     "than the '2 of 2' it used to claim: that number was the swap "
                     "detector agreeing with the analysis that produced it, and no "
                     "re-acquisition on this possession has been labelled by a human. "

@@ -1,44 +1,44 @@
 {
  "possession": "p0001",
  "frames": 360,
- "observed_fraction": 0.7173,
+ "observed_fraction": 0.729,
  "observed_fraction_per_slot": {
-  "O1": 0.7722,
-  "O2": 0.5361,
-  "O3": 0.6028,
+  "O1": 0.675,
+  "O2": 0.5472,
+  "O3": 0.8167,
   "O4": 0.8722,
   "O5": 0.875,
-  "O6": 0.7722,
-  "O7": 0.6333,
-  "D1": 0.8333,
-  "D2": 0.575,
-  "D3": 0.3278,
+  "O6": 0.7528,
+  "O7": 0.575,
+  "D1": 0.6639,
+  "D2": 0.6667,
+  "D3": 0.6083,
   "D4": 0.9306,
-  "D5": 0.7611,
-  "D6": 0.75,
+  "D5": 0.6444,
+  "D6": 0.7639,
   "D7": 0.8833
  },
- "worst_slot": "D3",
- "worst_slot_fraction": 0.3278,
+ "worst_slot": "O2",
+ "worst_slot_fraction": 0.5472,
  "observed_off_field": 0,
  "observed_off_field_detail": [],
  "cross_team_confident": 0,
  "cross_team_detail": [],
  "margin": {
   "O1": {
-   "n": 277,
+   "n": 242,
    "nulls": 0,
-   "median": 11.501
+   "median": 11.781
   },
   "O2": {
-   "n": 192,
+   "n": 196,
    "nulls": 0,
-   "median": 10.922
+   "median": 10.912
   },
   "O3": {
-   "n": 216,
+   "n": 293,
    "nulls": 0,
-   "median": 11.854
+   "median": 11.707
   },
   "O4": {
    "n": 313,
@@ -51,29 +51,29 @@
    "median": 11.753
   },
   "O6": {
-   "n": 277,
+   "n": 270,
    "nulls": 0,
-   "median": 11.737
+   "median": 11.729
   },
   "O7": {
-   "n": 227,
-   "nulls": 0,
-   "median": 11.547
-  },
-  "D1": {
-   "n": 299,
-   "nulls": 0,
-   "median": 11.827
-  },
-  "D2": {
    "n": 206,
    "nulls": 0,
-   "median": 11.004
+   "median": 11.471
+  },
+  "D1": {
+   "n": 238,
+   "nulls": 0,
+   "median": 11.55
+  },
+  "D2": {
+   "n": 239,
+   "nulls": 0,
+   "median": 11.797
   },
   "D3": {
-   "n": 117,
+   "n": 218,
    "nulls": 0,
-   "median": 11.274
+   "median": 11.884
   },
   "D4": {
    "n": 334,
@@ -81,14 +81,14 @@
    "median": 11.846
   },
   "D5": {
-   "n": 273,
+   "n": 231,
    "nulls": 0,
-   "median": 11.715
+   "median": 11.678
   },
   "D6": {
-   "n": 269,
+   "n": 274,
    "nulls": 0,
-   "median": 11.623
+   "median": 11.723
   },
   "D7": {
    "n": 317,
@@ -97,8 +97,8 @@
   }
  },
  "margin_null_total": 0,
- "margin_median_min": 10.922,
- "near_misses_now": 105,
+ "margin_median_min": 10.912,
+ "near_misses_now": 99,
  "baseline": {
   "taken_from": "ur.track.run before the round-2 rule changes (docs/25-round-2-ghost-audit.md)",
   "observed_fraction": 0.6786,
@@ -107,18 +107,18 @@
   "near_miss_slot_frames": 218,
   "distinct_detections": 188,
   "shared_detections": 30,
-  "other_team_explains_better": 31,
-  "recovered_as_observed": 155,
-  "recovered_fraction": 0.711,
-  "recovered_of_distinct": 0.8245,
+  "other_team_explains_better": 29,
+  "recovered_as_observed": 137,
+  "recovered_fraction": 0.6284,
+  "recovered_of_distinct": 0.7287,
   "by_reason": {
    "weak_team": {
     "n": 194,
-    "recovered": 145
+    "recovered": 132
    },
    "eligible_unassigned": {
     "n": 24,
-    "recovered": 10
+    "recovered": 5
    }
   }
  }
