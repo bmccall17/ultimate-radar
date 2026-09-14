@@ -1,25 +1,25 @@
 {
  "possession": "p0001",
  "frames": 360,
- "observed_fraction": 0.7135,
+ "observed_fraction": 0.7173,
  "observed_fraction_per_slot": {
   "O1": 0.7722,
-  "O2": 0.5167,
+  "O2": 0.5361,
   "O3": 0.6028,
   "O4": 0.8722,
   "O5": 0.875,
-  "O6": 0.775,
+  "O6": 0.7722,
   "O7": 0.6333,
-  "D1": 0.8278,
-  "D2": 0.375,
-  "D3": 0.5806,
+  "D1": 0.8333,
+  "D2": 0.575,
+  "D3": 0.3278,
   "D4": 0.9306,
-  "D5": 0.6944,
-  "D6": 0.7389,
+  "D5": 0.7611,
+  "D6": 0.75,
   "D7": 0.8833
  },
- "worst_slot": "D2",
- "worst_slot_fraction": 0.375,
+ "worst_slot": "D3",
+ "worst_slot_fraction": 0.3278,
  "observed_off_field": 0,
  "observed_off_field_detail": [],
  "cross_team_confident": 0,
@@ -28,12 +28,12 @@
   "O1": {
    "n": 277,
    "nulls": 0,
-   "median": 11.48
+   "median": 11.501
   },
   "O2": {
-   "n": 185,
+   "n": 192,
    "nulls": 0,
-   "median": 10.735
+   "median": 10.922
   },
   "O3": {
    "n": 216,
@@ -48,12 +48,12 @@
   "O5": {
    "n": 314,
    "nulls": 0,
-   "median": 11.755
+   "median": 11.753
   },
   "O6": {
-   "n": 278,
+   "n": 277,
    "nulls": 0,
-   "median": 11.727
+   "median": 11.737
   },
   "O7": {
    "n": 227,
@@ -61,44 +61,44 @@
    "median": 11.547
   },
   "D1": {
-   "n": 297,
+   "n": 299,
    "nulls": 0,
-   "median": 11.824
+   "median": 11.827
   },
   "D2": {
-   "n": 134,
+   "n": 206,
    "nulls": 0,
-   "median": 11.218
+   "median": 11.004
   },
   "D3": {
-   "n": 208,
+   "n": 117,
    "nulls": 0,
-   "median": 11.326
+   "median": 11.274
   },
   "D4": {
    "n": 334,
    "nulls": 0,
-   "median": 11.845
+   "median": 11.846
   },
   "D5": {
-   "n": 249,
+   "n": 273,
    "nulls": 0,
-   "median": 11.685
+   "median": 11.715
   },
   "D6": {
-   "n": 265,
+   "n": 269,
    "nulls": 0,
-   "median": 11.557
+   "median": 11.623
   },
   "D7": {
    "n": 317,
    "nulls": 0,
-   "median": 11.786
+   "median": 11.787
   }
  },
  "margin_null_total": 0,
- "margin_median_min": 10.735,
- "near_misses_now": 81,
+ "margin_median_min": 10.922,
+ "near_misses_now": 105,
  "baseline": {
   "taken_from": "ur.track.run before the round-2 rule changes (docs/25-round-2-ghost-audit.md)",
   "observed_fraction": 0.6786,
@@ -108,17 +108,17 @@
   "distinct_detections": 188,
   "shared_detections": 30,
   "other_team_explains_better": 31,
-  "recovered_as_observed": 157,
-  "recovered_fraction": 0.7202,
-  "recovered_of_distinct": 0.8351,
+  "recovered_as_observed": 155,
+  "recovered_fraction": 0.711,
+  "recovered_of_distinct": 0.8245,
   "by_reason": {
    "weak_team": {
     "n": 194,
-    "recovered": 151
+    "recovered": 145
    },
    "eligible_unassigned": {
     "n": 24,
-    "recovered": 6
+    "recovered": 10
    }
   }
  }

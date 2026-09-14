@@ -158,6 +158,12 @@ two different situations apart:
 - **`anchor_f`** on an `unknown` sample — the frame its position was last actually observed.
   The position is held there rather than dead-reckoned, so the reader needs to know how old
   it is.
+- **`falsified`**, **`sigma_floor_unseen`** and **`covered`** on an `unknown` sample — the
+  camera was pointed at the estimate and found nobody; how far the nearest unsearched ground
+  is, which floors the sigma; and whether every place the player could be has been searched,
+  in which case the viewer draws nothing and the roster says so. `ur/possess.py` re-exports
+  `falsified` and `covered` as per-frame boolean arrays, because the viewer needs them and
+  cannot recompute them without the homography and the detections.
 - **`reacquire`** on a `provisional` sample — the gap that preceded it and how far the
   observation landed from the dead reckoning. `ur/issues.py` turns these into the review
   queue; they are the only record of which observations have an unverified identity.

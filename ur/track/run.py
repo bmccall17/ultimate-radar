@@ -183,6 +183,45 @@ KIT_MAX_PENALTY = float(-2.0 * np.log(KIT_BLOCK_P))
 # uncertain kit has nothing to lose against.
 KIT_SEED_MIN_P = 0.90
 
+# --- round 2b: seeing nothing is evidence ---------------------------------- #
+#
+# A slot with no detection keeps dead reckoning, and until now nothing ever
+# contradicted it. Measured on p0001 after the round-2 fixes, **295 ghost
+# slot-frames sit where the camera is looking and no detection of any kind lies
+# within 3 yd** - the tracker asserting a player stands in grass the camera can
+# see is empty. Those are the ghosts that linger in the middle of a formation and
+# distort every shape read taken from it.
+#
+# The missing idea is that a detector finding nothing is a *measurement*. The
+# likelihood of "no detection here" is near zero inside a region the camera has
+# searched, so the posterior is the prior with a hole punched in it. A Gaussian
+# cannot represent a hole, but it can represent the two things the hole implies:
+# the estimate is worse than we thought, and the mean is not to be trusted.
+#
+# So on a falsified miss the tracker does three things and refuses to do a fourth:
+#
+#   - inflates the position covariance, because we now know less, not more;
+#   - declares the sample `unknown` at once rather than after PREDICT_MAX_S,
+#     because `predicted` claims a position and this one has been contradicted;
+#   - records `falsified` with the radius searched, so the viewer can draw the
+#     player where they must be - outside what the camera can see - rather than
+#     on top of the formation;
+#   - and does NOT move the mean. Pushing it away from the searched region would
+#     invent a direction the evidence does not contain.
+#
+# The test is deliberately conservative, because a false falsification throws away
+# a good track. The predicted point must project well inside the frame, not at the
+# edge where a player is half out of shot, and "nothing there" means no detection
+# of EITHER team within the radius - including ones this tracker rejected as
+# referees or crew, since any of them would explain the pixels.
+NEG_EVIDENCE_MARGIN_PX = 60      # how far inside the frame the point must project
+NEG_EVIDENCE_RADIUS_YD = 3.0     # a detection this close explains the slot away
+# Variance added per falsified frame, yd^2. A whole second of being looked at and
+# not found adds 15 x this, which takes a 0.7 yd sigma past 3 yd - out of "we know
+# where they are" and into "they are somewhere we are not looking", which is the
+# honest reading.
+NEG_EVIDENCE_VAR_PER_FRAME = 0.6
+
 # --- round 2: re-acquisition after a gap is provisional (audit R4) --------- #
 #
 # A slot that re-acquires after a long gap may have re-acquired the wrong person,
@@ -256,6 +295,90 @@ def _on_field(xy, z) -> np.ndarray:
                      min(max(float(xy[1]), 0.0), FIELD_W)])
 
 
+class Searched:
+    """Where the camera looked on one frame, and what it found.
+
+    Holds the inverse homography so a field position can be asked "is the camera
+    pointed at you?", and the frame's detections so it can be asked "and did it
+    find anybody there?". Both questions have to be answered together: a slot the
+    camera is not looking at is unremarkable, and a slot it is looking at with
+    somebody standing there is explained.
+    """
+
+    def __init__(self, H, dets: list[dict], w: int, h: int):
+        self.ok = H is not None
+        self.Hi = None
+        if self.ok:
+            try:
+                self.Hi = np.linalg.inv(np.asarray(H, float))
+            except np.linalg.LinAlgError:
+                self.ok = False
+        self.w, self.h = w, h
+        self.xy = np.array([d["field"] for d in dets if d.get("field")], float) \
+            if dets else np.zeros((0, 2))
+
+    def _in_view(self, xs: np.ndarray, ys: np.ndarray) -> np.ndarray:
+        """Vectorised: does each field point project inside the frame?"""
+        pts = np.stack([xs, ys, np.ones_like(xs)])
+        v = self.Hi @ pts
+        w = v[2]
+        ok = np.abs(w) > 1e-9
+        u = np.where(ok, v[0] / np.where(ok, w, 1.0), -1e9)
+        t = np.where(ok, v[1] / np.where(ok, w, 1.0), -1e9)
+        return ok & (u >= 0) & (u <= self.w) & (t >= 0) & (t <= self.h)
+
+    def distance_to_unseen(self, p: np.ndarray, max_yd: float = 40.0) -> float:
+        """How far from `p` the nearest patch of ground the camera cannot see is.
+
+        This is the floor negative evidence puts under the positional sigma, and
+        it is the answer to a flaw the first version of the clipped disc had. If a
+        slot is `unknown` and its whole uncertainty disc lies inside the camera's
+        view, then drawing only the part outside the view draws nothing, and the
+        player silently disappears from the overhead — which `docs/05` forbids
+        outright.
+
+        But an empty clipped disc is not a rendering problem, it is the estimate
+        contradicting itself: it says the player is somewhere in a region the
+        camera can see, and the camera has just reported that they are not. The
+        smallest claim consistent with both facts is that they are at least as far
+        away as the nearest place they could be hiding. So that distance becomes
+        the sigma floor, and the disc always reaches somewhere the player could
+        actually be.
+
+        Measured by marching outward on 16 rays rather than by intersecting the
+        frustum polygon: it reuses the projection test above, so the number cannot
+        disagree with the falsification test that produced it, and it does not
+        need the horizon clamping a polygon border would.
+        """
+        if not self.ok:
+            return 0.0
+        steps = np.arange(1.0, max_yd + 1.0, 1.0)
+        ang = np.linspace(0.0, 2.0 * np.pi, 16, endpoint=False)
+        xs = p[0] + np.outer(steps, np.cos(ang))
+        ys = p[1] + np.outer(steps, np.sin(ang))
+        unseen = ~self._in_view(xs.ravel(), ys.ravel())
+        if not unseen.any():
+            return float(max_yd)
+        return float(steps[np.unravel_index(int(np.argmax(unseen)),
+                                            xs.shape)[0]])
+
+    def falsifies(self, p: np.ndarray) -> bool:
+        """True when the camera is looking at `p` and found nobody there."""
+        if not self.ok:
+            return False
+        v = self.Hi @ np.array([p[0], p[1], 1.0])
+        if abs(v[2]) < 1e-9:
+            return False
+        u, w = v[0] / v[2], v[1] / v[2]
+        m = NEG_EVIDENCE_MARGIN_PX
+        if not (m <= u <= self.w - m and m <= w <= self.h - m):
+            return False                      # not looking, or looking at the edge
+        if len(self.xy) == 0:
+            return True
+        d = np.hypot(*(self.xy - p).T)
+        return bool(d.min() > NEG_EVIDENCE_RADIUS_YD)
+
+
 def reported_sigma(track: Track) -> float:
     """The radius docs/05 wants drawn, from the filter's per-axis covariance.
 
@@ -279,6 +402,9 @@ class Slot:
         # Where the slot was when it was last actually seen. `unknown` samples
         # report this rather than the dead-reckoned position - see audit R5.
         self.last_obs_xy: list[float] | None = None
+        # How many frames this slot has been looked at and not found. Reported so
+        # a reader can tell "nobody has looked" from "we looked and it is wrong".
+        self.falsified_frames = 0
         self.samples: list[dict] = []
 
     @property
@@ -471,6 +597,9 @@ def track(work: Path, *, verbose: bool = True) -> dict:
     n_frames = int(clip["frames"])
     offense, defense = clip["offense"], clip["defense"]
     residuals = {r["f"]: r.get("residual_yd") for r in cal["frames"]}
+    homographies = {r["f"]: r.get("H") for r in cal["frames"]}
+    img_w = int(cal.get("camera", {}).get("image_w") or clip["source"]["video_w"])
+    img_h = int(cal.get("camera", {}).get("image_h") or clip["source"]["video_h"])
     by_frame = {d["f"]: d["dets"] for d in det["frames"]}
 
     slots: list[Slot] = []
@@ -482,6 +611,7 @@ def track(work: Path, *, verbose: bool = True) -> dict:
     stats = {"unassigned_detections": 0, "non_player_skipped": 0,
              "weak_kit_admitted": 0, "weak_kit_assigned": 0,
              "reach_branch_assignments": 0, "provisional": 0,
+             "falsified_misses": 0,
              "seeded": {}, "frames_with_surplus": 0,
              "unassigned_surplus": 0, "unassigned_lost_contest": 0,
              "unassigned_no_slot_in_gate": 0}
@@ -508,6 +638,8 @@ def track(work: Path, *, verbose: bool = True) -> dict:
                 stats["weak_kit_admitted"] += 1
             cands.append((i, np.asarray(xy, float),
                           _measurement_noise(d, residuals.get(f)), d))
+
+        searched = Searched(homographies.get(f), by_frame.get(f, []), img_w, img_h)
 
         gaps = {s.name: (f - s.last_obs_f) if s.last_obs_f is not None else 1
                 for s in slots}
@@ -610,7 +742,16 @@ def track(work: Path, *, verbose: bool = True) -> dict:
                                       "v": None})
                     continue
                 gap_s = (f - s.last_obs_f) * dt if s.last_obs_f is not None else 1e9
-                if gap_s <= PREDICT_MAX_S:
+                # Negative evidence. If the camera is pointed at where this slot
+                # thinks its player is and found nobody, the prediction has been
+                # contradicted and may not keep being asserted.
+                falsified = searched.falsifies(s.track.position)
+                if falsified:
+                    s.track.P[0, 0] += NEG_EVIDENCE_VAR_PER_FRAME
+                    s.track.P[1, 1] += NEG_EVIDENCE_VAR_PER_FRAME
+                    s.falsified_frames += 1
+                    stats["falsified_misses"] += 1
+                if gap_s <= PREDICT_MAX_S and not falsified:
                     s.samples.append({
                         "f": f, "xy": [round(float(v), 3) for v in s.track.position],
                         "state": "predicted",
@@ -631,13 +772,28 @@ def track(work: Path, *, verbose: bool = True) -> dict:
                     # disc by now". The filter itself keeps dead-reckoning, since
                     # that is still the best guess for re-association. See audit
                     # R5.
+                    xy = (np.asarray(s.last_obs_xy, float)
+                          if s.last_obs_xy else s.track.position)
                     sig = min(UNKNOWN_SIGMA_MAX,
                               max(UNKNOWN_SIGMA_MIN, reported_sigma(s.track)))
+                    # The floor negative evidence puts under the disc: if every
+                    # point it covers is ground the camera can see, the estimate
+                    # contradicts the camera. See Searched.distance_to_unseen.
+                    floor = searched.distance_to_unseen(xy)
+                    sig = min(UNKNOWN_SIGMA_MAX, max(sig, floor))
+                    # The camera can see every place this player could be, and
+                    # has not found them. There is nowhere on the field left to
+                    # draw them honestly, so the viewer draws nothing and says so
+                    # in the roster instead of blanking them silently (docs/05).
+                    covered = floor > sig
                     s.samples.append({
-                        "f": f, "xy": list(s.last_obs_xy) if s.last_obs_xy
-                        else [round(float(v), 3) for v in s.track.position],
+                        "f": f, "xy": [round(float(v), 3) for v in xy],
                         "state": "unknown", "sigma": round(sig, 3), "det": None,
-                        "v": None, "anchor_f": s.last_obs_f})
+                        "v": None, "anchor_f": s.last_obs_f,
+                        **({"falsified": True} if falsified else {}),
+                        **({"sigma_floor_unseen": round(floor, 2)}
+                           if floor > 0 else {}),
+                        **({"covered": True} if covered else {})})
 
     n_interp = retrospective_interpolation(slots, dt)
     doc = write_tracks(work, clip, det, slots, stats, n_interp, verbose=verbose)
@@ -718,13 +874,18 @@ def write_tracks(work: Path, clip: dict, det: dict, slots: list[Slot],
                          **({"reacquire": smp["reacquire"]}
                             if "reacquire" in smp else {}),
                          **({"anchor_f": smp["anchor_f"]}
-                            if "anchor_f" in smp else {})}
+                            if "anchor_f" in smp else {}),
+                         **({"falsified": True} if smp.get("falsified") else {}),
+                         **({"sigma_floor_unseen": smp["sigma_floor_unseen"]}
+                            if "sigma_floor_unseen" in smp else {}),
+                         **({"covered": True} if smp.get("covered") else {})}
                         for smp in s.samples],
             "observed": states.count("observed"),
             "provisional": states.count("provisional"),
             "interpolated": states.count("interpolated"),
             "predicted": states.count("predicted"),
             "unknown": states.count("unknown"),
+            "falsified_frames": s.falsified_frames,
             "first_observed_f": stats["seeded"].get(s.name),
             "team_score_median": (round(float(np.median(scores)), 3) if scores
                                   else None),
@@ -854,6 +1015,15 @@ def write_tracks(work: Path, clip: dict, det: dict, slots: list[Slot],
             "weak_kit_assignments": stats["weak_kit_assigned"],
             "reach_branch_assignments": stats["reach_branch_assignments"],
             "provisional_samples": stats["provisional"],
+            "falsified_misses": stats["falsified_misses"],
+            "falsified_note": "slot-frames where the camera was pointed well inside "
+                              "the frame at the slot's predicted position and no "
+                              "detection of any kind lay within "
+                              f"{NEG_EVIDENCE_RADIUS_YD} yd. The prediction is "
+                              "contradicted, so the sample is `unknown` rather than "
+                              "`predicted`, the covariance is inflated, and the "
+                              "viewer draws the uncertainty only where the camera "
+                              "cannot see.",
             "exclusion_note": "Non-player exclusions (referee, crew) and "
                               "low-confidence player detections are counted "
                               "separately, because docs/17 conflated them and drew "

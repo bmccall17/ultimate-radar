@@ -15,12 +15,12 @@
   },
   "recall_at_threshold": {
     "1.0": {
-      "greedy": 0.8504,
-      "one_to_one": 0.8504
+      "greedy": 0.859,
+      "one_to_one": 0.859
     },
     "1.5": {
-      "greedy": 0.8932,
-      "one_to_one": 0.8932
+      "greedy": 0.906,
+      "one_to_one": 0.906
     },
     "2.0": {
       "greedy": 0.9145,
@@ -28,17 +28,17 @@
     }
   },
   "recall_against_wider_denominator": {
-    "1.0": 0.8397,
-    "1.5": 0.8819,
+    "1.0": 0.8481,
+    "1.5": 0.8945,
     "2.0": 0.8987
   },
-  "pass": false,
+  "pass": true,
   "by_threshold": {
     "1.0": {
-      "greedy": 0.8504,
-      "one_to_one": 0.8504,
-      "greedy_matched": 199,
-      "one_to_one_matched": 199,
+      "greedy": 0.859,
+      "one_to_one": 0.859,
+      "greedy_matched": 201,
+      "one_to_one_matched": 201,
       "per_frame": [
         {
           "frame": 37,
@@ -100,8 +100,8 @@
           "frame": 184,
           "labelled_players": 14,
           "observed_slots": 12,
-          "greedy_matched": 12,
-          "one_to_one_matched": 12
+          "greedy_matched": 11,
+          "one_to_one_matched": 11
         },
         {
           "frame": 190,
@@ -114,15 +114,15 @@
           "frame": 194,
           "labelled_players": 14,
           "observed_slots": 13,
-          "greedy_matched": 11,
-          "one_to_one_matched": 11
+          "greedy_matched": 13,
+          "one_to_one_matched": 13
         },
         {
           "frame": 210,
           "labelled_players": 14,
           "observed_slots": 12,
-          "greedy_matched": 10,
-          "one_to_one_matched": 10
+          "greedy_matched": 11,
+          "one_to_one_matched": 11
         },
         {
           "frame": 213,
@@ -183,10 +183,10 @@
       ]
     },
     "1.5": {
-      "greedy": 0.8932,
-      "one_to_one": 0.8932,
-      "greedy_matched": 209,
-      "one_to_one_matched": 209,
+      "greedy": 0.906,
+      "one_to_one": 0.906,
+      "greedy_matched": 212,
+      "one_to_one_matched": 212,
       "per_frame": [
         {
           "frame": 37,
@@ -255,8 +255,8 @@
           "frame": 190,
           "labelled_players": 14,
           "observed_slots": 12,
-          "greedy_matched": 11,
-          "one_to_one_matched": 11
+          "greedy_matched": 12,
+          "one_to_one_matched": 12
         },
         {
           "frame": 194,
@@ -276,8 +276,8 @@
           "frame": 213,
           "labelled_players": 13,
           "observed_slots": 12,
-          "greedy_matched": 10,
-          "one_to_one_matched": 10
+          "greedy_matched": 11,
+          "one_to_one_matched": 11
         },
         {
           "frame": 226,
@@ -297,8 +297,8 @@
           "frame": 230,
           "labelled_players": 11,
           "observed_slots": 10,
-          "greedy_matched": 9,
-          "one_to_one_matched": 9
+          "greedy_matched": 10,
+          "one_to_one_matched": 10
         },
         {
           "frame": 245,
@@ -554,14 +554,6 @@
     },
     {
       "f": 190,
-      "i": 11,
-      "team": "chill",
-      "nearest_same_team_observed_yd": 1.61,
-      "weak_kit_call": false,
-      "rejected_as_non_player": null
-    },
-    {
-      "f": 190,
       "i": 13,
       "team": "sol",
       "nearest_same_team_observed_yd": 13.61,
@@ -580,7 +572,7 @@
       "f": 210,
       "i": 6,
       "team": "chill",
-      "nearest_same_team_observed_yd": 7.08,
+      "nearest_same_team_observed_yd": 7.12,
       "weak_kit_call": false,
       "rejected_as_non_player": null
     },
@@ -588,15 +580,7 @@
       "f": 210,
       "i": 14,
       "team": "sol",
-      "nearest_same_team_observed_yd": 10.61,
-      "weak_kit_call": false,
-      "rejected_as_non_player": null
-    },
-    {
-      "f": 213,
-      "i": 5,
-      "team": "sol",
-      "nearest_same_team_observed_yd": 1.68,
+      "nearest_same_team_observed_yd": 10.68,
       "weak_kit_call": false,
       "rejected_as_non_player": null
     },
@@ -604,7 +588,7 @@
       "f": 213,
       "i": 8,
       "team": "chill",
-      "nearest_same_team_observed_yd": 6.41,
+      "nearest_same_team_observed_yd": 6.45,
       "weak_kit_call": false,
       "rejected_as_non_player": null
     },
@@ -612,7 +596,7 @@
       "f": 213,
       "i": 10,
       "team": "chill",
-      "nearest_same_team_observed_yd": 1.54,
+      "nearest_same_team_observed_yd": 1.56,
       "weak_kit_call": false,
       "rejected_as_non_player": null
     },
@@ -636,7 +620,7 @@
       "f": 228,
       "i": 4,
       "team": "sol",
-      "nearest_same_team_observed_yd": 8.49,
+      "nearest_same_team_observed_yd": 8.5,
       "weak_kit_call": false,
       "rejected_as_non_player": null
     },
@@ -652,15 +636,7 @@
       "f": 230,
       "i": 5,
       "team": "chill",
-      "nearest_same_team_observed_yd": 5.21,
-      "weak_kit_call": false,
-      "rejected_as_non_player": null
-    },
-    {
-      "f": 230,
-      "i": 6,
-      "team": "chill",
-      "nearest_same_team_observed_yd": 1.83,
+      "nearest_same_team_observed_yd": 5.2,
       "weak_kit_call": false,
       "rejected_as_non_player": null
     },
@@ -676,7 +652,7 @@
       "f": 246,
       "i": 14,
       "team": "sol",
-      "nearest_same_team_observed_yd": 6.73,
+      "nearest_same_team_observed_yd": 6.64,
       "weak_kit_call": false,
       "rejected_as_non_player": null
     }

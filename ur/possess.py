@@ -65,6 +65,12 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             "det": [r["det"] for r in smp],
             "assoc": [r.get("assoc") for r in smp],
             "reacquire": [r.get("reacquire") for r in smp],
+            # Per-frame flags the viewer needs and cannot recompute cheaply:
+            # `falsified` - the camera looked at the estimate and found nobody;
+            # `covered` - it can see everywhere this player could be. Both come
+            # from the tracker, which has the homography and the detections.
+            "falsified": [bool(r.get("falsified")) for r in smp],
+            "covered": [bool(r.get("covered")) for r in smp],
             "observed_frames": s["observed"],
             "state_counts": {k: s.get(k, 0) for k in
                              ("observed", "provisional", "interpolated",
@@ -123,10 +129,10 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             # measured. Naming the possession they came from is what lets a
             # reader, and the viewer, tell the difference.
             "measured_on": "p0001",
-            "per_player_recall": 0.8932,
+            "per_player_recall": 0.9060,
             "identity_switches_caught": None,
             "sigma_containment": 0.784,
-            "note": "Per-player recall is 0.8932 against a threshold left "
+            "note": "Per-player recall is 0.9060 against a threshold left "
                     "deliberately unset, because the statistic is chaotically "
                     "sensitive at this sample size - it moves non-monotonically "
                     "between 0.880 and 0.919 under association changes that should "

@@ -83,6 +83,46 @@ Each slot, each frame, carries exactly one state.
 > all** — only the disc. The filter keeps dead-reckoning internally, because that is still
 > the best prior for re-association; it is the *reported* position that stops moving.
 
+## Seeing nothing is evidence
+
+*Added 2026-09-14. This is the rule that stops a ghost standing in plain sight, and it was
+missing from the original spec.*
+
+A detector finding nothing is a measurement. If the camera is pointed at the patch of field
+where a slot thinks its player is, and returns no detection within about 3 yd of it, then
+the estimate has been **contradicted** — not merely left unrefreshed. Before this rule the
+tracker treated the two identically, and measured on p0001 it was asserting a player stood
+in searched, empty grass on **295 slot-frames**.
+
+The likelihood of "no detection here" is near zero inside a searched region, so the
+posterior is the prior with a hole punched in it. A Gaussian cannot represent a hole. It can
+represent what the hole implies, and that is all the tracker claims:
+
+1. **The covariance grows.** Negative evidence makes the estimate worse, not better.
+2. **The state becomes `unknown` immediately**, whatever the elapsed time. `predicted`
+   asserts a position; this one has been falsified, and it may not keep being asserted.
+3. **The sigma is at least the distance to the nearest ground the camera cannot see.** If
+   every point the disc covers has been searched, the disc is smaller than the evidence
+   allows. This matters practically as well as philosophically: it is what stops the clipped
+   disc below from being empty.
+4. **The mean does not move.** Pushing it away from the searched region would invent a
+   direction the evidence does not contain.
+
+**In the viewer, an unobserved slot's uncertainty is drawn only where the camera cannot
+see** — the frustum is already on screen for the scrim, and reusing it as a clip path is the
+difference between "could be anywhere in this circle" and "is somewhere out of shot". A slot
+whose whole disc is inside the searched region has no honest place on the field at all: the
+viewer draws nothing and the roster says *"nothing drawn — the camera can see everywhere
+they could be"*, which is the same never-silently-blank treatment a slot with no position
+gets.
+
+**And an unobserved slot asserts nothing derived.** It owns no cell in the space-control
+layer, and a matchup with an unseen end has no range rather than a range computed from a
+guess. Hatching was the old concession and it is not enough once the system can say the
+player is provably not there — a Voronoi cell handed to a ghost gives ground to somebody who
+is demonstrably not standing on it, and subtracting a ghost's position from a real one
+produces a defensive breakdown that did not happen.
+
 > **The sigma column is a containment radius, not a per-axis standard deviation.**
 > *Clarified 2026-09-13.* The gate below asks that ≥ 80 % of truths fall inside the drawn
 > disc, which fixes the meaning: a per-axis σ would contain 39.3 % and could never pass.

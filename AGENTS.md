@@ -23,6 +23,16 @@ pass before you move on.
    never leave the detection and calibration stages.
 6. **Determinism.** Seed everything. Same input, same output — the eval numbers are
    meaningless otherwise.
+7. **The published site is the truth.** <https://bmccall17.github.io/ultimate-radar/> is
+   what gets looked at and judged. A pipeline or viewer change is not finished until
+   `python -m tools.build_site` has been run and pushed — local `viewer/index.html` output
+   does not count as delivered. `docs/` is the Pages root: it holds the site and the
+   project documentation, and **nothing else**. Do not park prototypes or scratch builds
+   there. The repository is public and stays public.
+   *This rule exists because a stale site cost a review round: two ghost players were
+   reported as live defects when they had already been fixed and pushed, because the
+   published page was still the previous build and its banner still quoted the old gate
+   numbers.*
 
 ## Working style
 

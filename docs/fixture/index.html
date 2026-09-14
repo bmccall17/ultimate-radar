@@ -425,7 +425,16 @@ function assignments(f){
     const n = Object.values(tally).reduce((a,b)=>a+b,0);
     let top=null,tc=0; for(const [k,v] of Object.entries(tally)) if(v>tc){tc=v;top=k}
     const dp=at(d,f), op=top?at(BY[top],f):null;
-    out[d.id]={mark:top, stability:n?tc/n:0, range:(dp&&op)?dist(dp,op):null};
+    // A range between two markers is only a measurement when both markers are
+    // measurements. A defender nobody has seen for three seconds has a position
+    // the tracker is explicit about not trusting, and subtracting it from an
+    // attacker's gives a number that looks like a gap and is arithmetic on a
+    // guess. `range` is null in that case and the cards say why rather than
+    // narrating it - this is what produced "D3 at 11.4 yd, that is the story of
+    // this moment" about a slot that was a ghost in open grass.
+    const seen = ANCHORED.has(d.state[f]) && !!top && ANCHORED.has(BY[top].state[f]);
+    out[d.id]={mark:top, stability:n?tc/n:0, seen,
+               range:(seen&&dp&&op)?dist(dp,op):null};
   }
   memo[key]=out; return out;
 }
@@ -449,6 +458,11 @@ function offFrame(f){
   for(const p of PL){
     const xy=at(p,f);
     if(!xy){ (lastKnown(p,f)?lost:blind).push(p.id); continue; }
+    // Not blank for want of a position - blank because every position the
+    // estimate allows is ground the camera has searched. Same roster treatment.
+    if(p.covered && p.covered[f] && NO_MARKER.has(p.state[f])){
+      blind.push(p.id); continue;
+    }
     if(!P) continue;
     const q=P.project(xy[0],xy[1],0);
     if(!q || q[0]<0 || q[0]>IW || q[1]<0 || q[1]>IH) away.push(p.id);
@@ -459,14 +473,23 @@ function offFrame(f){
 // docs/06: covering = stability > 0.6 AND distance < 5.5 yd.
 function scheme(f){
   const a=assignments(f);
-  const rows=Object.entries(a);
+  const all=Object.entries(a);
+  // Only matchups where both players were actually seen this frame can be judged.
+  // The rest are not "not covering" - they are unjudged, and the difference
+  // matters: calling an unseen defender adrift invents a defensive breakdown.
+  const rows=all.filter(([,v])=>v.seen);
+  const unseen=all.length-rows.length;
   const cov=rows.filter(([,v])=>v.stability>0.6 && v.range!==null && v.range<5.5);
   const adrift=rows.filter(([,v])=>!(v.stability>0.6 && v.range!==null && v.range<5.5))
                    .map(([k,v])=>({slot:k, range:v.range}));
   const n=cov.length;
-  const label = n>=6 ? "Person" : n<=3 ? "Zone or junk" : `Person, ${7-n} off`;
+  // The label is judged against what could be judged, not against seven.
+  const label = !rows.length ? "Not seen"
+    : n>=Math.max(1,rows.length-1) ? "Person"
+    : n<=Math.floor(rows.length/2) ? "Zone or junk"
+    : `Person, ${rows.length-n} off`;
   const stab = rows.length ? rows.reduce((s,[,v])=>s+v.stability,0)/rows.length : 0;
-  return {label, covering:n, adrift, stability:stab};
+  return {label, covering:n, judged:rows.length, unseen, adrift, stability:stab};
 }
 function series(key, fn){
   if(!memo[key]) memo[key] = Array.from({length:NF}, (_,f)=>fn(f));
@@ -847,7 +870,13 @@ function owners(f){
   // Nearest-player Voronoi at docs/06's 1 yd resolution, memoised per frame so
   // that playing at 15 fps does not recompute it on every draw.
   const key="vor"+f; if(memo[key]) return memo[key];
-  const pts=PL.map(p=>({p, xy:at(p,f)})).filter(o=>o.xy);
+  // A slot in NO_MARKER state owns no ground. It is not merely unobserved - the
+  // tracker has recorded that the camera was pointed at its estimate and found
+  // nobody, so letting it claim territory hands a chunk of the field to a player
+  // who is provably not standing there. A short `predicted` gap still counts, and
+  // its cells are hatched by drawSpace to say the claim rests on a guess.
+  const pts=PL.map(p=>({p, xy:at(p,f)}))
+              .filter(o=>o.xy && !NO_MARKER.has(o.p.state[f]));
   const W=Math.ceil(FL), Hh=Math.ceil(FW), g=new Array(W*Hh).fill(null);
   for(let x=0;x<W;x++) for(let y=0;y<Hh;y++){
     let best=null,bd=1e9;
@@ -887,6 +916,24 @@ function drawTrails(){
   }
   rctx.setLineDash([]); rctx.globalAlpha=1;
 }
+// The region the camera cannot see, as a clip path. A slot nothing has seen for
+// over 2.2 s is somewhere in here by definition - if it were in the lit part, the
+// detector would have found it, and the tracker says so explicitly by marking the
+// sample `falsified`. Clipping an `unknown` disc to this is the difference between
+// "this player might be anywhere in this circle, including the middle of a
+// formation you can plainly see they are not in" and the truth, which is "this
+// player is somewhere the camera is not looking".
+function clipToUnseen(ctx, f){
+  const fp=frustum(f);
+  ctx.beginPath();
+  ctx.rect(rx(0),ry(0),rx(FL)-rx(0),ry(FW)-ry(0));
+  if(fp.length>2){
+    ctx.moveTo(rx(fp[0][0]),ry(fp[0][1]));
+    for(let k=fp.length-1;k>=1;k--) ctx.lineTo(rx(fp[k][0]),ry(fp[k][1]));
+    ctx.closePath();
+  }
+  ctx.clip("evenodd");
+}
 function drawFormation(f, ghost){
   const scale=(radar.width-2*RPAD)/FL;
   for(const p of PL){
@@ -895,11 +942,19 @@ function drawFormation(f, ghost){
     rctx.globalAlpha = ghost?0.22:(S.sel&&p.id!==S.sel?0.35:1);
     if(!ghost){
       const r=Math.max(2*RK,p.sigma[f]*scale);
+      const unseen = NO_MARKER.has(st);
+      // The camera can see everywhere this player could be and has not found
+      // them, so there is no honest place on the field to draw them. The roster
+      // row carries it instead - docs/05, never silently blank.
+      if(unseen && p.covered && p.covered[f]){ rctx.globalAlpha=1; continue; }
+      rctx.save();
+      if(unseen) clipToUnseen(rctx, f);
       rctx.beginPath(); rctx.arc(rx(xy[0]),ry(xy[1]),r,0,7);
       rctx.fillStyle=col; rctx.globalAlpha*=0.14; rctx.fill();
       rctx.globalAlpha/=0.14;
       rctx.strokeStyle=col; rctx.lineWidth=1*RK;
       rctx.setLineDash(ANCHORED.has(st)?[]:[3*RK,3*RK]); rctx.stroke(); rctx.setLineDash([]);
+      rctx.restore();
     }
     const rr=3.4*RK;
     // docs/25 R5: an `unknown` slot gets its uncertainty disc and nothing else.
@@ -966,11 +1021,18 @@ function renderCards(){
   const adrift = sc.adrift.filter(x=>x.range!==null)
     .sort((x,y)=>y.range-x.range).slice(0,2)
     .map(x=>`${x.slot} at ${x.range.toFixed(1)} yd`).join(", ");
+  const unseenNote = sc.unseen
+    ? ` ${sc.unseen} defender${sc.unseen===1?" was":"s were"} not seen this frame and `
+      + `${sc.unseen===1?"is":"are"} not counted either way.`
+    : "";
   out.push(card("Defensive shape", sc.label,
-    `${sc.covering} of 7 covering · matchup stability ${Math.round(sc.stability*100)}%`,
+    `${sc.covering} of ${sc.judged} judged · matchup stability ${Math.round(sc.stability*100)}%`,
     evidence(f, PL.map(p=>p.id)),
-    sc.covering>=6 ? "Every defender is close to, and staying with, one attacker."
-      : `Defenders not tracking anyone closely: ${adrift||"—"}. That is the story of this moment.`));
+    !sc.judged
+      ? "No defender was seen on this frame, so there is no shape to read here."
+      : (sc.covering>=sc.judged
+         ? "Every defender the camera can see is close to, and staying with, one attacker."
+         : `Defenders not tracking anyone closely: ${adrift||"—"}.`) + unseenNote));
 
   const holder=discHolder(f);
   const discHere = !!(D.disc && D.disc[f]);
@@ -1055,7 +1117,14 @@ function renderRoster(){
     // slot is absent from BOTH views, so an empty overlay is honest rather
     // than broken.
     const blind=off.blind.includes(p.id);
-    const mark=blind?` <span class="why" style="display:inline">· nothing drawn</span>`:"";
+    const covered=!!(p.covered&&p.covered[S.f]);
+    const mark=blind
+      ? ` <span class="why" style="display:inline">· ${covered
+          ? "nothing drawn — the camera can see everywhere they could be"
+          : "nothing drawn"}</span>`
+      : (p.falsified&&p.falsified[S.f]
+         ? ` <span class="why" style="display:inline">· looked for, not found</span>`
+         : "");
     const seen=p.state.filter(s=>ANCHORED.has(s)).length;
     const xy=at(p,S.f), prev=S.f>0?at(p,S.f-1):null;
     const spd=(xy&&prev)?dist(xy,prev)*FPS:null;

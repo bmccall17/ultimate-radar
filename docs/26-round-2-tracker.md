@@ -211,6 +211,93 @@ below the physical one.
 
 ---
 
+## 8. Round 2b — seeing nothing is evidence
+
+The round-2 fixes removed the two ghosts that prompted the audit, and the class of
+failure survived them. Measured after §1–7: **295 ghost slot-frames sat where the camera
+was pointed well inside the frame and no detection of any kind lay within 3 yd.** The
+tracker was asserting that a player stood in grass the camera could see was empty — and
+those are exactly the ghosts that park in the middle of a formation and corrupt every
+shape read taken from it.
+
+The missing idea is that a detector finding nothing is a measurement. The likelihood of
+"no detection here" is near zero inside a region the camera has searched, so the posterior
+is the prior with a hole punched in it. A Gaussian cannot hold a hole, but it can hold the
+two things a hole implies: the estimate is worse than we thought, and its mean is not to be
+trusted.
+
+So on a falsified miss the tracker inflates the position covariance, declares the sample
+`unknown` at once rather than waiting out `PREDICT_MAX_S`, and records `falsified` — and
+deliberately does **not** move the mean, because pushing it away from the searched region
+would invent a direction the evidence does not contain. The test is conservative on purpose:
+the point must project at least 60 px inside the frame, not at the edge where a player is
+half out of shot, and "nothing there" counts detections of *either* team including ones
+rejected as referees or crew, since any of them would explain the pixels.
+
+**It improves association, which was not the point but is the strongest evidence it is
+right.** A slot that knows it is lost widens its own gate, so it re-acquires its player
+instead of sitting on a stale prediction. Per-player recall went **0.8932 → 0.9060**, which
+is the first time M4's recall gate has passed, and position error p95 went 1.49 → 1.15 yd.
+
+### The viewer half: a ghost can no longer stand in plain sight
+
+Three changes, each removing a way for an unobserved slot to assert something the camera
+contradicts:
+
+- **An `unknown` disc is clipped to the region the camera cannot see.** The frustum is
+  already computed for the scrim; reusing it as a clip path turns "this player might be
+  anywhere in this circle, including a patch of grass you can plainly see is empty" into
+  "this player is somewhere the camera is not looking", which is the true statement.
+- **An `unknown` slot owns no ground in the space-control layer.** Hatching a ghost's
+  Voronoi cell was the old concession, and it is not enough once the tracker can say the
+  player is provably not there: territory was being handed to somebody who is not standing
+  on it.
+- **A matchup with an unseen end has no range.** `assignments()` returns `range: null` when
+  either player is not anchored this frame, and `scheme()` judges only the matchups it can
+  judge. This is what produced *"Defenders not tracking anyone closely: D3 at 11.4 yd. That
+  is the story of this moment"* about a slot that was a ghost in open grass — a defensive
+  breakdown invented by subtracting a guess from a measurement. The card now reads
+  "N of M judged" and says how many defenders it could not see.
+
+### The flaw the first version of the clip had, and the fix
+
+Clipping alone made **62 % of `unknown` discs disappear entirely** — their whole disc lay
+inside the camera's view, so nothing was left to draw and the slot silently vanished, which
+`docs/05` forbids outright.
+
+But an empty clipped disc is not a rendering problem. It is the estimate contradicting
+itself: it claims the player is somewhere the camera can see, and the camera has just
+reported they are not. The smallest claim consistent with both is that they are at least as
+far away as the nearest place they could be hiding — so **that distance becomes the sigma
+floor** (`Searched.distance_to_unseen`, measured by marching outward on 16 rays so it reuses
+the same projection test as the falsification and cannot disagree with it). Vanishing discs
+fell 62 % → 16 %.
+
+The 16 % that remain are slots where the camera can see every place the motion model allows.
+There is no honest position to draw, so the viewer draws none and the **roster row says
+"nothing drawn — the camera can see everywhere they could be"**. That is 26 slot-frames on
+p0001, and it is the same never-silently-blank treatment `docs/05` already specifies for a
+slot with no position at all.
+
+### Measured
+
+| | before round 2b | after |
+|---|---|---|
+| ghost slot-frames asserting a position the camera sees is empty | 295 | **13** |
+| slot-frames painting a marker in searched-and-empty ground | 295 | **13** |
+| `unknown` discs that would draw nothing at all | — | 26, each flagged in the roster |
+| falsified misses recorded by the tracker | — | 340 |
+| `predicted` / `unknown` split | 854 / 264 | **577 / 527** |
+| per-player recall @ 1.5 yd | 0.8932 | **0.9060 — gate passes** |
+| position error p95 | 1.4907 yd | **1.1493 yd** |
+| `observed_fraction` | 0.7135 | **0.7173** |
+| ghosts at f103 / f205 (the two the review flagged) | 2 / 4 | **0 / 1** |
+
+The one remaining at f205 is a `predicted` sample with a 2.4 yd disc — a slot missing for
+under a second, which is the state doing its job.
+
+---
+
 ## What the audit got wrong, and one thing it still has
 
 The audit's own corrections table already withdrew three claims. Two further things:
