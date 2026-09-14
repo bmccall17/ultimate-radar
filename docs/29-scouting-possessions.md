@@ -420,6 +420,34 @@ Three things had to be right, and two of them were wrong first.
   *smaller* than a paint fit's — and a rejected one keeps the pure mosaic pose and the
   prior's confidence.
 
+### The cliff was measured on the wrong population, and it cost a round trip
+
+That acceptance rule shipped, and on p0003 and p0008 it produced refits with residuals of
+**0.129–0.150 yd** — comfortably inside the cliff — that were **3.6, 12.6 and 17.7 yd
+wrong**. p0003's M1 acceptance went from passing at 0.133 yd to failing at 1.110.
+
+The first guess was that these were short-arc fits. They are not: 220°, 360°, and 900 line
+pixels each. What happened is the failure `docs/28` Part 2 describes in full — **a prior a
+yard out makes `associate` hand the optimiser a different set of white pixels.** A penalty
+arc read as the centre circle, a goal-area line read as the halfway line, and the fit is
+then perfectly self-consistent about geometry that is not where it thinks it is. No
+residual can see that, because the residual is computed against the wrong assignment.
+
+The held-out measurement did not catch it because it was taken on the wrong population:
+hiding p0001's *poses* leaves its good paint in place, so the refit always had the right
+pixels available. The frames a refit is actually for are the ones whose paint is
+degenerate. **I measured the easy case and shipped the number.**
+
+The fix is the check this project already built for exactly this, and which the mosaic path
+had gone round entirely: two points whose field position is known to the inch, located in
+**image space only**, back-projected through the frame's own pose. A refit must survive it
+to be accepted, and "not testable" is not a pass. Then the same check runs over **every**
+mosaic-derived pose, refit or not, and folds into the confidence through the same
+`penalty_yd` and the same `exp(-total / 0.45)` as every paint-solved frame — because there
+was never a reason for a mosaic pose to be exempt from it. It caught p0003's two bad frames
+at 3.63 and 12.56 yd, and p0003's acceptance came back at **0.1242 yd mean, 0.3898 max**,
+better than before the mosaic existed.
+
 ## The trap, arriving an hour after the docstring warning about it
 
 The first version cleared only `basis: "mosaic"` when re-running, not `"mosaic+paint"`. So

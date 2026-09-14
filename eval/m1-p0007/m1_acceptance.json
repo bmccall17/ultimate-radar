@@ -1,43 +1,43 @@
 {
   "held_out_frames": [
-    12,
-    17,
-    41,
+    13,
+    18,
+    19,
     44,
-    50,
-    57,
-    83,
-    84,
-    87,
-    99,
-    101,
-    103,
+    47,
+    54,
+    61,
+    88,
+    90,
+    93,
+    105,
     107,
-    109,
-    115,
+    111,
+    114,
     116,
-    140,
-    148,
-    158,
+    123,
+    124,
+    149,
+    159,
     169
   ],
   "frames": 450,
-  "usable_frames": 172,
-  "usable_fraction": 0.3822,
-  "testable_frames": 5,
-  "testable_span_frames": 158,
+  "usable_frames": 183,
+  "usable_fraction": 0.4067,
+  "testable_frames": 7,
+  "testable_span_frames": 157,
   "population_note": "held-out frames are sampled from the frames with confidence >= 0.5, so mean_error_yd describes those frames and not the possession. Read it next to usable_fraction.",
   "per_frame": [
     {
-      "frame": 12,
+      "frame": 13,
       "note": "line or conic not found; not testable"
     },
     {
-      "frame": 17,
+      "frame": 18,
       "note": "line or conic not found; not testable"
     },
     {
-      "frame": 41,
+      "frame": 19,
       "note": "line or conic not found; not testable"
     },
     {
@@ -45,69 +45,76 @@
       "note": "line or conic not found; not testable"
     },
     {
-      "frame": 50,
+      "frame": 47,
       "note": "line or conic not found; not testable"
     },
     {
-      "frame": 57,
+      "frame": 54,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 61,
       "px_far": [
-        1046.89,
-        392.43
+        1107.4,
+        394.08
       ],
       "px_near": [
-        1038.6,
-        538.66
+        1097.97,
+        536.13
       ],
-      "err_far_yd": 0.0803,
-      "err_near_yd": 0.0595,
-      "mean_yd": 0.0699,
-      "max_yd": 0.0803
+      "err_far_yd": 0.3002,
+      "err_near_yd": 0.1462,
+      "mean_yd": 0.2232,
+      "max_yd": 0.3002
     },
     {
-      "frame": 83,
+      "frame": 88,
       "px_far": [
-        1287.51,
-        389.34
+        1294.96,
+        394.34
       ],
       "px_near": [
-        1276.95,
-        542.14
+        1284.02,
+        545.15
       ],
-      "err_far_yd": 0.797,
-      "err_near_yd": 0.1384,
-      "mean_yd": 0.4677,
-      "max_yd": 0.797
+      "err_far_yd": 0.2317,
+      "err_near_yd": 0.145,
+      "mean_yd": 0.1884,
+      "max_yd": 0.2317
     },
     {
-      "frame": 84,
-      "note": "line or conic not found; not testable"
-    },
-    {
-      "frame": 87,
+      "frame": 90,
       "px_far": [
-        1296.84,
-        395.37
+        1306.61,
+        393.7
       ],
       "px_near": [
-        1285.34,
-        545.4
+        1295.81,
+        543.46
       ],
-      "err_far_yd": 0.1539,
-      "err_near_yd": 0.0791,
-      "mean_yd": 0.1165,
-      "max_yd": 0.1539
+      "err_far_yd": 0.1719,
+      "err_near_yd": 0.0795,
+      "mean_yd": 0.1257,
+      "max_yd": 0.1719
     },
     {
-      "frame": 99,
+      "frame": 93,
       "note": "line or conic not found; not testable"
     },
     {
-      "frame": 101,
-      "note": "line or conic not found; not testable"
-    },
-    {
-      "frame": 103,
-      "note": "line or conic not found; not testable"
+      "frame": 105,
+      "px_far": [
+        1322.38,
+        403.32
+      ],
+      "px_near": [
+        1312.25,
+        559.9
+      ],
+      "err_far_yd": 0.1492,
+      "err_near_yd": 0.0186,
+      "mean_yd": 0.0839,
+      "max_yd": 0.1492
     },
     {
       "frame": 107,
@@ -125,38 +132,53 @@
       "max_yd": 0.2408
     },
     {
-      "frame": 109,
+      "frame": 111,
       "note": "line or conic not found; not testable"
     },
     {
-      "frame": 115,
+      "frame": 114,
       "px_far": [
-        1225.91,
-        387.19
+        1242.95,
+        394.26
       ],
       "px_near": [
-        1215.3,
-        548.03
+        1233.61,
+        549.39
       ],
-      "err_far_yd": 0.5704,
-      "err_near_yd": 0.1711,
-      "mean_yd": 0.3708,
-      "max_yd": 0.5704
+      "err_far_yd": 0.3669,
+      "err_near_yd": 0.1132,
+      "mean_yd": 0.24,
+      "max_yd": 0.3669
     },
     {
       "frame": 116,
       "note": "line or conic not found; not testable"
     },
     {
-      "frame": 140,
+      "frame": 123,
       "note": "line or conic not found; not testable"
     },
     {
-      "frame": 148,
+      "frame": 124,
+      "px_far": [
+        1219.05,
+        390.65
+      ],
+      "px_near": [
+        1208.72,
+        550.56
+      ],
+      "err_far_yd": 0.2335,
+      "err_near_yd": 0.034,
+      "mean_yd": 0.1338,
+      "max_yd": 0.2335
+    },
+    {
+      "frame": 149,
       "note": "line or conic not found; not testable"
     },
     {
-      "frame": 158,
+      "frame": 159,
       "note": "line or conic not found; not testable"
     },
     {
@@ -164,9 +186,9 @@
       "note": "line or conic not found; not testable"
     }
   ],
-  "n_correspondences": 10,
-  "mean_error_yd": 0.2339,
-  "max_error_yd": 0.797,
+  "n_correspondences": 14,
+  "mean_error_yd": 0.1628,
+  "max_error_yd": 0.3669,
   "gate": {
     "mean_yd": 0.75,
     "max_yd": 1.5

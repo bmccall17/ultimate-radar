@@ -136,6 +136,16 @@ CONF_SCALE_YD = 0.45          # the same constant ur/calibrate/run.py uses
 # smaller than a paint fit's. A rejected one keeps the pure mosaic pose and the
 # prior's confidence.
 REFIT_MAX_RMS_YD = 0.20
+
+# ...and a residual is not enough on its own, which cost a round trip to find
+# out. The cliff above was measured by holding out frames of p0001 whose paint
+# was good; the frames a refit is actually for have degenerate paint, and there
+# a low residual means the optimiser found *a* consistent answer, not the right
+# one. So a refit is also required to survive the one check in this project that
+# is independent of the solve - two points whose field position is known exactly,
+# located in image space only. If it cannot be run on a frame, the refit is not
+# accepted: "not testable" is not a pass (`groundtruth.check_frame`).
+REFIT_MAX_KNOWN_GEOMETRY_YD = 0.75      # the same bar docs/04 sets for M1
 FIT_PRIOR_SIGMAS = 3.0        # mirrors ur.calibrate.fit.PRIOR_SIGMAS, for the note
 
 
@@ -530,14 +540,20 @@ def fill_document(work: Path, *, verbose: bool = True) -> dict:
     for rec in frames:
         if rec.get("basis") != "mosaic" or "refit_rms_yd" not in rec:
             continue
-        if rec["refit_rms_yd"] >= REFIT_MAX_RMS_YD:
+        gt = rec.get("refit_known_geometry_err_yd")
+        if gt is None or gt > REFIT_MAX_KNOWN_GEOMETRY_YD                 or rec["refit_rms_yd"] >= REFIT_MAX_RMS_YD:
             # Rejected: the refit is as likely to have locked onto the wrong
             # answer as the right one, so the pure mosaic pose and its prior
             # confidence stand. The attempt is left in the record.
             rec["refit_rejected"] = (
+                "the known-geometry check could not test this frame, so nothing "
+                "independent confirms which paint the refit found"
+                if gt is None else
+                f"known-geometry error {gt:.2f} yd: the refit is self-consistent "
+                "on paint that is not where it thinks it is"
+                if gt > REFIT_MAX_KNOWN_GEOMETRY_YD else
                 f"residual {rec['refit_rms_yd']:.3f} yd is at or above "
-                f"{REFIT_MAX_RMS_YD} yd, where held-out frames are out by three "
-                "yards at the median")
+                f"{REFIT_MAX_RMS_YD} yd")
             rec.pop("H_refit", None)
             rec["H"] = rec["H_mosaic"]
             rec["camera"] = rec["camera_mosaic"]
@@ -556,6 +572,15 @@ def fill_document(work: Path, *, verbose: bool = True) -> dict:
             f"(residual {rec['refit_rms_yd']:.3f} yd over {rec['refit_n_px']} px, "
             f"arc {rec['refit_circle_span_deg']:.0f} deg, moved "
             f"{rec['refit_moved_yd']:.2f} yd from the prior).")
+
+    # **Every pose faces the same gate, whatever produced it.** The mosaic path
+    # originally scored a filled frame on the registration gap alone and never
+    # asked the one question that is independent of the solve. On p0003 that let
+    # a frame whose refit had been rejected at 12.6 yd keep a confidence of 0.64,
+    # because the fallback mosaic pose had never been checked either. docs/28
+    # built this check precisely because a self-consistent pose can be badly
+    # wrong; there is no reason a mosaic pose should be exempt from it.
+    check_known_geometry(work, doc, verbose=verbose)
 
     after = sum(1 for r in frames if r.get("confidence", 0) >= 0.5)
     doc.setdefault("method", {})["mosaic"] = {
@@ -608,6 +633,7 @@ def refit_with_paint(work: Path, doc: dict, *, verbose: bool = True) -> int:
     inside it. Neither source is sufficient alone and together they are
     well posed.
     """
+    from . import groundtruth as GT
     from . import mask as M
     from . import run as R
     from . import fit as FIT
@@ -677,6 +703,19 @@ def refit_with_paint(work: Path, doc: dict, *, verbose: bool = True) -> int:
         rec["refit_circle_span_deg"] = round(float(res.circle_span_deg), 1)
         rec["refit_n_px"] = int(res.n_circle + res.n_line)
         rec["refit_at_box_edge"] = bool(moved > 0.9 * FIT.PRIOR_SIGMAS * sigma)
+        # **The residual cannot tell you the refit found the right paint.** On
+        # p0003 and p0008, refits with residuals of 0.129-0.150 yd over a 220-360
+        # degree arc and 900 line pixels came back 3.6, 12.6 and 17.7 yd wrong:
+        # a prior a yard out makes `associate` hand the optimiser a *different*
+        # set of white pixels - a penalty arc read as the centre circle, a goal
+        # line read as the halfway line - and the fit is then perfectly
+        # self-consistent and completely wrong. That is docs/28 Part 2 exactly,
+        # and the known-geometry check is the thing built for it: it finds two
+        # points whose field position is known to the inch, in image space only,
+        # and measures where this pose puts them.
+        rec["refit_known_geometry_err_yd"] = (
+            None if (g := GT.check_frame(bgr, rm.mask, cam, res.pose)) is None
+            else round(float(g), 4))
         rec["camera"] = {**res.pose.to_dict(), "n_circle_px": res.n_circle,
                          "n_line_px": res.n_line,
                          "p95_yd": (None if not np.isfinite(res.p95_yd)
@@ -691,6 +730,57 @@ def refit_with_paint(work: Path, doc: dict, *, verbose: bool = True) -> int:
                   f"median residual {np.median(rms):.3f} yd, {edge} sat on the "
                   "edge of the prior box")
     return improved
+
+
+def check_known_geometry(work: Path, doc: dict, *, verbose: bool = True) -> None:
+    """Run the known-geometry check over every mosaic-derived pose, and let it bite.
+
+    `ur/calibrate/run.py` already does this for every frame the paint solved:
+    find two points whose field position is known exactly, in image space only,
+    back-project them through the frame's own camera model, and fold how far
+    they land from where they must be into the confidence. It is the only check
+    in the project that is independent of the solve, and `docs/28` Part 2 is the
+    story of what happens without it.
+
+    Mosaic frames went round it. They get it here, through the same
+    `groundtruth.penalty_yd` and the same `exp(-total / 0.45)`, so a filled
+    frame's confidence means what every other frame's confidence means.
+    """
+    from . import groundtruth as GT
+    from . import mask as M
+
+    filled = [r for r in doc["frames"] if str(r.get("basis", "")).startswith("mosaic")]
+    if not filled:
+        return
+    paths = sorted((work / "frames").glob("*.jpg"))
+    cam = C.FixedCamera(C=np.asarray(doc["camera"].get("position_yd_soccer",
+                                                       doc["camera"]["position_yd"]),
+                                     float),
+                        image_w=doc["camera"]["image_w"],
+                        image_h=doc["camera"]["image_h"])
+    rm = M.build(paths)
+    tested = demoted = 0
+    for rec in filled:
+        c = rec["camera"]
+        pose = C.Pose(pan=np.radians(c["pan_deg"]), tilt=np.radians(c["tilt_deg"]),
+                      f=float(c["focal_px"]), roll=np.radians(c.get("roll_deg", 0.0)))
+        bgr = cv2.imread(str(paths[rec["f"]]))
+        if bgr is None:
+            continue
+        g = GT.check_frame(bgr, rm.mask, cam, pose)
+        rec["known_geometry_err_yd"] = None if g is None else round(float(g), 4)
+        if g is None:
+            continue
+        tested += 1
+        before = rec["confidence"]
+        base = -CONF_SCALE_YD * np.log(max(before, 1e-9))
+        total = float(np.hypot(base, GT.penalty_yd(g)))
+        rec["confidence"] = round(float(np.clip(np.exp(-total / CONF_SCALE_YD), 0, 1)), 4)
+        if rec["confidence"] < 0.5 <= before:
+            demoted += 1
+    if verbose:
+        print(f"[mosaic] known-geometry check ran on {tested} of {len(filled)} "
+              f"filled frames; {demoted} dropped below the threshold because of it")
 
 if __name__ == "__main__":
     raise SystemExit(main())
