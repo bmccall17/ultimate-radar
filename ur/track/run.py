@@ -774,6 +774,14 @@ def track(work: Path, *, verbose: bool = True) -> dict:
                          and gap_s >= REACQ_MIN_GAP_S)
                 state = "observed"
                 extra: dict = {}
+                # A detection on a frame whose calibration is below docs/03's
+                # threshold is a real detection at a position whose *frame* is
+                # weakly placed. `weak` says exactly that and is not `observed`,
+                # so nothing that asks for a measured number will take it.
+                if d is not None and d.get("weak_calibration"):
+                    state = "weak"
+                    stats["weak_calibration"] = stats.get("weak_calibration", 0) + 1
+                    extra["calibration_confidence"] = d.get("calibration_confidence")
                 if reacq:
                     predicted = s.samples[-1]["xy"] if s.samples else None
                     jump = (None if predicted is None else
@@ -946,6 +954,7 @@ def write_tracks(work: Path, clip: dict, det: dict, slots: list[Slot],
                         for smp in s.samples],
             "observed": states.count("observed"),
             "provisional": states.count("provisional"),
+            "weak": states.count("weak"),
             "interpolated": states.count("interpolated"),
             "predicted": states.count("predicted"),
             "unknown": states.count("unknown"),

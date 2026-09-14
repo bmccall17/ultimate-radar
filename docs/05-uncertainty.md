@@ -57,11 +57,19 @@ Each slot, each frame, carries exactly one state.
 |---|---|---|---|
 | `observed` | A detection was matched to this slot in this frame, through a frame whose calibration residual was acceptable. | ~0.3 yd | Solid filled dot |
 | `provisional` | A detection was matched, but the slot had been estimating for ≥ 1.0 s beforehand, so **which** player this is has not been established. | as `observed` | Solid dot inside a broken ring |
+| `weak` | A detection was matched, but the **frame** is weakly placed: its calibration is below the 0.5 that `docs/03` requires for an observation, because the paint on it could not solve it and `ur/calibrate/mosaic.py` registered it against frames that could. The player was seen; where the camera was pointing is the uncertain part. | the calibration's own measured error, 0.2–2.4 yd by gap | Solid dot inside the sigma it has earned — a wide ring on a player who was plainly seen |
 | `interpolated` | No detection, but observations exist within ±0.5 s on both sides. Straight-line fill. | 0.4–1.0 yd | Dashed outline dot |
 | `predicted` | No detection for ≤ 2.2 s. Dead reckoning from the last observed position and velocity, damped. | 0.6–3.5 yd, growing | Dashed dot inside a translucent uncertainty disc |
 | `unknown` | No detection for > 2.2 s, or never observed. Position is **held at the last observation**, not dead-reckoned. | ≥ 3 yd, capped at 16 | The disc alone — **no dot at all** |
 | `confirmed` | A human placed this player here. Outranks everything. | 0.3 yd | Solid dot with a distinct ring |
 
+> **`weak` is new, 2026-09-14** (`docs/29-scouting-possessions.md`). It exists because
+> "below the confidence threshold" stopped meaning "no pose at all". It is deliberately
+> **not** in the viewer's `MEASURABLE` set, so every card built on one reads `inferred`,
+> and it is deliberately **in** `coverage`, because the player really was seen. The
+> distinction it draws is the one this project keeps needing: *which* part of a position
+> is uncertain. For `provisional` it is who; for `weak` it is where the camera was.
+>
 > **Two changes, 2026-09-14, from the round-2 ghost audit (`docs/25`).**
 >
 > **`provisional` is new.** M4 measured both of the swap detectors specified below catching

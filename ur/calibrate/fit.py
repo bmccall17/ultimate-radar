@@ -552,3 +552,75 @@ def bundle_world(cam: FixedCamera, poses: list[Pose],
                                                 np.tile([0.02, 0.02, 0.02, 0.01], n)]))
     C, ps = unpack(sol.x)
     return FixedCamera(C=C, image_w=cam.image_w, image_h=cam.image_h), ps
+
+
+# A prior on the pose is a box, not a penalty. `docs/28`'s conversion: an angular
+# error theta displaces a point at range R by R*theta, and a fractional focal
+# error scales the range by the same fraction. R = 60 yd is the same working
+# range that document uses, so a prior good to `sigma` yards is a box of
+# `sigma / R` radians and the same fraction of the focal length.
+PRIOR_RANGE_YD = 60.0
+PRIOR_SIGMAS = 3.0          # a three-sigma box, not a tuned width
+
+
+def refine_world_prior(cam: FixedCamera, start: Pose, circle_px: np.ndarray,
+                       line_px: np.ndarray, prior_sigma_yd: float, *,
+                       anchor: Pose | None = None,
+                       f_scale: float = 0.35) -> WorldFit:
+    """Refine against the paint, bounded to what the prior allows.
+
+    **Why a box and not a penalty term.** The free refinement's whole failure
+    mode on a circle-only frame is running away - rms 0.00000 yd at a focal
+    length of 3e15 - and the loss is Cauchy, so a penalty large enough to stop
+    that is exactly the penalty the robust loss discounts. A bound cannot be
+    discounted.
+
+    Inside the box the paint decides and the prior contributes nothing, which is
+    the property that matters: on a frame with a good arc this returns the same
+    answer the free refinement would, and on a degenerate one it returns
+    something no worse than the prior.
+
+    `prior_sigma_yd` is where the prior's own accuracy enters, and it has to be
+    measured rather than chosen - `ur/calibrate/mosaic.py` ERR_BY_GAP is that
+    measurement for a mosaic prior.
+    """
+    # The box is anchored on the prior and never on the current iterate, so an
+    # associate-refine loop cannot walk the bound along with itself.
+    prior = anchor if anchor is not None else start
+    ang = PRIOR_SIGMAS * prior_sigma_yd / PRIOR_RANGE_YD
+    frac = PRIOR_SIGMAS * prior_sigma_yd / PRIOR_RANGE_YD
+    f0 = prior.f
+
+    def unpack(x):
+        return Pose(pan=x[0], tilt=x[1], f=x[2] * f0, roll=x[3])
+
+    def fun(x):
+        res, _ = world_residuals(cam, unpack(x), circle_px, line_px)
+        return res
+
+    clamp = lambda v, a, b: float(min(max(v, a), b))
+    lo = [prior.pan - ang, prior.tilt - ang, max(1e-3, 1.0 - frac), prior.roll - ang]
+    hi = [prior.pan + ang, prior.tilt + ang, 1.0 + frac, prior.roll + ang]
+    x0 = [clamp(start.pan, lo[0], hi[0]), clamp(start.tilt, lo[1], hi[1]),
+          clamp(start.f / f0, lo[2], hi[2]), clamp(start.roll, lo[3], hi[3])]
+    sol = least_squares(fun, x0, bounds=(lo, hi), method="trf", loss="cauchy",
+                        f_scale=f_scale, diff_step=1e-4, max_nfev=600,
+                        x_scale=[max(ang / 10, 1e-6)] * 2
+                                + [max(frac / 10, 1e-6), max(ang / 10, 1e-6)])
+    best = unpack(sol.x)
+    res, tags = world_residuals(cam, best, circle_px, line_px)
+    span = circle_angular_span(cam, best, circle_px)
+    out = _summarise(res, tags, best, circle_span_deg=span)
+    # `_summarise` rejects a short arc because on its own an arc that short
+    # "constrains almost nothing". Here it is not on its own - the box does the
+    # constraining and the arc refines inside it - so that particular verdict is
+    # not the right one to apply. The collapse and too-few-pixels checks stand,
+    # and the cost of leaning on the prior is carried in the confidence instead.
+    if not out.ok and "deg of arc" in out.reason:
+        out = WorldFit(pose=out.pose, circle_rms_yd=out.circle_rms_yd,
+                       line_rms_yd=out.line_rms_yd, rms_yd=out.rms_yd,
+                       p95_yd=out.p95_yd, n_circle=out.n_circle, n_line=out.n_line,
+                       circle_span_deg=out.circle_span_deg, ok=True,
+                       reason=f"short arc ({out.circle_span_deg:.0f} deg), refined "
+                              "inside a prior box rather than freely")
+    return out

@@ -117,6 +117,27 @@ SOURCE_MAX_KNOWN_GEOMETRY_ERR_YD = 1.0
 ERR_BY_GAP = ((1, 0.20), (5, 0.37), (10, 0.70), (20, 1.26), (30, 1.95), (45, 2.37))
 CONF_SCALE_YD = 0.45          # the same constant ur/calibrate/run.py uses
 
+# When is a paint-refined mosaic pose to be believed? Measured, and the answer
+# is a cliff rather than a slope. `tools/mosaic_check.py --refit` on p0001, 375
+# held-out frames, against their true poses:
+#
+#     in-sample residual   frames   true error: median    p90     max
+#     < 0.20 yd               238                0.014   0.070   0.292
+#     < 0.25 yd               261                0.015   0.162   2.964
+#     >= 0.20 yd              137                3.109   5.476
+#
+# Below 0.20 yd not one of 238 frames is out by more than 0.3 yd. Above it the
+# median is three yards. The refit is bimodal - it either locks onto the right
+# answer essentially exactly or onto a wrong one several yards away - and the
+# residual is what tells them apart, at a correlation of +0.81.
+#
+# So an accepted refit is scored on its own residual exactly like any other
+# paint fit, with no special case and no floor, because its measured error is
+# smaller than a paint fit's. A rejected one keeps the pure mosaic pose and the
+# prior's confidence.
+REFIT_MAX_RMS_YD = 0.20
+FIT_PRIOR_SIGMAS = 3.0        # mirrors ur.calibrate.fit.PRIOR_SIGMAS, for the note
+
 
 def expected_error_yd(gap: int) -> float:
     """Interpolated from the measured curve; extrapolated linearly past the end."""
@@ -347,6 +368,7 @@ def fill(paths: list[Path], cal_frames: list[dict], cam: C.FixedCamera,
     if sources is None:
         sources = {i for i, r in enumerate(cal_frames)
                    if r.get("camera") and r.get("confidence", 0) >= SOURCE_MIN_CONFIDENCE
+                   and not str(r.get("basis", "")).startswith("mosaic")
                    and (r.get("known_geometry_err_yd") is None
                         or r["known_geometry_err_yd"] <= SOURCE_MAX_KNOWN_GEOMETRY_ERR_YD)}
     if targets is None:
@@ -447,10 +469,18 @@ def fill_document(work: Path, *, verbose: bool = True) -> dict:
     # second run cannot quietly build on the first.
     undone = 0
     for r in frames:
-        if r.get("basis") == "mosaic":
+        # Both bases, and this is not a detail: the first version cleared only
+        # `mosaic`, so a second run found the previous run's `mosaic+paint`
+        # frames sitting above the confidence threshold and took them as
+        # SOURCES. That is docs/27's second trap exactly - a derived answer
+        # becoming the evidence for the next one - and it appeared within an
+        # hour of the docstring warning about it.
+        if str(r.get("basis", "")).startswith("mosaic"):
             undone += 1
             for k in ("H", "camera", "mosaic_gap", "mosaic_spread_yd",
-                      "mosaic_sources", "basis"):
+                      "mosaic_sources", "basis", "H_mosaic", "camera_mosaic",
+                      "refit_rms_yd", "refit_moved_yd", "refit_circle_span_deg",
+                      "refit_n_px", "refit_at_box_edge", "refit_rejected"):
                 r.pop(k, None)
             r["H"] = None
             r["confidence"] = 0.0
@@ -494,6 +524,39 @@ def fill_document(work: Path, *, verbose: bool = True) -> dict:
             f"bit-identical to it. Expected error {err:.2f} yd "
             f"(ur/calibrate/mosaic.py ERR_BY_GAP).")
 
+    # The paint gets the last word, inside the box the mosaic's measured accuracy
+    # allows. This is where the circle-only frames come back.
+    refit_with_paint(work, doc, verbose=verbose)
+    for rec in frames:
+        if rec.get("basis") != "mosaic" or "refit_rms_yd" not in rec:
+            continue
+        if rec["refit_rms_yd"] >= REFIT_MAX_RMS_YD:
+            # Rejected: the refit is as likely to have locked onto the wrong
+            # answer as the right one, so the pure mosaic pose and its prior
+            # confidence stand. The attempt is left in the record.
+            rec["refit_rejected"] = (
+                f"residual {rec['refit_rms_yd']:.3f} yd is at or above "
+                f"{REFIT_MAX_RMS_YD} yd, where held-out frames are out by three "
+                "yards at the median")
+            rec.pop("H_refit", None)
+            rec["H"] = rec["H_mosaic"]
+            rec["camera"] = rec["camera_mosaic"]
+            rec.pop("H_mosaic", None)
+            rec.pop("camera_mosaic", None)
+            continue
+        rec.pop("H_mosaic", None)
+        rec.pop("camera_mosaic", None)
+        rec["confidence"] = round(float(np.clip(
+            np.exp(-rec["refit_rms_yd"] / CONF_SCALE_YD), 0, 1)), 4)
+        rec["basis"] = "mosaic+paint"
+        rec["note"] = (
+            f"no halfway line; pose registered against {rec['mosaic_sources']} "
+            f"paint-solved frame(s) {rec['mosaic_gap']} away, then refined against "
+            f"this frame's own paint inside a {FIT_PRIOR_SIGMAS:.0f}-sigma box "
+            f"(residual {rec['refit_rms_yd']:.3f} yd over {rec['refit_n_px']} px, "
+            f"arc {rec['refit_circle_span_deg']:.0f} deg, moved "
+            f"{rec['refit_moved_yd']:.2f} yd from the prior).")
+
     after = sum(1 for r in frames if r.get("confidence", 0) >= 0.5)
     doc.setdefault("method", {})["mosaic"] = {
         "module": "ur.calibrate.mosaic",
@@ -522,6 +585,112 @@ def main(argv: list[str] | None = None) -> int:
     fill_document(Path(a.work))
     return 0
 
+
+
+# --------------------------------------------------------------------------- #
+# the paint gets the last word
+# --------------------------------------------------------------------------- #
+
+def refit_with_paint(work: Path, doc: dict, *, verbose: bool = True) -> int:
+    """Let the paint refine each filled pose, inside the box the prior allows.
+
+    This is the half that matters. `docs/29` measured the bottleneck: **every
+    frame with a halfway line in shot calibrates, and frames without one
+    collapse** - 223 of p0006's 450, 321 of p0010's. `docs/28` had already
+    established that circle-only frames are not inherently worse (on p0003 they
+    were *better* on focal than the line-bearing ones) and removed the confidence
+    penalty on them, but the solve still ran away, because a circle pins the
+    plane and the scale and leaves rotation about its normal unobserved.
+
+    The mosaic pose observes exactly that direction, from the stands and the
+    boards, which have nothing to do with the paint. So: bound the refinement to
+    the box the mosaic's measured accuracy allows, and let the circle do the rest
+    inside it. Neither source is sufficient alone and together they are
+    well posed.
+    """
+    from . import mask as M
+    from . import run as R
+    from . import fit as FIT
+
+    filled = [r for r in doc["frames"] if r.get("basis") == "mosaic"]
+    if not filled:
+        return 0
+    paths = sorted((work / "frames").glob("*.jpg"))
+    cam = C.FixedCamera(C=np.asarray(doc["camera"].get("position_yd_soccer",
+                                                       doc["camera"]["position_yd"]),
+                                     float),
+                        image_w=doc["camera"]["image_w"],
+                        image_h=doc["camera"]["image_h"])
+    vt = doc["venue_transform"]
+    A = np.array([[vt["x_sign"], 0.0, vt["x_offset"]],
+                  [0.0, vt["y_sign"], vt["y_offset"]],
+                  [0.0, 0.0, 1.0]])
+    rm = M.build(paths)
+    rng = np.random.default_rng(20260827)
+    improved = 0
+    for rec in filled:
+        i = rec["f"]
+        c = rec["camera"]
+        prior = C.Pose(pan=np.radians(c["pan_deg"]), tilt=np.radians(c["tilt_deg"]),
+                       f=float(c["focal_px"]), roll=np.radians(c.get("roll_deg", 0.0)))
+        sigma = max(expected_error_yd(rec["mosaic_gap"]),
+                    rec.get("mosaic_spread_yd") or 0.0)
+        bgr = cv2.imread(str(paths[i]))
+        if bgr is None:
+            continue
+        px, _ = R.paint_pixels(bgr, rm.mask, rng=rng)
+        # Associate, refine, repeat with a shrinking gate - the same loop
+        # `ur.calibrate.run.icp` uses, and it is not optional. Associating once
+        # against a prior that is two yards out assigns pixels to the wrong
+        # feature and then fits beautifully to the wrong assignment: measured
+        # that way, the refined pose's error tracked the prior's sigma at a ratio
+        # of 0.999, which is a refit that has learned nothing. The box stays
+        # anchored on the original prior throughout; only the association moves.
+        cur, res = prior, None
+        for gate in R.ASSOC_GATE_YD:
+            cpx, lpx = R.associate(cam, cur, px, gate, rng=rng)
+            if len(cpx) + len(lpx) < R.MIN_TOTAL_PX:
+                break
+            res = FIT.refine_world_prior(cam, cur, cpx, lpx, sigma, anchor=prior)
+            cur = res.pose
+        if res is None or not res.ok or not np.isfinite(res.rms_yd):
+            continue
+        # A refit that has run to the edge of the box is a refit the box is
+        # deciding rather than the paint, and it is recorded as such.
+        probe = _image_probe(cam)
+        moved = agreement_yd(cam, [prior, res.pose], probe)
+        if not np.isfinite(moved):
+            continue
+        # Now that the paint has spoken, the homography comes from the model
+        # again: `COMPOSE_NOT_MODEL` is an argument about a pose nothing on the
+        # frame itself has checked, and this one has been fitted to its own
+        # pixels. Same construction as `write_calibration`.
+        H = A @ np.linalg.inv(cam.homography(res.pose))
+        H = H / H[2, 2]
+        rec["H"] = [[round(float(v), 10) for v in row] for row in H]
+        # Keep the mosaic answer beside the refined one: if the refit is
+        # rejected below, the mosaic pose is what stands.
+        rec["H_mosaic"] = rec["H"]
+        rec["camera_mosaic"] = rec["camera"]
+        rec["refit_rms_yd"] = round(float(res.rms_yd), 5)
+        rec["refit_moved_yd"] = round(float(moved), 4)
+        rec["refit_circle_span_deg"] = round(float(res.circle_span_deg), 1)
+        rec["refit_n_px"] = int(res.n_circle + res.n_line)
+        rec["refit_at_box_edge"] = bool(moved > 0.9 * FIT.PRIOR_SIGMAS * sigma)
+        rec["camera"] = {**res.pose.to_dict(), "n_circle_px": res.n_circle,
+                         "n_line_px": res.n_line,
+                         "p95_yd": (None if not np.isfinite(res.p95_yd)
+                                    else round(float(res.p95_yd), 5))}
+        improved += 1
+    if verbose:
+        n = sum(1 for r in filled if "refit_rms_yd" in r)
+        edge = sum(1 for r in filled if r.get("refit_at_box_edge"))
+        if n:
+            rms = [r["refit_rms_yd"] for r in filled if "refit_rms_yd" in r]
+            print(f"[mosaic] paint refined {n} of {len(filled)} filled frames; "
+                  f"median residual {np.median(rms):.3f} yd, {edge} sat on the "
+                  "edge of the prior box")
+    return improved
 
 if __name__ == "__main__":
     raise SystemExit(main())

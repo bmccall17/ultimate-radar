@@ -71,7 +71,8 @@ def _H_error(a: np.ndarray, b: np.ndarray, probe: np.ndarray) -> float:
     return float(np.median(np.hypot(*(out[0] - out[1]).T)))
 
 
-def check(work: Path, widths=(15, 30, 45, 75), stride: int = 60) -> dict:
+def check(work: Path, widths=(15, 30, 45, 75), stride: int = 60,
+          refit: bool = False) -> dict:
     cal = json.loads((work / "calibration.json").read_text(encoding="utf-8"))
     clip = json.loads((work / "clip.json").read_text(encoding="utf-8"))
     fld = clip["field"]
@@ -106,10 +107,40 @@ def check(work: Path, widths=(15, 30, 45, 75), stride: int = 60) -> dict:
             sources = trusted - hidden
             got = mosaic.fill(paths, frames, cam, region, fld,
                               sources=sources, targets=hidden, verbose=False)
+            refined = {}
+            if refit and got:
+                # Rebuild a document in which the hidden frames look exactly as
+                # they would in a real run, and let the refit have them. Anything
+                # less would be measuring a different code path than the one that
+                # ships.
+                import copy
+                shadow = copy.deepcopy(cal)
+                for i, sv in got.items():
+                    r = shadow["frames"][i]
+                    r["basis"] = "mosaic"
+                    r["mosaic_gap"] = min(abs(i - j) for j in sources)
+                    r["mosaic_spread_yd"] = (float(sv.spread_yd)
+                                             if np.isfinite(sv.spread_yd) else None)
+                    r["mosaic_sources"] = sv.n_sources
+                    r["camera"] = {**sv.pose.to_dict(), "n_circle_px": 0,
+                                   "n_line_px": 0, "p95_yd": None}
+                    r["H"] = [[float(v) for v in row] for row in sv.H / sv.H[2, 2]]
+                for i in list(shadow["frames"][0].keys()):
+                    pass
+                for j, r in enumerate(shadow["frames"]):
+                    if j in hidden:
+                        continue
+                    r.pop("basis", None)
+                mosaic.refit_with_paint(work, shadow, verbose=False)
+                refined = {i: shadow["frames"][i] for i in got
+                           if "refit_rms_yd" in shadow["frames"][i]}
             for i, s in got.items():
                 gap = min(abs(i - j) for j in sources)
                 truth = np.asarray(frames[i]["H"], float)
                 e = _H_error(s.H, truth, probe)
+                rr = refined.get(i)
+                e_refit = (_H_error(np.asarray(rr["H"], float), truth, probe)
+                           if rr else None)
                 e_model = _field_error(cam, s.pose, _pose(frames[i]), probe)
                 if np.isfinite(e):
                     rows.append({"frame": i, "block": width, "gap": gap,
@@ -119,7 +150,17 @@ def check(work: Path, widths=(15, 30, 45, 75), stride: int = 60) -> dict:
                                                              else None),
                                  "spread_yd": (round(s.spread_yd, 4)
                                                if np.isfinite(s.spread_yd) else None),
-                                 "n_sources": s.n_sources})
+                                 "n_sources": s.n_sources,
+                                 "err_after_refit_yd": (round(e_refit, 4)
+                                                        if e_refit is not None
+                                                        and np.isfinite(e_refit)
+                                                        else None),
+                                 "refit_rms_yd": (rr.get("refit_rms_yd")
+                                                  if rr else None),
+                                 "prior_sigma_yd": round(
+                                     max(mosaic.expected_error_yd(gap),
+                                         (s.spread_yd if np.isfinite(s.spread_yd)
+                                          else 0.0)), 3)})
             print(f"  block {width:>3} at {start:>4}: filled {len(got)}/{len(hidden)}")
 
     by_gap = {}
@@ -162,9 +203,15 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="tools.mosaic_check")
     p.add_argument("work")
     p.add_argument("--out", default=None)
+    p.add_argument("--refit", action="store_true",
+                   help="also measure the poses after the paint has refined them "
+                        "inside the prior box")
+    p.add_argument("--widths", default="30,75")
+    p.add_argument("--stride", type=int, default=90)
     a = p.parse_args(argv)
     work = Path(a.work)
-    res = check(work)
+    res = check(work, widths=tuple(int(x) for x in a.widths.split(",")),
+                stride=a.stride, refit=a.refit)
     if "verdict" in res:
         print(f"[mosaic_check] {res['verdict']}")
         return 1

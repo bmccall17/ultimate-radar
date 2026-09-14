@@ -42,7 +42,15 @@ from ..calibrate import world as W
 from ..calibrate.camera import FixedCamera, Pose
 from .model import SEED, PersonDetector
 
-MIN_CALIB_CONFIDENCE = 0.5      # docs/03: below this, no observed samples
+# docs/03: "Frames below 0.5 must not produce `observed` samples." It does not
+# say they must produce nothing, and until the mosaic there was no difference -
+# a frame below the threshold had no usable pose at all. Now it often does:
+# `ur/calibrate/mosaic.py` places frames with no paint on them to a measured
+# 0.2-2.4 yd. So the position is written, tagged `weak_calibration`, and the
+# tracker gives it the `weak` evidence state, which is not `observed` and can
+# never be read as one. Team shape on a 53 yd field survives a two-yard ring;
+# a blank frame does not.
+MIN_CALIB_CONFIDENCE = 0.5      # docs/03: below this, never `observed`
 BOUNDS_MARGIN_YD = 2.0          # AD-3
 MIN_BOX_H = 12                  # below this it is not a player at this framing
 
@@ -162,7 +170,10 @@ def run(work: Path, *, threshold: float = 0.25, batch: int = 8,
                        "score": round(float(d.score), 4),
                        "foot": [round(float(v), 2) for v in d.foot],
                        "team": None, "team_score": None}
-                if pose is not None and conf >= MIN_CALIB_CONFIDENCE:
+                if conf < MIN_CALIB_CONFIDENCE:
+                    rec["weak_calibration"] = True
+                    rec["calibration_confidence"] = round(float(conf), 4)
+                if pose is not None and conf > 0.0:
                     foot = np.array([d.foot, [d.foot[0], d.foot[1] + 1.0]])
                     wpt, ok = CFIT.backproject(cam, pose, foot)
                     if ok[0] and np.isfinite(wpt[0]).all() and np.isfinite(wpt[1]).all():
@@ -208,8 +219,8 @@ def run(work: Path, *, threshold: float = 0.25, batch: int = 8,
                         rec["note"] = "foot point does not back-project"
                 else:
                     rec["in_bounds"] = None
-                    rec["note"] = ("calibration confidence below "
-                                   f"{MIN_CALIB_CONFIDENCE}; no field position")
+                    rec["note"] = ("no pose for this frame at all; no field "
+                                   "position")
                 recs.append(rec)
                 n_kept += 1
             frames_out.append({"f": i, "dets": recs})

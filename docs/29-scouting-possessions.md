@@ -330,3 +330,115 @@ outside the clip. That is why the check flags rather than vetoes.
   labelling of this broadcast's clusters in this scan's order. A different game needs them
   redone, and `scout` says so when the count does not match rather than quietly
   mislabelling.
+
+---
+
+# Part 2 — the mosaic, and the thing it turned out to be for
+
+*Added 2026-09-14, after the above.*
+
+The mosaic was built to fix p0005's blank tail. It does not fix p0005's blank tail. What
+it fixes is something larger that the attempt exposed.
+
+## What was measured first
+
+`ur/calibrate/mosaic.py` places a frame with no usable paint by registering it against
+frames that have some. The camera has a fixed centre (AD-4 amended), so the mapping
+between any two of its images is exactly `K_j R_j R_iᵀ K_i⁻¹` for every scene point at any
+depth — the crowd and the sponsor boards obey it as well as the grass. Every frame is
+solved directly against up to six paint-solved frames, never against another mosaic frame
+and never by chaining.
+
+`tools/mosaic_check.py` hides contiguous blocks of frames whose pose *is* known and
+re-derives them. Two results, both against expectation:
+
+**Composing the ground homography beats rebuilding it through the camera model** — 0.20 yd
+against 0.61 yd at a one-frame gap. The model route has four unknowns instead of eight and
+is the principled one. A measured homography is not exactly rotation-induced, though, and
+an 8-DOF ground homography absorbs the difference harmlessly for ground points where the
+4-DOF manifold redistributes it into the ground mapping.
+
+**Registration alone is worth about a second.** Median yards of error against held-out
+truth: 0.20 at a 1-frame gap, 0.37 at 5, 0.70 at 10, 1.26 at 20, 1.95 at 30, 2.37 at 45.
+
+And it is not enough. p0005's tail is 4.9 s with every source frame on the same side of
+it; the sources agree with each other to 0.59 yd at a 43-frame gap while the held-out truth
+says 2.4. Sources that agree and are all wrong the same way is `docs/28`'s argument
+verbatim, so the confidence takes the worse of the measured curve and the observed spread,
+and the tail stays below the threshold. **It is not recoverable, and no amount of better
+code changes that**: five seconds of camera motion that nothing observed is worth two to
+four yards.
+
+## The bottleneck was never the tail
+
+Counting which frames fail, across every possession:
+
+| | usable | no halfway line | of those, usable | line-bearing | of those, usable |
+|---|---|---|---|---|---|
+| p0001 | 92 % | 17 | 17 | 316 | **316** |
+| p0004 | 64 % | 95 | 1 | 289 | **289** |
+| p0006 | 26 % | 223 | 0 | 118 | **118** |
+| p0010 | 27 % | 321 | 56 | 61 | **61** |
+
+**Not one line-bearing frame fails, in any possession.** The usable fraction *is* the
+fraction of frames with a halfway line in shot. `docs/28` had already established that
+circle-only frames are not inherently worse — on p0003 they were better on focal than the
+line-bearing ones — and removed the confidence penalty on them. The solve still ran away on
+them, to focal lengths of 10¹⁵, because a circle pins the plane and the scale and leaves
+rotation about its normal unobserved.
+
+**The mosaic observes exactly that direction, and from evidence that has nothing to do with
+paint.** So: bound the refinement to the box the mosaic's measured accuracy allows, and let
+the circle decide inside it. Neither source is sufficient alone; together they are well
+posed.
+
+Three things had to be right, and two of them were wrong first.
+
+- **A box, not a penalty.** The loss is Cauchy, so a penalty large enough to stop a runaway
+  is exactly the penalty a robust loss discounts. A bound cannot be discounted. Its width
+  comes from `docs/28`'s own conversion — an angular error θ displaces a point at range
+  R = 60 yd by R·θ — at three sigma of the prior's *measured* accuracy.
+- **Associate, refine, repeat.** Associating paint to features once, against a prior two
+  yards out, assigns pixels to the wrong feature and then fits beautifully to the wrong
+  assignment. Measured that way the refined pose's error tracked the prior's sigma at a
+  ratio of **0.999** — a refit that had learned nothing. Iterating the association, which
+  is what `ur.calibrate.run.icp` does and what this was missing, took the median error from
+  1.07 yd to **0.025 yd** at a 20-frame gap.
+- **A cliff, and the residual finds it.** The refit is bimodal: it either locks onto the
+  right answer essentially exactly or onto a wrong one several yards away. Over 375
+  held-out frames the in-sample residual separates the two at a correlation of +0.81:
+
+  | in-sample residual | frames | true error median | p90 | max |
+  |---|---|---|---|---|
+  | < 0.20 yd | 238 | 0.014 | 0.070 | **0.292** |
+  | < 0.25 yd | 261 | 0.015 | 0.162 | 2.964 |
+  | ≥ 0.20 yd | 137 | **3.109** | 5.476 | |
+
+  Below 0.20 yd not one of 238 frames is out by more than a third of a yard. Above it the
+  median is three yards. So a refit is accepted below 0.20 and scored on its own residual
+  like any other paint fit — no floor and no special case, because its measured error is
+  *smaller* than a paint fit's — and a rejected one keeps the pure mosaic pose and the
+  prior's confidence.
+
+## The trap, arriving an hour after the docstring warning about it
+
+The first version cleared only `basis: "mosaic"` when re-running, not `"mosaic+paint"`. So
+a second run found the first run's refined frames sitting above the confidence threshold
+and **took them as sources** — a derived answer becoming the evidence for the next one,
+which is `docs/27`'s second trap and the withdrawn `identity_switches_caught: "2 of 2"` in
+another costume. It showed up as the source count rising from 118 to 126 between two runs
+of an idempotent stage. Sources are now required to carry no `basis` at all, belt and
+braces, on top of the fixed clear.
+
+## `weak`: below the threshold is not the same as nothing
+
+`docs/03` says *"Frames below 0.5 must not produce `observed` samples."* It does not say
+they must produce nothing, and until the mosaic there was no difference — a frame below the
+threshold had no pose at all.
+
+Now it usually does. Those positions are written, the detection is tagged
+`weak_calibration`, and the sample becomes the **`weak`** evidence state: excluded from the
+viewer's `MEASURABLE` set so no metric built on one can call itself measured, included in
+`coverage` because the player really was seen. `docs/05` carries the definition. The
+distinction is the one this project keeps needing — *which* part of a position is
+uncertain. For `provisional` it is who; for `weak` it is where the camera was pointing.

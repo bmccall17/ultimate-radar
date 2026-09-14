@@ -28,15 +28,18 @@ import json
 from collections import Counter
 from pathlib import Path
 
-VALID_STATES = {"observed", "provisional", "interpolated", "predicted", "unknown",
-                "confirmed"}
+VALID_STATES = {"observed", "provisional", "weak", "interpolated", "predicted",
+                "unknown", "confirmed"}
 # A detection was matched, so the sample carries one and must have a position.
-ANCHORED_STATES = {"observed", "provisional"}
+# `weak` carries a real detection, so it must carry a position and a sigma like
+# any other anchored sample. What it must never do is read as `observed`.
+ANCHORED_STATES = {"observed", "provisional", "weak"}
 
 # "Confidently classified", matching ur/team.py WEAK_TEAM_P.
 CONFIDENT_KIT_P = 0.9
 # M4 is allowed predicted and interpolated; confirmed arrives with M5's corrections.
-EXPECTED_STATES = {"observed", "provisional", "interpolated", "predicted", "unknown"}
+EXPECTED_STATES = {"observed", "provisional", "weak", "interpolated", "predicted",
+                   "unknown"}
 
 
 def check(work: Path) -> dict:

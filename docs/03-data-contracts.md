@@ -100,6 +100,21 @@ asserted against real pixels at two points in every clip. Treat `n/fps` as corre
 - `confidence` ∈ [0,1] derives from the residual and feeds the tracker's measurement noise
   (AD-1). Frames below 0.5 must not produce `observed` samples.
 
+  > **Read that literally: not `observed`, not "nothing".** Until the mosaic there was no
+  > difference — a frame below the threshold had no usable pose at all, and `ur.detect.run`
+  > wrote no `field` position. `ur/calibrate/mosaic.py` changed that: a frame with no paint
+  > on it is now placed to a measured 0.2–2.4 yd from frames that do have paint. Those
+  > positions are written, tagged `weak_calibration` on the detection, and become the
+  > **`weak`** evidence state — which is not `observed`, is excluded from the viewer's
+  > `MEASURABLE` set, and can never make a metric call itself measured. A two-yard ring on
+  > a 53-yard-wide field still answers a question about team shape; a blank frame does not.
+  > Changed 2026-09-14; `docs/29-scouting-possessions.md` has the measurements.
+
+- `basis` on a frame record says where its pose came from when it did not come from the
+  paint on that frame: `"mosaic"` (registered against paint-solved frames) or
+  `"mosaic+paint"` (registered, then refined against this frame's own paint inside the box
+  the registration's measured accuracy allows). Absent means the paint solved it outright.
+
 If the camera is fixed in position (it is, on this broadcast) you may additionally store
 pan/tilt/focal per frame; it makes smoothing better-behaved than smoothing H directly.
 The fixture stores exactly that form — see `camera.per_frame` in `fixtures/`.

@@ -73,16 +73,19 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             "covered": [bool(r.get("covered")) for r in smp],
             "observed_frames": s["observed"],
             "state_counts": {k: s.get(k, 0) for k in
-                             ("observed", "provisional", "interpolated",
+                             ("observed", "provisional", "weak", "interpolated",
                               "predicted", "unknown")},
             "first_observed_f": s.get("first_observed_f"),
         })
     players.sort(key=lambda p: (p["id"][0] != "O", p["id"]))
 
-    # Coverage counts slots with a matched detection, which is `provisional` as
-    # well as `observed` - a re-acquisition is an observation of somebody, and the
-    # doubt it carries is about identity, not about whether anyone was seen.
-    obs = np.array([[x in ("observed", "provisional") for x in p["state"]]
+    # Coverage counts slots with a matched detection, which is `provisional` and
+    # `weak` as well as `observed` - a re-acquisition is an observation of
+    # somebody and the doubt is about identity, and a `weak` sample is a player
+    # who was seen on a frame that is weakly placed. Both were seen. What they
+    # are not is `observed`, and docs/05 is what stops a metric treating them
+    # as such.
+    obs = np.array([[x in ("observed", "provisional", "weak") for x in p["state"]]
                     for p in players])
     coverage = obs.sum(axis=0).tolist()
 
