@@ -87,6 +87,18 @@ Two things to confirm and record in `docs/00-footage-report.md`:
 
 ## 4. Cut one possession
 
+**Watch it before you cut it.** A possession is 20-40 s of somebody's attention for the rest
+of its life — calibration, detection, tracking, tagging, and a page on the public site — and
+the cheapest moment to reject one is before any of that. Two things make a clip not worth
+cutting, and both are visible in ten seconds of scrubbing:
+
+- **Nothing happens.** `p0002` (broadcast 7250.03-7268.03 s) was cut and processed all the
+  way to a published page before anyone said out loud that it runs from an out-of-bounds pull
+  to the brick mark and contains no play at all. It has been deleted. **Do not re-cut it.**
+- **The camera never shows the paint.** The calibration needs the centre circle and the
+  halfway line; 99 of p0002's 270 frames had neither in shot, which no amount of work
+  downstream can recover (`docs/28-calibration-confidence.md`).
+
 Frame accuracy matters here: the whole pipeline indexes off frame 0 of the clip.
 
 ```powershell

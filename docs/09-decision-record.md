@@ -32,8 +32,10 @@ is the one-paragraph shape of it.*
 - **Everything else passes its gate**, and every number in `HANDOFF.md` § 1 has a committed
   acceptance file under `eval/`.
 - **One possession is cut and fully processed**: `work/p0001/`, broadcast 7264.023–7288.014 s,
-  24.0 s, 360 frames at 15 fps, deterministic across runs. `p0002` and `p0003` are cut but
-  carry pre-M3 calibration.
+  24.0 s, 360 frames at 15 fps, deterministic across runs. **`p0003`** (1580.03-1617.03 s,
+  37 s, 555 frames) is processed and published alongside it. **`p0002` was deleted**: it ran
+  from an out-of-bounds pull to the brick mark and contained no play worth tracking. See
+  `docs/10-getting-the-footage.md` § 4 - watch a possession before cutting it.
 - **The original M0 reading still governs the plan.** `docs/00-footage-report.md` changed the
   detection plan (players are twice the assumed size), the calibration plan (soccer markings,
   not gridiron) and the shot model (one shot per possession, not three); read it before

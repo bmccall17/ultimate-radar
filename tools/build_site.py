@@ -37,7 +37,9 @@ from tools.make_view import build as build_data
 # to is not published.
 SITE = [
     ("",        "work/p0001", "p0001 - real",      "p0001"),
-    ("p0002",   "work/p0002", "p0002 - real",      "p0002"),
+    # p0002 was published here and has been removed: it ran from an out-of-bounds
+    # pull to the brick mark with no play in it. Deleting a row is how a
+    # possession is unpublished - delete the row, rebuild, and remove its folder.
     ("p0003",   "work/p0003", "p0003 - real",      "p0003"),
     ("fixture", None,         "synthetic fixture", "fixture"),
 ]

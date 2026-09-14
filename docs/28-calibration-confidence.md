@@ -19,6 +19,16 @@ it was written for is a test of that possession.
 
 Everything below is what that led to, in the order it was found.
 
+> **`p0002` no longer exists, and its measurements still stand.** The possession was deleted
+> after this was written: watched end to end, it runs from an out-of-bounds pull to the brick
+> mark and contains no play worth tracking (`docs/10-getting-the-footage.md` § 4). Its
+> acceptance evidence is kept under `eval/m1-p0002/` and `eval/m1-p0002-pre/` because **the
+> finding is about the calibration code, not about that clip** — a defect measured on a
+> possession does not stop being a defect when the possession is thrown away, and these are
+> the only before-and-after numbers for it. `work/p0002/` is gone; it is re-cuttable from
+> broadcast 7250.03-7268.03 s if anyone ever needs to reproduce them, though nothing about
+> the tracker requires it.
+
 ---
 
 ## Part 1 — the confidence gate, which was the visible problem and not the real one
