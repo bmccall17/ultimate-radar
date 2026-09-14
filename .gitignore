@@ -11,3 +11,8 @@ viewer/live-data.js
 
 # Local preview convenience; the viewer itself needs no server.
 .claude/launch.json
+
+# Renders - regenerable from verify.py / overlay.py / m3_render.py / m4_render.py,
+# and they are the broadcast with overlays drawn on it.
+*.mp4
+*.webm
