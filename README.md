@@ -4,16 +4,23 @@ Turn one possession of broadcast Ultimate Frisbee footage into two synchronized 
 overlay on the video and an overhead field view — that let a coach see how a defence
 organises, moves and breaks, and correct the system when it is wrong.
 
-**[Live demo](https://bmccall17.github.io/ultimate-radar/)** — replace with the Pages URL once published.
+## See it
 
-The demo runs on a **synthetic fixture**: invented positions, invented jersey numbers, not
-derived from any real game. It exists because the hard cases have to be visible before the
-tracking is — players leaving the camera, estimates drifting, a mistaken identity, and the
-correction flow that repairs them. The page says so at the top, in its own banner.
+| | |
+|---|---|
+| **[p0001 — midfield possession](https://bmccall17.github.io/ultimate-radar/)** | 24 s, 4th quarter. 88 % tracker recall, 13 of 14 players in shot at the open. |
+| **[p0003 — endzone possession](https://bmccall17.github.io/ultimate-radar/p0003/)** | 37 s, 1st quarter, ending in a goal. Harder: only 53 % of frames clear the calibration confidence floor, and the viewer says so. |
+| **[The synthetic fixture](https://bmccall17.github.io/ultimate-radar/fixture/)** | Invented throughout. Built so the hard cases are visible on demand — players leaving the camera, estimates drifting, a planted identity swap, and the correction flow that repairs it. |
 
-Real possessions live under `work/`, which is gitignored. This repository contains **no
-broadcast footage**. The target footage is a public UFA upload, cited in
-`docs/10-getting-the-footage.md`; getting it is one `yt-dlp` command and it stays on your disk.
+Scrub the timeline and watch the coverage number. Every readout carries a chip saying whether
+it was **measured**, **partial** or **inferred**, and an inferred one names what it could not
+see. That is the point of the project rather than a disclaimer on it.
+
+**About the footage.** The two real pages carry 24 and 37 second excerpts of a publicly posted
+UFA broadcast — Austin Sol vs Minnesota Wind Chill, 27 August 2026 — used here to demonstrate
+video analysis. Source and provenance are in `docs/10-getting-the-footage.md`. This project is
+not affiliated with or endorsed by the UFA or either club, and the footage is theirs, not mine.
+Everything else — code, documents, tracking output, the fixture — is MIT, see `LICENSE`.
 
 Two commitments shape the whole design, and everything else follows from them:
 

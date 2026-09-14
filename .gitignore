@@ -16,3 +16,5 @@ viewer/live-data.js
 # and they are the broadcast with overlays drawn on it.
 *.mp4
 *.webm
+# ...except the published site, which deliberately carries two clips.
+!docs/**/*.mp4
