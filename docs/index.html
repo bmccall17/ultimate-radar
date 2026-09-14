@@ -109,12 +109,20 @@ footer{color:var(--dim);font-size:12px;padding:6px 16px 26px}
 .legend i{display:inline-block;width:11px;height:11px;border-radius:50%;
   vertical-align:-1px;margin-right:5px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.switch{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
+.navlabel{color:var(--dim);font-size:11px;text-transform:uppercase;
+  letter-spacing:.06em;margin-right:2px}
+.navlink,.navhere{font:inherit;font-size:13px;border-radius:6px;padding:4px 9px;
+  border:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.navlink:hover{border-color:var(--dim)}
+.navhere{background:var(--chill-fill);border-color:var(--chill);cursor:default}
 </style>
 
 <header>
   <h1>ultimate-radar</h1>
   <div class="sub" id="subtitle"></div>
-  <div class="spacer"></div>
+  <nav class="switch" aria-label="possession"><span class="navlabel">possession</span><span class="navhere" aria-current="page">p0001</span><a class="navlink" href="p0002/">p0002</a><a class="navlink" href="p0003/">p0003</a><a class="navlink" href="fixture/">fixture</a></nav><div class="spacer"></div>
   <button id="theme" title="Theme">Theme: auto</button>
   <button id="copylink">Copy link to this moment</button>
 </header>
