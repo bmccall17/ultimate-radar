@@ -1463,6 +1463,18 @@ document.getElementById("dl").onclick = () => {
    `TAGS` itself is declared up beside `allEvents`, which the metric cards use. */
 function addTag(type){
   const t = +(S.f/FPS).toFixed(3);
+  // The selection persists between keystrokes, so selecting the thrower and
+  // pressing `t` then `c` names the thrower twice and reads as a self-pass.
+  // That happened on the whole back half of the first p0009 tagging pass, and
+  // nobody throws to themselves - so catch it here, where it costs one keystroke
+  // to fix, rather than in ur.spans after the file has been handed over.
+  const prev = TAGS.length ? TAGS[TAGS.length-1] : null;
+  if(type==="catch" && S.sel && prev && prev.type==="throw" && prev.player===S.sel){
+    flashTag(`<b>${S.sel} cannot catch their own throw.</b> The selection is still
+      on the thrower. Either select the receiver first, or deselect to leave the
+      catch unnamed — a timing-only catch is useful and a wrong name is not.`);
+    return;
+  }
   TAGS.push({t, type, player:S.sel || null, f:S.f, source:"human"});
   TAGS.sort((a,b)=>a.t-b.t);
   renderTags(); draw();

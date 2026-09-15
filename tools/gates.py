@@ -226,8 +226,19 @@ def check_disc(works: list[Path]) -> dict:
         fps = float(doc["possession"]["fps"])
         off = doc["possession"]["offense"]
         ids = [p["id"] for p in doc["players"] if p["team"] == off]
-        truth = [s.fixed for s in SP.spans_from_events(ev, nf, fps, ids)]
+        tspans = SP.spans_from_events(ev, nf, fps, ids)
+        truth = [s.fixed for s in tspans]
         if not any(t is not None for t in truth):
+            continue
+        # Tags that contradict each other are not truth. check_disc talks to the
+        # solver directly rather than through ur.spans.build, so it has to repeat
+        # build's refusal or it would quietly score against a contradiction.
+        bad = sum(1 for x in tspans if x.conflict)
+        bad += sum(1 for i in range(len(tspans) - 1)
+                   if tspans[i].fixed is not None
+                   and tspans[i].fixed == tspans[i + 1].fixed)
+        if bad:
+            per.append(f"{work.name} NOT GRADED ({bad} contradictory tags)")
             continue
         blind = {"events": [{**e, "player": None} for e in ev.get("events", [])]}
         sp = SP.spans_from_events(blind, nf, fps, ids)

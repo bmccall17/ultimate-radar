@@ -98,6 +98,7 @@ class Span:
     throw_f: int | None = None  # the release that ends it, if tagged
     catch_f: int | None = None  # the catch that starts it, if tagged
     fixed: int | None = None    # slot index, when a human named one
+    conflict: tuple | None = None   # two human tags named different holders
     cost: np.ndarray = field(default_factory=lambda: np.zeros(0))
 
 
@@ -127,6 +128,13 @@ def spans_from_events(events: dict, nf: int, fps: float,
             cur.b = f
             cur.throw_f = f
             if who is not None:
+                # A span bounded by a catch and a throw is named twice, and the
+                # two names have to agree - one player holds it for the whole
+                # span by construction. The first version let the throw silently
+                # overwrite the catch, which turned a tagging mistake into a
+                # confident answer. Record it instead; `build` refuses to solve.
+                if cur.fixed is not None and cur.fixed != who:
+                    cur.conflict = (ids[cur.fixed], ids[who])
                 cur.fixed = who
             spans.append(cur)
             cur = Span(a=f + 1, b=nf - 1)      # flight, closed by the next catch
@@ -349,6 +357,37 @@ def build(work: Path, *, events_path: Path | None = None,
                           "assign. Tag at least one throw and its catch.")
         if verbose:
             print(f"[spans] {out['verdict']}")
+        return _write(work, out, verbose=verbose)
+
+    # Human tags that contradict the sport. Both of these are tagging mistakes,
+    # not solver input, and both were silently absorbed by the first version -
+    # the conflict by letting the throw overwrite the catch, the self-pass by
+    # pinning two adjacent spans to one player and letting the Viterbi find some
+    # way round it. Refusing is the only honest response: a possession scored
+    # against tags that disagree with themselves measures nothing.
+    problems = []
+    for i, sp in enumerate(spans):
+        if sp.conflict:
+            problems.append(
+                f"span {i} ({sp.a / fps:.2f}-{sp.b / fps:.2f}s) is named twice and "
+                f"the names disagree: the catch says {sp.conflict[0]}, the throw "
+                f"says {sp.conflict[1]}")
+    for i in range(len(spans) - 1):
+        a, b = spans[i], spans[i + 1]
+        if a.fixed is not None and a.fixed == b.fixed:
+            problems.append(
+                f"spans {i} and {i + 1} are both {ids[a.fixed]}, so the throw at "
+                f"{a.throw_f / fps:.2f}s is a self-pass")
+    if problems:
+        out["problems"] = problems
+        out["verdict"] = (
+            f"{len(problems)} tag problem(s); not solved. Every one is a pair of "
+            "human tags that cannot both be true, so anything solved from them "
+            "would be fitted to a contradiction.")
+        if verbose:
+            print(f"[spans] REFUSING: {out['verdict']}")
+            for q in problems:
+                print(f"  - {q}")
         return _write(work, out, verbose=verbose)
 
     span_costs(doc, spans, ids)
