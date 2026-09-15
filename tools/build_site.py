@@ -43,13 +43,15 @@ SITE = [
     ("p0003",   "work/p0003", "p0003 - real",      "p0003"),
     ("p0004",   "work/p0004", "p0004 - real",      "p0004"),
     ("p0005",   "work/p0005", "p0005 - real",      "p0005"),
-    # p0006 and p0007 were cut, calibrated, detected and tracked, and are not
-    # here. Both pass M1 acceptance - and both pass it on a quarter and a third
-    # of their frames respectively, because the camera spends the rest of each
-    # possession near the endzone with no centre circle in shot and the fit
-    # collapses. Median roster coverage is 0 of 14 in both. Publishing a page
-    # that is blank for two thirds of its scrub bar is not publishing a
-    # possession. See docs/29-scouting-possessions.md.
+    ("p0009",   "work/p0009", "p0009 - real",      "p0009"),
+    ("p0015",   "work/p0015", "p0015 - real",      "p0015"),
+    # p0006, p0007, p0008 and p0010 were cut, calibrated, detected and tracked,
+    # and are not here. All pass M1 acceptance, and all pass it on a quarter to
+    # a half of their frames, because the camera spends the rest of each
+    # possession where the halfway line is out of shot. The mosaic recovers some
+    # of that and not enough: median roster coverage is still 0 of 14 in all
+    # four. Publishing a page that is blank for half its scrub bar is not
+    # publishing a possession. See docs/29-scouting-possessions.md.
     # The synthetic fixture was published here too and has been removed. It still
     # exists and still matters - `fixtures/possession_demo.json` is the only
     # ground truth in the project and viewer/data.js renders it standalone - but
@@ -120,7 +122,7 @@ def opening_frame(js_path):
     doc, _ = json.JSONDecoder().raw_decode(txt[m.end():])
     pl, fps = doc["players"], doc["possession"]["fps"]
     n = len(pl[0]["state"])
-    anchored = {"observed", "confirmed"}
+    anchored = {"observed", "confirmed", "provisional", "weak"}
     for f in range(n):
         if sum(1 for p in pl if p["state"][f] in anchored) >= 0.6 * len(pl):
             return f / fps

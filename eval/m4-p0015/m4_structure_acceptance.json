@@ -1,0 +1,24 @@
+{
+  "schema": "ultimate-radar/m4-structure-acceptance@1",
+  "possession": "p0015",
+  "gate": "zero phantom or missing slots, always (docs/04 M4)",
+  "slots": 14,
+  "slots_per_team": {
+    "chill": 7,
+    "sol": 7
+  },
+  "frames": 450,
+  "samples_expected": 6300,
+  "samples_found": 6300,
+  "state_counts": {
+    "unknown": 2294,
+    "weak": 288,
+    "predicted": 588,
+    "provisional": 22,
+    "observed": 2745,
+    "interpolated": 363
+  },
+  "detections_held_by_more_than_one_slot": 0,
+  "problems": [],
+  "pass": true
+}

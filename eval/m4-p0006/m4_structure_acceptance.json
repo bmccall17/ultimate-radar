@@ -11,12 +11,12 @@
   "samples_expected": 6300,
   "samples_found": 6300,
   "state_counts": {
-    "observed": 1720,
-    "interpolated": 202,
-    "predicted": 827,
-    "unknown": 3184,
-    "provisional": 18,
-    "weak": 349
+    "weak": 612,
+    "unknown": 3159,
+    "predicted": 1024,
+    "provisional": 24,
+    "observed": 1093,
+    "interpolated": 388
   },
   "detections_held_by_more_than_one_slot": 0,
   "problems": [],

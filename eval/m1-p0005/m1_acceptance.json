@@ -1,59 +1,44 @@
 {
   "held_out_frames": [
-    44,
-    54,
-    55,
-    107,
+    53,
+    62,
+    63,
     116,
-    129,
-    146,
-    194,
-    204,
-    210,
-    215,
-    232,
-    235,
-    250,
+    124,
+    136,
+    151,
+    200,
+    208,
+    214,
+    217,
+    234,
+    236,
+    248,
+    251,
     252,
-    254,
-    270,
-    271,
-    316,
-    349
+    267,
+    268,
+    310,
+    342
   ],
   "frames": 450,
-  "usable_frames": 366,
-  "usable_fraction": 0.8133,
+  "usable_frames": 325,
+  "usable_fraction": 0.7222,
   "testable_frames": 12,
-  "testable_span_frames": 306,
+  "testable_span_frames": 290,
   "population_note": "held-out frames are sampled from the frames with confidence >= 0.5, so mean_error_yd describes those frames and not the possession. Read it next to usable_fraction.",
   "per_frame": [
     {
-      "frame": 44,
+      "frame": 53,
       "note": "line or conic not found; not testable"
     },
     {
-      "frame": 54,
+      "frame": 62,
       "note": "line or conic not found; not testable"
     },
     {
-      "frame": 55,
+      "frame": 63,
       "note": "line or conic not found; not testable"
-    },
-    {
-      "frame": 107,
-      "px_far": [
-        811.11,
-        375.19
-      ],
-      "px_near": [
-        800.65,
-        530.01
-      ],
-      "err_far_yd": 0.2614,
-      "err_near_yd": 0.0253,
-      "mean_yd": 0.1433,
-      "max_yd": 0.2614
     },
     {
       "frame": 116,
@@ -71,185 +56,200 @@
       "max_yd": 0.1607
     },
     {
-      "frame": 129,
+      "frame": 124,
       "px_far": [
-        974.96,
-        381.19
+        964.03,
+        375.54
       ],
       "px_near": [
-        965.3,
-        528.19
+        953.62,
+        528.46
       ],
-      "err_far_yd": 0.0853,
-      "err_near_yd": 0.0494,
-      "mean_yd": 0.0674,
-      "max_yd": 0.0853
+      "err_far_yd": 0.8603,
+      "err_near_yd": 0.0509,
+      "mean_yd": 0.4556,
+      "max_yd": 0.8603
     },
     {
-      "frame": 146,
+      "frame": 136,
       "px_far": [
-        877.98,
-        389.6
+        975.33,
+        383.96
       ],
       "px_near": [
-        868.71,
-        526.43
+        965.35,
+        527.13
       ],
-      "err_far_yd": 0.9156,
-      "err_near_yd": 0.0392,
-      "mean_yd": 0.4774,
-      "max_yd": 0.9156
+      "err_far_yd": 0.3211,
+      "err_near_yd": 0.0402,
+      "mean_yd": 0.1807,
+      "max_yd": 0.3211
     },
     {
-      "frame": 194,
+      "frame": 151,
       "px_far": [
-        547.6,
-        372.28
+        807.26,
+        388.69
       ],
       "px_near": [
-        534.11,
-        579.69
+        798.23,
+        527.99
       ],
-      "err_far_yd": 1.8941,
-      "err_near_yd": 0.0558,
-      "mean_yd": 0.9749,
-      "max_yd": 1.8941
+      "err_far_yd": 0.2088,
+      "err_near_yd": 0.0553,
+      "mean_yd": 0.1321,
+      "max_yd": 0.2088
     },
     {
-      "frame": 204,
+      "frame": 200,
       "px_far": [
-        584.01,
-        397.29
+        571.87,
+        394.01
       ],
       "px_near": [
-        572.69,
-        592.19
+        557.07,
+        586.81
       ],
-      "err_far_yd": 1.404,
-      "err_near_yd": 0.0826,
-      "mean_yd": 0.7433,
-      "max_yd": 1.404
+      "err_far_yd": 1.2771,
+      "err_near_yd": 0.0623,
+      "mean_yd": 0.6697,
+      "max_yd": 1.2771
     },
     {
-      "frame": 210,
+      "frame": 208,
       "px_far": [
-        712.86,
-        389.6
+        646.45,
+        385.66
       ],
       "px_near": [
-        703.29,
-        601.25
+        630.55,
+        597.58
       ],
-      "err_far_yd": 0.1638,
-      "err_near_yd": 0.1268,
-      "mean_yd": 0.1453,
-      "max_yd": 0.1638
+      "err_far_yd": 0.761,
+      "err_near_yd": 0.0327,
+      "mean_yd": 0.3969,
+      "max_yd": 0.761
     },
     {
-      "frame": 215,
+      "frame": 214,
       "px_far": [
-        894.26,
-        398.24
+        854.66,
+        394.54
       ],
       "px_near": [
-        879.88,
-        607.43
+        841.81,
+        604.65
       ],
-      "err_far_yd": 0.384,
-      "err_near_yd": 0.0702,
-      "mean_yd": 0.2271,
-      "max_yd": 0.384
+      "err_far_yd": 0.1688,
+      "err_near_yd": 0.0618,
+      "mean_yd": 0.1153,
+      "max_yd": 0.1688
     },
     {
-      "frame": 232,
+      "frame": 217,
       "px_far": [
-        1349.3,
-        426.36
+        978.85,
+        403.58
       ],
       "px_near": [
-        1335.9,
-        655.79
+        963.48,
+        614.01
       ],
-      "err_far_yd": 0.3018,
-      "err_near_yd": 0.1098,
-      "mean_yd": 0.2058,
-      "max_yd": 0.3018
+      "err_far_yd": 0.4445,
+      "err_near_yd": 0.1195,
+      "mean_yd": 0.282,
+      "max_yd": 0.4445
     },
     {
-      "frame": 235,
+      "frame": 234,
       "px_far": [
-        1380.4,
-        426.21
+        1373.26,
+        424.52
       ],
       "px_near": [
-        1365.84,
-        660.75
+        1350.25,
+        659.42
       ],
-      "err_far_yd": 0.2787,
-      "err_near_yd": 0.0775,
-      "mean_yd": 0.1781,
-      "max_yd": 0.2787
+      "err_far_yd": 0.1034,
+      "err_near_yd": 0.0351,
+      "mean_yd": 0.0693,
+      "max_yd": 0.1034
     },
     {
-      "frame": 250,
+      "frame": 236,
       "px_far": [
-        1606.28,
-        430.49
+        1382.46,
+        426.44
       ],
       "px_near": [
-        1586.46,
-        684.61
+        1362.91,
+        662.16
       ],
-      "err_far_yd": 0.2099,
-      "err_near_yd": 0.0403,
-      "mean_yd": 0.1251,
-      "max_yd": 0.2099
+      "err_far_yd": 0.3466,
+      "err_near_yd": 0.0432,
+      "mean_yd": 0.1949,
+      "max_yd": 0.3466
+    },
+    {
+      "frame": 248,
+      "px_far": [
+        1581.33,
+        429.72
+      ],
+      "px_near": [
+        1565.64,
+        681.33
+      ],
+      "err_far_yd": 0.1121,
+      "err_near_yd": 0.1324,
+      "mean_yd": 0.1223,
+      "max_yd": 0.1324
+    },
+    {
+      "frame": 251,
+      "px_far": [
+        1628.4,
+        430.96
+      ],
+      "px_near": [
+        1607.52,
+        684.01
+      ],
+      "err_far_yd": 0.1927,
+      "err_near_yd": 0.1037,
+      "mean_yd": 0.1482,
+      "max_yd": 0.1927
     },
     {
       "frame": 252,
       "note": "line or conic not found; not testable"
     },
     {
-      "frame": 254,
-      "px_far": [
-        1673.63,
-        432.54
-      ],
-      "px_near": [
-        1652.68,
-        689.0
-      ],
-      "err_far_yd": 0.161,
-      "err_near_yd": 0.0816,
-      "mean_yd": 0.1213,
-      "max_yd": 0.161
-    },
-    {
-      "frame": 270,
+      "frame": 267,
       "note": "line or conic not found; not testable"
     },
     {
-      "frame": 271,
+      "frame": 268,
       "note": "line or conic not found; not testable"
     },
     {
-      "frame": 316,
+      "frame": 310,
       "note": "line or conic not found; not testable"
     },
     {
-      "frame": 349,
+      "frame": 342,
       "note": "line or conic not found; not testable"
     }
   ],
   "n_correspondences": 24,
-  "mean_error_yd": 0.2924,
-  "max_error_yd": 1.8941,
+  "mean_error_yd": 0.2389,
+  "max_error_yd": 1.2771,
   "gate": {
     "mean_yd": 0.75,
     "max_yd": 1.5
   },
   "pass_mean": true,
-  "pass_max": false,
+  "pass_max": true,
   "frame": "soccer",
   "points": "halfway line x centre circle: soccer (0, +/-10.0066) yd",
   "independence": "points located from the image-space line and conic only; the camera model only back-projects them",

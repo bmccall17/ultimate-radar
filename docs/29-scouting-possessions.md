@@ -470,3 +470,61 @@ viewer's `MEASURABLE` set so no metric built on one can call itself measured, in
 `coverage` because the player really was seen. `docs/05` carries the definition. The
 distinction is the one this project keeps needing — *which* part of a position is
 uncertain. For `provisional` it is who; for `weak` it is where the camera was pointing.
+
+
+---
+
+# Part 3 — where the possessions ended up
+
+*2026-09-14, after the mosaic, the prior-bounded refit and the `weak` state.*
+
+**Six possessions are published**, three with Sol on offence and three with Wind Chill —
+which is new; before today every possession in the project was Sol.
+
+| | offence | frames the calibration accepts | median roster in shot | frames with nothing | M1 mean | M1 max | `m4_structure` |
+|---|---|---|---|---|---|---|---|
+| **p0001** | Sol | 96 % | 11 of 14 | 4 % | 0.118 | 0.446 | 0 problems |
+| **p0009** | Wind Chill | 86 % | 9 of 14 | 4 % | 0.113 | 0.314 | 0 problems |
+| **p0003** | Sol | 72 % | 9 of 14 | 15 % | 0.124 | 0.390 | 0 problems |
+| **p0005** | Wind Chill | 72 % | 8 of 14 | 9 % | 0.239 | 1.277 | 0 problems |
+| **p0004** | Sol | 65 % | 10 of 14 | 23 % | 0.117 | 0.455 | 0 problems |
+| **p0015** | Wind Chill | 62 % | 8 of 14 | 27 % | 0.103 | 0.304 | 0 problems |
+
+Every one passes M1 acceptance under 0.75 yd mean and 1.5 yd max, and reports zero
+structural problems.
+
+**p0005's tail, which is what started Part 2.** Its last ten seconds used to read *"0 of
+14 — 0 % of the roster is in shot"*. It now shows a median of **seven players**, drawn at
+the width their evidence earns, on frames whose calibration confidence is 0.02. None of
+those 73 frames reaches the 0.5 threshold and none of them ever will; 45 of them carry a
+mosaic pose and the positions come through as `weak`. The scrub bar stopped being empty
+without anything claiming to be measured that is not.
+
+## Four that are not published, and why
+
+| | offence | calibration accepts | median roster in shot |
+|---|---|---|---|
+| p0006 | Wind Chill | 27 % | 0 of 14 |
+| p0007 | Sol | 39 % | 0 of 14 |
+| p0008 | Sol | 44 % | 0 of 14 |
+| p0010 | Wind Chill | 32 % | 0 of 14 |
+
+The mosaic lifts all four and not nearly enough. The median frame still has no located
+player on it. A page that is blank for half its scrub bar is not a possession.
+
+## The pre-filter is dead, and screening is a calibration run
+
+`tools/scout.py`'s paint fraction does not predict whether a possession will calibrate.
+Across the possessions with known outcomes the correlation is **+0.11**, and the single
+worst case is decisive: **p0008 scored 0.88, the best of all 49 candidates, and calibrates
+at 44 %.** Three versions of the pre-filter were tried — conic-and-line on the raw frame,
+the same masked to below the horizon, and a halfway-line-only screen built on the measured
+cause — and all three are flat. The six-point separation reported for the masked version
+earlier in this document was fitting noise; it is left above because the correction is the
+useful part.
+
+**What does work is running the calibration**, which is about six minutes and goes six
+wide. Of nine candidates screened that way: 0 %, 1 %, 12 %, 27 %, 32 %, 35 %, 44 %, 62 %,
+86 %, and one that refused to bootstrap at all (*"bootstrap found no plausible camera"* —
+a loud failure, which is the right kind). Two keepers out of nine is the honest hit rate,
+and knowing it costs an hour of machine time rather than a judgement call.
