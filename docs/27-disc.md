@@ -279,3 +279,55 @@ identities supplied, p0001 now carries **181 `confirmed` disc frames and 48
 `interpolated` flights**, and the Mark and Separation-at-release cards read off
 a holder a human named. The tagging surface and the round trip work. It is the
 *inference* between tags that has now been measured and failed.
+
+## Flight speed as the ranking signal, and its first held-out test (2026-09-15)
+
+`docs/30` § 2.5 recorded that the three true throws on p0001 fly at 11.0, 11.0 and
+11.2 yd/s over a 2.7× range of distance, while `FLIGHT_SPEED_YD_S` was spending
+that signal on a 2–40 yd/s admissibility gate. Measured, that gate is nearly
+inert: **of the 41 wrong pairings available at each of p0001's three throws, 40,
+39 and 31 sit inside the range and cost exactly nothing.**
+
+So the gate became a ranking: `SPEED_LOG_WEIGHT_YD * |log(v / 11.0)|`, log because
+speed error is multiplicative. On p0001 that ranks the true pair **1st, 2nd and
+1st of 42**.
+
+**p0001 cannot test this and was never asked to.** v0 = 11.0 is the median of
+those same three throws, and the ranking is knife-edge sensitive to it — at
+v0 = 8 the true pair ranks 8th, 13th, 6th; at v0 = 14, 9th, 15th, 5th. The weight
+is not knife-edge: 20, 40 and 80 give the same assignment, so the robust claim is
+"speed should outrank the emission", which is what the evidence asks for — over
+p0001's four spans the emission ranks the true holder **3rd, 3rd, 3rd and 1st of
+seven**, against the 4th a coin would give.
+
+### The test: p0009, held out, run once
+
+| | |
+|---|---|
+| p0001 (training, proves nothing) | 4 / 4 |
+| **p0009 (held out)** | **3 / 7 = 43 %** |
+| gate | ≥ 75 % |
+
+**The gate is not met.** Three findings come out of it, and the second is the one
+worth keeping:
+
+1. **It is a real improvement.** The unaided solver scored 0 / 4; this scores 3 / 7
+   on a possession it never saw, and the first three spans are right.
+2. **The speed model generalises in its centre and not in its precision.** p0009's
+   true throws fly at 11.96, 13.13, 9.25, 11.62, 13.89 and 4.19 yd/s — median
+   **11.79** against the assumed 11.0, so the constant is about right. But
+   p0001's three throws span a range of **0.26 yd/s** and p0009's six span
+   **9.7**. The tightness that made speed look like a sharp discriminator was a
+   coincidence of n = 3. A wrong pair can sit closer to 11.0 than the true one
+   does, and on four of seven spans it did.
+3. **The margin is now anti-predictive: r = −0.47.** Not merely uninformative —
+   inverted. p0009's three correct spans carry margins 3.92, 1.54 and 1.54; three
+   of the four wrong ones carry 7.84, 7.84 and 8.77. **Step 4 of this document —
+   ask for the next tag where the margin is thinnest — would therefore ask in the
+   places the solver is most likely to be right.** That strategy is withdrawn
+   until something predicts correctness.
+
+One caveat on the denominator: p0009's last throw ends at the goal catch, where
+O6's position is `predicted` and lands outside the sideline. That is where the
+4.19 yd/s comes from. The span is graded anyway — dropping the inconvenient one
+is how a number starts flattering itself — but it is one of the seven.

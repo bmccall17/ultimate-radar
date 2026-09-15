@@ -78,6 +78,40 @@ FLIGHT_SPEED_YD_S = (2.0, 40.0)
 # the only property it needs.
 SPEED_PENALTY_PER_YD_S = 25.0
 
+# A throw's speed, used to RANK pairs rather than only to rule them out.
+#
+# The range above turned out to be nearly inert: on p0001, of the 41 wrong
+# pairings available at each of the three tagged throws, 40, 39 and 31 sit inside
+# 2-40 yd/s and therefore cost exactly nothing. Meanwhile the three true throws
+# fly at 11.01, 10.96 and 11.22 yd/s across a 2.7x range of distance. So the
+# signal was there and was being spent on an admissibility gate.
+#
+# Scoring |log(v / v0)| instead ranks the true pair 1st, 2nd and 1st of 42.
+#
+# **Read that number with the following in mind.** v0 is the median of those same
+# three throws, and the ranking is knife-edge sensitive to it - at v0 = 8 the true
+# pair ranks 8th, 13th and 6th, at v0 = 14 it ranks 9th, 15th and 5th. p0001
+# therefore cannot test this; it IS the fit, on n = 3. The claim "throws in this
+# game fly at about 11 yd/s regardless of distance" is strong and falsifiable, and
+# the only evidence that counts is a possession this constant never saw.
+TYPICAL_FLIGHT_SPEED_YD_S = 11.0
+
+# What one factor of e in speed error is worth, in yards, against the emission.
+#
+# Chosen so that speed OVERRULES the emission rather than sharing with it, which
+# is what the evidence on p0001 says it should: over the four tagged spans the
+# emission ranks the true holder 3rd, 3rd, 3rd and 1st of seven - barely better
+# than the 4th a coin would give - while speed ranks the true pair 1st, 2nd and
+# 1st of 42. A signal that is close to noise should not get equal billing.
+#
+# The number comes from that comparison, not from a search: the emission spread
+# across candidates on a span is 3-6 yd, and the smallest |log(v/v0)| gap between
+# the true pair and a wrong one is about 0.3, so speed needs ~20 yd per log unit
+# before it can outvote stillness. A sweep afterwards agreed and, more usefully,
+# showed a PLATEAU - 20, 40 and 80 all give the same assignment on p0001. The
+# claim is "speed dominates", which is robust; it is not a tuned value.
+SPEED_LOG_WEIGHT_YD = 20.0
+
 # Throwing to yourself is not a throw. Forbidden rather than penalised.
 SELF_PASS_COST = float("inf")
 
@@ -223,7 +257,12 @@ def _flight_penalty(doc: dict, prev: Span, nxt: Span, a: int, b: int) -> float:
         return (lo - speed) * SPEED_PENALTY_PER_YD_S
     if speed > hi:
         return (speed - hi) * SPEED_PENALTY_PER_YD_S
-    return 0.0
+    # Inside the admissible range, rank rather than shrug. Log because speed
+    # error is multiplicative - half speed and double speed are equally wrong -
+    # and because it keeps the penalty finite at the slow end, where a pairing
+    # that implies the disc drifting 2 yd/s is the commonest wrong answer.
+    return SPEED_LOG_WEIGHT_YD * abs(
+        np.log(max(speed, 1e-3) / TYPICAL_FLIGHT_SPEED_YD_S))
 
 
 def _first(s: Span, n: int) -> np.ndarray:

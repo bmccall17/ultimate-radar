@@ -168,6 +168,14 @@ under "The first ground truth".
   true throws fly at **11.0, 11.0 and 11.2 yd/s** over a 2.7× range of distance,
   every endpoint observed. The solver's picks imply 11.3, **2.0** and 8.0. n = 3.
 
+**Acted on the same day, and half of it did not survive contact.** The gate became
+a ranking and was tested on p0009, held out and run once: **3 / 7 = 43 %**, so the
+75 % gate is still not met. p0009's true throws run 9.25–13.89 yd/s — the 11 yd/s
+centre generalises, the *tightness* did not, and p0001's 0.26 yd/s spread was a
+coincidence of n = 3. Worse, the margin came out **anti-predictive, r = −0.47**,
+which withdraws `docs/27` step 4's plan to ask where the margin is thinnest. Full
+account in `docs/27` under "Flight speed as the ranking signal".
+
 ### 2.6 Measure the artefact, not the log
 
 Three fixes this session printed success while leaving the defect in place: a
@@ -218,8 +226,8 @@ them does not measure what it claimed to.
 
 | gate | threshold | why that number |
 |---|---|---|
-| span identity accuracy | ≥ 75 % over ≥ 8 graded spans | currently **0 / 4**. Eight spans across at least two possessions, so it cannot be fitted to the four it would be tested on |
-| margin predicts correctness | r ≥ 0.5 | a loop that asks where the margin is thinnest is only a strategy if the margin means something. Currently unmeasurable — too few graded spans |
+| span identity accuracy | ≥ 75 % over ≥ 8 graded spans | currently **7 / 11 = 64 %**, and that includes p0001's 4 / 4, which is the training set. Held out on p0009 alone it is **3 / 7 = 43 %** |
+| margin predicts correctness | r ≥ 0.5 | currently **r = −0.47**: a high margin now means *more* likely wrong. A loop that asks where the margin is thinnest is only a strategy if the margin means something, and this one means the opposite |
 
 **These are the two numbers that decide whether Goal 2 works.** Neither can move
 without more identity tags, and both must be measured on a possession the solver
