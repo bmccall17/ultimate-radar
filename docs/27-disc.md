@@ -427,3 +427,32 @@ mislabelled stretches fall inside a flagged `unverified_stretch`, which sounds
 like the issue detector predicting them until you notice that **issues cover 83 %
 of p0003's timeline**. Three hits at an 83 % base rate is p ≈ 0.57. It predicted
 nothing.
+
+### Closing p0003's last span, and why it does not count as truth
+
+The tagger, watching the possession ring, asked to relabel the player they read
+as jersey **#28** to close the 21.27–26.33 s hole. The pipeline carries no jersey
+numbers at all, so a jersey read cannot be mapped to a slot directly. It was
+settled by elimination instead:
+
+- **The chain** rules out O3 (who threw it at 19.27) and O6 (who catches the dump
+  at 27.13); nobody throws to themselves.
+- **Coverage** rules out the rest. Over the span's 77 frames the tracker observes
+  O2 on **6** and O6 on **11**, against **40–69** for every other offence slot.
+  The two it loses are exactly O2 and O6, and O6 is already out.
+- **The play agrees**: O2 dumps to O6 and gets it straight back to huck, which is
+  what the tagger described watching.
+
+That leaves O2, and only O2. The span is named, and p0003's display hole closes —
+`disc not lost for long` goes from 7.8 s to 3.1 s.
+
+**It is marked `player_inferred` and the grader refuses it.** Part of that
+argument is *which slots the tracker loses*, so scoring the holder solver against
+it would be scoring the solver partly against its own upstream — the brief's
+second trap, never feed the solver's own output back. It stays in the file, where
+it closes a real hole in what a reader sees; it does not count in
+`span identity accuracy`, which reads **8 / 18 = 44 %** with it excluded.
+
+Worth noticing which way that moved. Naming the span *lowered* the headline
+number — 47 % to 44 % — because it added spans the solver gets wrong. That is the
+direction more truth should move a score that is not yet good.

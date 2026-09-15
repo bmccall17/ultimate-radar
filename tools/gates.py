@@ -286,8 +286,17 @@ def check_disc(works: list[Path]) -> dict:
         SP.span_costs(doc, sp, ids)
         path, margins = SP.solve(doc, sp, ids)
         n = ok = 0
-        for g, t, m in zip(path, truth, margins):
+        for g, t, m, sp_i in zip(path, truth, margins, tspans):
             if t is None:
+                continue
+            # An identity nobody saw is not ground truth. p0003's 21.27-26.33 s
+            # holder was worked out by elimination - and part of that argument was
+            # which slots the TRACKER loses, so grading the solver against it grades
+            # the solver partly against its own upstream. The brief's second trap:
+            # never feed the solver's own output back as a constraint. It stays in
+            # the file, where it closes a real hole in the display; it does not
+            # count here.
+            if sp_i.inferred:
                 continue
             n += 1
             ok += (g == t)
