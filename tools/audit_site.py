@@ -42,6 +42,13 @@ DRAWN_DISC_STATES = {"observed", "confirmed"}
 # so 5 yd is past anywhere a player can be and still be on camera as a player.
 OFF_FIELD_LIMIT_YD = 5.0
 
+# The longest a drawn flight may last. Every human-tagged flight across p0001,
+# p0003 and p0009 runs 0.27-3.20 s (n = 16), so 5 s is past anything real. It
+# matters because an unnamed span between two named ones leaves the holder null
+# throughout, and the viewer used to bridge the lot into one arc - p0003 drew a
+# 7.7 s flight that silently contained a catch and a throw.
+MAX_DRAWN_FLIGHT_S = 5.0
+
 
 def published(pid: str) -> dict | None:
     """Read a published possession back out of the site, as a reader's browser does."""
@@ -155,6 +162,26 @@ def audit(pid: str) -> list[dict]:
         f"{n_bad} observed positions over {OFF_FIELD_LIMIT_YD} yd out, worst {worst:.1f} yd",
         f"0 beyond {OFF_FIELD_LIMIT_YD} yd outside the field",
         "an observed position that far out is a calibration failure, not a sideline")
+
+    # ---- F. no flight longer than a disc can stay in the air ------------------
+    fps = float((doc.get("possession") or {}).get("fps") or 15.0)
+    run, worst = 0, 0.0
+    holders = meta.get("holder") or []
+    for i, st in enumerate(states):
+        if st == "interpolated" and i < len(holders) and not holders[i]:
+            run += 1
+            worst = max(worst, run / fps)
+        else:
+            run = 0
+    # The viewer now refuses to draw a run this long, so the page no longer
+    # ASSERTS a seven-second hang time - it shows nothing there instead. What is
+    # left is a real hole in the possession, and the honest name for the check is
+    # the hole, not the drawing bug that used to paper over it.
+    add("disc not lost for long", worst <= MAX_DRAWN_FLIGHT_S,
+        f"longest stretch with no holder {worst:.1f} s",
+        f"<= {MAX_DRAWN_FLIGHT_S} s",
+        "an unnamed span between two named ones leaves the disc unattributed "
+        "across all three; name the holder and the hole closes")
 
     return out
 

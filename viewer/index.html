@@ -585,7 +585,30 @@ function lastThrow(f){
   }
   return th;
 }
+// A "flight" longer than a disc can stay up is not a flight. Where two tagged
+// spans either side of an UNNAMED one exist, the holder is null across the whole
+// middle, and the viewer bridged them into a single arc - on p0003 that drew the
+// disc in the air for 7.7 s, spanning a catch and a throw nobody had named. Every
+// human-tagged flight in this project runs 0.27-3.20 s (n = 16), so 5 s is past
+// anything real and well short of the artefact. Those frames are not drawn: the
+// honest picture of "we lost it here" is nothing, not a seven-second hang time.
+const MAX_FLIGHT_S = 5.0;
+const LONG_FLIGHT = (() => {
+  const out = new Set(), m = D.disc_meta;
+  if(!m) return out;
+  let run = [];
+  const flush = () => {
+    if(run.length > MAX_FLIGHT_S*FPS) for(const k of run) out.add(k);
+    run = [];
+  };
+  for(let f=0; f<NF; f++){
+    if(m.state[f]==="interpolated" && !m.holder[f]) run.push(f); else flush();
+  }
+  flush();
+  return out;
+})();
 function discTrusted(f){
+  if(LONG_FLIGHT.has(f)) return false;
   // A disc position exists for every frame, and most of them are not worth
   // anything. `ur.disc` scores its own holder sequence against physics and the
   // sport, and when that fails it emits every inferred sample as `unknown` rather
