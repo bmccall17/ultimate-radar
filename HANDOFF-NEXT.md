@@ -1,5 +1,9 @@
 # Start here
 
+**Work is tracked in GitHub issues now** — see `docs/31-how-work-is-organised.md`.
+The rule: an issue closes when a named check in `python -m tools.gates` flips to
+PASS. The gate output prints the ticket number beside every failure.
+
 **Read `docs/30-findings-and-gates.md`.** It is the state of the project, the
 findings, and the list of things that have to pass. Then:
 

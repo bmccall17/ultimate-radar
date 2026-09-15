@@ -49,6 +49,36 @@ MARGIN_CORRELATION = 0.5   # the margin has to predict correctness to drive a lo
 MIN_GRADED_SPANS = 8       # below this an accuracy is a coin-toss report
 
 
+# Which ticket owns each gate. The convention, written down in docs/31:
+# **an issue closes when a named check here flips to PASS**, never on opinion.
+# So a failing check has to be able to say whose job it is, and a ticket that
+# cannot name its check is a ticket without a definition of done - which is what
+# the `needs-gate` label means.
+#
+# Keys match the START of a check's name, because the direction checks are named
+# per quarter and the site checks are prefixed with the possession.
+ISSUE = {
+    "span identity accuracy": 1,
+    "margin predicts correctness": 2,
+    "Q1: opposite teams": 5,
+    "Q2: opposite teams": 5,
+    "Q3: opposite teams": 5,
+    "Q4: opposite teams": 5,
+    "median roster in shot": 6,
+    "frames with nothing at all": 6,
+    "camera motion is possible": 6,
+}
+ISSUE_URL = "https://github.com/bmccall17/ultimate-radar/issues"
+
+
+def _issue(name: str) -> int | None:
+    bare = name.split(": ", 1)[1] if name[:1] == "p" and ": " in name else name
+    for k, v in ISSUE.items():
+        if bare.startswith(k) or name.startswith(k):
+            return v
+    return None
+
+
 def _probe_centre(cal: dict) -> np.ndarray:
     return np.array([cal["camera"]["image_w"] / 2.0,
                      cal["camera"]["image_h"] * 0.55, 1.0])
@@ -325,17 +355,31 @@ def main(argv: list[str] | None = None) -> int:
     reports.append(check_disc(works))
 
     failed = 0
+    open_by: dict[int, int] = {}
     for r in reports:
         print(f"\n=== {r['possession']}")
         for c in r["checks"]:
             mark = "PASS" if c["pass"] else "FAIL"
             if not c["pass"]:
                 failed += 1
-            print(f"  [{mark}] {c['name']:<30} {str(c['got']):<46} want {c['want']}")
+            n = _issue(c["name"]) if not c["pass"] else None
+            if n:
+                open_by[n] = open_by.get(n, 0) + 1
+            print(f"  [{mark}] {c['name']:<30} {str(c['got']):<46} "
+                  f"want {c['want']}" + (f"  #{n}" if n else ""))
             if c.get("note") and not c["pass"]:
                 print(f"         {c['note']}")
     print(f"\n{failed} check(s) failing. docs/30-findings-and-gates.md says which "
           "of those are known and deliberate.")
+    if open_by:
+        print("")
+        print("by ticket - each closes when its checks all pass:")
+        for n in sorted(open_by):
+            print(f"  {ISSUE_URL}/{n}   {open_by[n]} failing check(s)")
+    orphan = failed - sum(open_by.values())
+    if orphan:
+        print(f"  {orphan} failing check(s) with no ticket - open one, or record "
+              "in docs/30 why the failure is permanent.")
     return 1 if failed else 0
 
 
