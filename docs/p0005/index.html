@@ -201,7 +201,7 @@ footer{color:var(--dim);font-size:12px;padding:6px 16px 26px}
 <script>/* Built by tools/build_site.py - do not edit docs/, edit viewer/
    and rebuild. Opens mid-possession: frame 0 is often before the tracker
    has seen anyone, which reads as broken rather than as honest. */
-if(!/[#&]t=/.test(location.hash)){try{history.replaceState(null,"","#t=0.3")}catch(e){}}
+if(!/[#&]t=/.test(location.hash)){try{history.replaceState(null,"","#t=3.1")}catch(e){}}
 </script>
 <script src="possession.js"></script>
 <script>
@@ -1062,10 +1062,19 @@ function renderCards(){
   const offs=PL.filter(p=>p.team===OFF), defs=PL.filter(p=>p.team===DEF);
   const out=[];
 
+  // `weak` counts towards coverage - those players were seen - but it must not
+  // count towards "measured". Adding `weak` to ANCHORED without this made the
+  // card read "13 of 14, measured, the numbers below rest on observations" over
+  // a frame whose calibration confidence was 0.15.
+  const nWeak = PL.filter(p=>p.state[f]==="weak").length;
   out.push(card("Coverage", `${cov} of 14`,
     `${Math.round(cov/14*100)}% of the roster is in shot right now`,
-    cov>=11?"measured":"partial",
-    cov>=11 ? "Most of the roster is visible, so the numbers below rest on observations."
+    (cov>=11 && !nWeak) ? "measured" : "partial",
+    nWeak
+      ? `${nWeak} of them are on a frame the calibration could not place from its own`
+        + ` paint, so where they are carries the camera's uncertainty as well as the`
+        + ` detector's — that is the width of their rings.`
+      : cov>=11 ? "Most of the roster is visible, so the numbers below rest on observations."
             : `${14-cov} players are outside the frame or hidden — their markers are the system's best guess, not an observation.`,
     spark(series("cov", coverage))));
 

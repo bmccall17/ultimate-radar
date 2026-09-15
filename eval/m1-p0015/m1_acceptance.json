@@ -147,10 +147,10 @@
         276.56,
         577.59
       ],
-      "err_far_yd": 0.3041,
-      "err_near_yd": 0.1193,
-      "mean_yd": 0.2117,
-      "max_yd": 0.3041
+      "err_far_yd": 0.2692,
+      "err_near_yd": 0.1239,
+      "mean_yd": 0.1966,
+      "max_yd": 0.2692
     },
     {
       "frame": 316,
@@ -308,7 +308,7 @@
     }
   ],
   "n_correspondences": 36,
-  "mean_error_yd": 0.1028,
+  "mean_error_yd": 0.102,
   "max_error_yd": 0.3041,
   "gate": {
     "mean_yd": 0.75,

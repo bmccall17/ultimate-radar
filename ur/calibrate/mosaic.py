@@ -146,6 +146,41 @@ REFIT_MAX_RMS_YD = 0.20
 # located in image space only. If it cannot be run on a frame, the refit is not
 # accepted: "not testable" is not a pass (`groundtruth.check_frame`).
 REFIT_MAX_KNOWN_GEOMETRY_YD = 0.75      # the same bar docs/04 sets for M1
+
+# How wrong a pose may be and still be worth having at all.
+#
+# Grounded in the alternative rather than chosen: with no position from this
+# frame the tracker falls back on its motion model, which `docs/05` puts at
+# 0.6-3.5 yd for `predicted` and >= 3 yd for `unknown`. A pose worse than two
+# yards is telling you less than dead reckoning already does, so it is not
+# written at all - the frame stays unsolved and the tracker predicts, which is
+# the honest outcome and the one every state in docs/05 is built to express.
+#
+# This exists because it was missing. On p0004 a run of frames was filled at an
+# implied error of 4.1 yd and the viewer drew them: the homography put the image
+# centre 10 to 18 yd apart on consecutive frames while the camera was moving 13
+# px, and the markers came out as slanted ellipses over the crowd. Every one of
+# those frames was scored 0.0001 by this module - the system knew - and
+# `ur.detect.run` used them anyway because its gate had been relaxed to
+# "confidence above zero", which is not a gate.
+MAX_USABLE_ERROR_YD = 2.0
+
+# A hard camera moves smoothly, so a pose that sits far from the midpoint of its
+# two neighbours is not a fast pan - it is wrong. During a whip the steps are
+# large and *consistent*, and a second difference cancels them; only an outlier
+# survives it.
+#
+# Measured over 2207 frames of the six possessions: median 0.025 yd, p95 0.264,
+# and **p0001 - the possession with no visible glitches at all - never exceeds
+# 0.35 yd across its whole length.** The frames that look wrong on the page sit
+# between 1 and 16 yd. One yard is three times the worst honest value anything
+# has produced and a sixteenth of the worst bad one, which is the kind of margin
+# that makes a threshold a description rather than a choice.
+MAX_SECOND_DIFFERENCE_YD = 1.0
+
+# How far apart the bracketing frames may be before interpolation between them
+# stops being evidence about what is in the middle.
+MAX_INTERPOLATION_SPAN = 20
 FIT_PRIOR_SIGMAS = 3.0        # mirrors ur.calibrate.fit.PRIOR_SIGMAS, for the note
 
 
@@ -367,7 +402,8 @@ def agreement_yd(cam: C.FixedCamera, poses: list[C.Pose], probe: np.ndarray
 
 def fill(paths: list[Path], cal_frames: list[dict], cam: C.FixedCamera,
          region: np.ndarray, field: dict, *, sources: set[int] | None = None,
-         targets: set[int] | None = None, verbose: bool = True) -> dict[int, Solved]:
+         targets: set[int] | None = None, feats: dict | None = None,
+         verbose: bool = True) -> dict[int, Solved]:
     """Solve every frame that has no pose, against the frames that do.
 
     `sources` and `targets` are for the held-out check in
@@ -399,7 +435,12 @@ def fill(paths: list[Path], cal_frames: list[dict], cam: C.FixedCamera,
                                        for i in sources}
     want = sorted(targets, key=lambda i: min((abs(i - s) for s in sources),
                                              default=n))
-    feats = features(paths, region, sorted(set(want) | set(sources)))
+    # ORB is the expensive part and the caller may be doing this 300 times - the
+    # cross-check re-derives every solved frame from the others - so a cache can
+    # be handed in. Computing it per call turned that check from a minute into
+    # an hour.
+    if feats is None:
+        feats = features(paths, region, sorted(set(want) | set(sources)))
     if verbose:
         print(f"[mosaic] {len(sources)} paint-solved sources, {len(targets)} frames "
               f"to fill; ORB on {len(feats)} frames")
@@ -503,12 +544,17 @@ def fill_document(work: Path, *, verbose: bool = True) -> dict:
     region[static > 0] = 0
 
     before = sum(1 for r in frames if r.get("confidence", 0) >= 0.5)
+    # Before filling anything, check that the frames about to be used as sources
+    # are where they say they are. A wrong source does not just produce one wrong
+    # frame; it poisons every fill that leans on it.
+    cross_check_paint(work, doc, verbose=verbose)
     got = fill(paths, frames, cam, region, field, verbose=verbose)
     sources = {i for i, r in enumerate(frames)
                if r.get("camera") and r.get("confidence", 0) >= SOURCE_MIN_CONFIDENCE
                and (r.get("known_geometry_err_yd") is None
                     or r["known_geometry_err_yd"] <= SOURCE_MAX_KNOWN_GEOMETRY_ERR_YD)}
 
+    refused = 0
     for i, s in sorted(got.items()):
         gap = min((abs(i - j) for j in sources), default=999)
         err = expected_error_yd(gap)
@@ -516,6 +562,9 @@ def fill_document(work: Path, *, verbose: bool = True) -> dict:
         # time, so where it is worse than the curve predicts, it wins.
         if np.isfinite(s.spread_yd):
             err = max(err, s.spread_yd)
+        if not np.isfinite(err) or err > MAX_USABLE_ERROR_YD:
+            refused += 1
+            continue
         rec = frames[i]
         rec["H"] = [[round(float(v), 10) for v in row] for row in (s.H / s.H[2, 2])]
         rec["camera"] = {**s.pose.to_dict(), "n_circle_px": 0, "n_line_px": 0,
@@ -573,6 +622,11 @@ def fill_document(work: Path, *, verbose: bool = True) -> dict:
             f"arc {rec['refit_circle_span_deg']:.0f} deg, moved "
             f"{rec['refit_moved_yd']:.2f} yd from the prior).")
 
+    if verbose and refused:
+        print(f"[mosaic] refused {refused} frames whose sources disagreed by more "
+              f"than {MAX_USABLE_ERROR_YD} yd; they stay unsolved and the tracker "
+              "predicts through them")
+
     # **Every pose faces the same gate, whatever produced it.** The mosaic path
     # originally scored a filled frame on the registration gap alone and never
     # asked the one question that is independent of the solve. On p0003 that let
@@ -581,6 +635,8 @@ def fill_document(work: Path, *, verbose: bool = True) -> dict:
     # built this check precisely because a self-consistent pose can be badly
     # wrong; there is no reason a mosaic pose should be exempt from it.
     check_known_geometry(work, doc, verbose=verbose)
+
+    drop_impossible_motion(doc, cam, verbose=verbose)
 
     after = sum(1 for r in frames if r.get("confidence", 0) >= 0.5)
     doc.setdefault("method", {})["mosaic"] = {
@@ -781,6 +837,164 @@ def check_known_geometry(work: Path, doc: dict, *, verbose: bool = True) -> None
     if verbose:
         print(f"[mosaic] known-geometry check ran on {tested} of {len(filled)} "
               f"filled frames; {demoted} dropped below the threshold because of it")
+
+
+def cross_check_paint(work: Path, doc: dict, *, verbose: bool = True) -> int:
+    """Ask the registration whether each paint-solved pose is where it claims.
+
+    The known-geometry check is the independent test this project relies on, and
+    it **abstains exactly where it is needed most**: it needs the halfway line
+    crossing the centre circle, and the frames that go wrong are the ones with no
+    halfway line. `docs/29` Part 2 measured that every line-bearing frame
+    calibrates; the corollary is that a circle-only frame can be badly wrong with
+    nothing able to say so.
+
+    p0004 frame 310 is that case. A circle-only fit, residual 0.155 yd,
+    confidence 0.68, known-geometry not testable - and **nine degrees of pan out**,
+    which at that focal length is 371 px of image. Its neighbours could not
+    contradict it because they had failed too, so the smoothness check was fitted
+    over frames far enough away to be no help.
+
+    Registration can contradict it. It shares thousands of features with other
+    paint-solved frames, and where those frames place it has nothing to do with
+    which conic its own RANSAC picked. So every paint-solved frame is re-derived
+    from the others exactly as an unsolved one would be, and the two answers are
+    compared on the ground. A frame that disagrees with the rest of the
+    possession by more than `MAX_USABLE_ERROR_YD` is not trusted, whatever its
+    own residual says about it.
+    """
+    from . import mask as M
+
+    frames = doc["frames"]
+    paths = sorted((work / "frames").glob("*.jpg"))
+    cam = C.FixedCamera(C=np.asarray(doc["camera"].get("position_yd_soccer",
+                                                       doc["camera"]["position_yd"]),
+                                     float),
+                        image_w=doc["camera"]["image_w"],
+                        image_h=doc["camera"]["image_h"])
+    field = json_field(work)
+    static, _ = M.static_region(paths)
+    region = np.full(static.shape, 255, np.uint8)
+    region[static > 0] = 0
+
+    solved = {i for i, r in enumerate(frames)
+              if r.get("H") and r.get("confidence", 0) >= SOURCE_MIN_CONFIDENCE
+              and not str(r.get("basis", "")).startswith("mosaic")}
+    if len(solved) < 8:
+        return 0
+    probe = _image_probe(cam)
+    feats = features(paths, region, sorted(solved))
+    if verbose:
+        print(f"[mosaic] cross-checking {len(solved)} paint-solved frames against "
+              "registration from the others")
+    demoted = 0
+    for i in sorted(solved):
+        # Everything except the frame itself, so this is out of sample.
+        got = fill(paths, frames, cam, region, field, feats=feats,
+                   sources=solved - {i}, targets={i}, verbose=False)
+        s = got.get(i)
+        rec = frames[i]
+        if s is None:
+            continue
+        own = np.asarray(rec["H"], float)
+        pts = []
+        for H in (own, s.H):
+            hom = np.column_stack([probe, np.ones(len(probe))]) @ H.T
+            w = hom[:, 2]
+            if np.any(np.abs(w) < 1e-9):
+                pts = []
+                break
+            pts.append(hom[:, :2] / w[:, None])
+        if len(pts) != 2:
+            continue
+        d = float(np.median(np.hypot(*(pts[0] - pts[1]).T)))
+        rec["registration_disagreement_yd"] = round(d, 3)
+        if d > MAX_USABLE_ERROR_YD:
+            rec["confidence"] = 0.0
+            rec["note"] = (
+                f"the paint solved this frame and the rest of the possession "
+                f"disagrees: registering it against {s.n_sources} other "
+                f"paint-solved frame(s) puts it {d:.1f} yd away. A circle-only "
+                "fit can be self-consistent and wrong, and the known-geometry "
+                "check cannot test a frame with no halfway line on it.")
+            demoted += 1
+    if verbose and demoted:
+        print(f"[mosaic] {demoted} paint-solved frame(s) contradicted by "
+              "registration against the rest of the possession; dropped")
+    return demoted
+
+
+def drop_impossible_motion(doc: dict, cam: C.FixedCamera, *,
+                           verbose: bool = True) -> int:
+    """Drop frames whose pose implies the camera teleported and came back.
+
+    The last thing standing between a wrong pose and the page. Every check
+    before this one asks whether a frame is self-consistent, agrees with its
+    sources, or matches known geometry, and a frame can pass all three and still
+    be somewhere the camera cannot have been - p0004 flip-flopped between two
+    answers nine yards apart on alternate frames, each of them scored at an
+    implied 1.2 yd.
+
+    Iterated to convergence, because removing one outlier changes what its
+    neighbours are compared against - and the first version capped the loop at
+    six passes, which silently left four bad frames in p0004 and thirteen in
+    p0005 while printing "dropped 6" for every possession alike. A loop bound
+    that is doing the deciding is not a loop bound.
+    """
+    frames = doc["frames"]
+    probe = np.array([[cam.image_w / 2.0, cam.image_h * 0.55]])
+    dropped = 0
+    for _ in range(len(frames)):
+        pts = {}
+        for r in frames:
+            if r.get("H") and r.get("confidence", 0) > 0.0:
+                H = np.asarray(r["H"], float)
+                q = H @ np.array([probe[0][0], probe[0][1], 1.0])
+                if abs(q[2]) > 1e-9:
+                    pts[r["f"]] = q[:2] / q[2]
+        # The **nearest drawn** neighbours, not strictly f-1 and f+1. Dropping a
+        # bad frame leaves its equally-bad partner with no neighbours to be
+        # compared against, and two wrong frames agree with each other happily:
+        # p0004 held an eight-yard island at f307-308 that survived the
+        # immediate-neighbour version for exactly that reason.
+        #
+        # The tolerance does not widen with the gap, which is the measurement
+        # rather than an assumption. On p0001 the deviation from interpolation is
+        # at most 0.35 yd at a span of two, 0.19 at three to four and 0.07 at
+        # five to eight - it does not grow, because a smooth camera interpolates
+        # well across a short gap. Past `MAX_GAP` it is not smooth enough to say.
+        ks = sorted(pts)
+        worst, worst_d = None, 0.0
+        for i in range(1, len(ks) - 1):
+            f, a, b = ks[i], ks[i - 1], ks[i + 1]
+            span = b - a
+            if span > MAX_INTERPOLATION_SPAN:
+                continue
+            u = (f - a) / span
+            pred = pts[a] * (1 - u) + pts[b] * u
+            d = float(np.hypot(*(pts[f] - pred)))
+            if d > worst_d:
+                worst, worst_d = f, d
+        if worst is None or worst_d <= MAX_SECOND_DIFFERENCE_YD:
+            break
+        rec = frames[worst]
+        rec["second_difference_yd"] = round(worst_d, 3)
+        rec["confidence"] = 0.0
+        rec["note"] = (
+            f"this pose sits {worst_d:.1f} yd from where the nearest frames "
+            "either side put it. A fixed camera cannot move there and back, "
+            "so whatever produced it is wrong, whatever its residual "
+            f"said (ur/calibrate/mosaic.py MAX_SECOND_DIFFERENCE_YD).")
+        dropped += 1
+    if verbose and dropped:
+        print(f"[mosaic] dropped {dropped} frame(s) whose pose implied the camera "
+              "teleported between frames")
+    return dropped
+
+
+def json_field(work: Path) -> dict:
+    import json
+    return json.loads((work / "clip.json").read_text(encoding="utf-8"))["field"]
 
 if __name__ == "__main__":
     raise SystemExit(main())

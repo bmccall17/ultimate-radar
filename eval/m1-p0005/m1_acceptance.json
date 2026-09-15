@@ -1,43 +1,43 @@
 {
   "held_out_frames": [
-    53,
-    62,
+    54,
     63,
+    64,
     116,
     124,
-    136,
-    151,
+    138,
+    152,
     200,
-    208,
+    209,
     214,
-    217,
+    218,
     234,
     236,
-    248,
+    249,
     251,
-    252,
+    253,
     267,
     268,
     310,
     342
   ],
   "frames": 450,
-  "usable_frames": 325,
-  "usable_fraction": 0.7222,
+  "usable_frames": 324,
+  "usable_fraction": 0.72,
   "testable_frames": 12,
-  "testable_span_frames": 290,
+  "testable_span_frames": 289,
   "population_note": "held-out frames are sampled from the frames with confidence >= 0.5, so mean_error_yd describes those frames and not the possession. Read it next to usable_fraction.",
   "per_frame": [
     {
-      "frame": 53,
-      "note": "line or conic not found; not testable"
-    },
-    {
-      "frame": 62,
+      "frame": 54,
       "note": "line or conic not found; not testable"
     },
     {
       "frame": 63,
+      "note": "line or conic not found; not testable"
+    },
+    {
+      "frame": 64,
       "note": "line or conic not found; not testable"
     },
     {
@@ -71,34 +71,34 @@
       "max_yd": 0.8603
     },
     {
-      "frame": 136,
+      "frame": 138,
       "px_far": [
-        975.33,
-        383.96
+        968.08,
+        380.81
       ],
       "px_near": [
-        965.35,
-        527.13
+        959.71,
+        527.67
       ],
-      "err_far_yd": 0.3211,
-      "err_near_yd": 0.0402,
-      "mean_yd": 0.1807,
-      "max_yd": 0.3211
+      "err_far_yd": 0.405,
+      "err_near_yd": 0.0943,
+      "mean_yd": 0.2496,
+      "max_yd": 0.405
     },
     {
-      "frame": 151,
+      "frame": 152,
       "px_far": [
-        807.26,
-        388.69
+        792.54,
+        390.99
       ],
       "px_near": [
-        798.23,
-        527.99
+        784.36,
+        528.7
       ],
-      "err_far_yd": 0.2088,
-      "err_near_yd": 0.0553,
-      "mean_yd": 0.1321,
-      "max_yd": 0.2088
+      "err_far_yd": 0.7088,
+      "err_near_yd": 0.033,
+      "mean_yd": 0.3709,
+      "max_yd": 0.7088
     },
     {
       "frame": 200,
@@ -116,19 +116,19 @@
       "max_yd": 1.2771
     },
     {
-      "frame": 208,
+      "frame": 209,
       "px_far": [
-        646.45,
-        385.66
+        672.83,
+        391.08
       ],
       "px_near": [
-        630.55,
-        597.58
+        659.22,
+        599.33
       ],
-      "err_far_yd": 0.761,
-      "err_near_yd": 0.0327,
-      "mean_yd": 0.3969,
-      "max_yd": 0.761
+      "err_far_yd": 0.0394,
+      "err_near_yd": 0.007,
+      "mean_yd": 0.0232,
+      "max_yd": 0.0394
     },
     {
       "frame": 214,
@@ -146,19 +146,19 @@
       "max_yd": 0.1688
     },
     {
-      "frame": 217,
+      "frame": 218,
       "px_far": [
-        978.85,
-        403.58
+        1015.19,
+        402.87
       ],
       "px_near": [
-        963.48,
-        614.01
+        999.7,
+        619.36
       ],
-      "err_far_yd": 0.4445,
-      "err_near_yd": 0.1195,
-      "mean_yd": 0.282,
-      "max_yd": 0.4445
+      "err_far_yd": 0.0136,
+      "err_near_yd": 0.0145,
+      "mean_yd": 0.0141,
+      "max_yd": 0.0145
     },
     {
       "frame": 234,
@@ -191,19 +191,19 @@
       "max_yd": 0.3466
     },
     {
-      "frame": 248,
+      "frame": 249,
       "px_far": [
-        1581.33,
-        429.72
+        1592.27,
+        428.36
       ],
       "px_near": [
-        1565.64,
-        681.33
+        1571.94,
+        681.13
       ],
-      "err_far_yd": 0.1121,
-      "err_near_yd": 0.1324,
-      "mean_yd": 0.1223,
-      "max_yd": 0.1324
+      "err_far_yd": 0.0801,
+      "err_near_yd": 0.1005,
+      "mean_yd": 0.0903,
+      "max_yd": 0.1005
     },
     {
       "frame": 251,
@@ -221,7 +221,7 @@
       "max_yd": 0.1927
     },
     {
-      "frame": 252,
+      "frame": 253,
       "note": "line or conic not found; not testable"
     },
     {
@@ -242,7 +242,7 @@
     }
   ],
   "n_correspondences": 24,
-  "mean_error_yd": 0.2389,
+  "mean_error_yd": 0.2084,
   "max_error_yd": 1.2771,
   "gate": {
     "mean_yd": 0.75,

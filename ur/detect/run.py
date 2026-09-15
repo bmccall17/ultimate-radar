@@ -51,6 +51,19 @@ from .model import SEED, PersonDetector
 # never be read as one. Team shape on a 53 yd field survives a two-yard ring;
 # a blank frame does not.
 MIN_CALIB_CONFIDENCE = 0.5      # docs/03: below this, never `observed`
+
+# ...and below THIS, nothing at all. "Let the weak frames through" was
+# implemented as "confidence above zero", which is not a gate: on p0004 a run of
+# frames the calibration had scored 0.0001 produced twelve positions each, drawn
+# as slanted ellipses over the crowd, because a homography that puts the image
+# centre 10 yd from where the previous frame put it is not a homography.
+#
+# The bar is the alternative. With no position the tracker dead-reckons, which
+# `docs/05` puts at 0.6-3.5 yd; a calibration implying more than two yards of
+# error tells you less than that, so it contributes nothing and says so. The
+# confidence is `exp(-error / 0.45)`, so two yards is:
+MAX_WEAK_ERROR_YD = 2.0
+MIN_WEAK_CONFIDENCE = float(np.exp(-MAX_WEAK_ERROR_YD / 0.45))   # 0.0119
 BOUNDS_MARGIN_YD = 2.0          # AD-3
 MIN_BOX_H = 12                  # below this it is not a player at this framing
 
@@ -173,7 +186,7 @@ def run(work: Path, *, threshold: float = 0.25, batch: int = 8,
                 if conf < MIN_CALIB_CONFIDENCE:
                     rec["weak_calibration"] = True
                     rec["calibration_confidence"] = round(float(conf), 4)
-                if pose is not None and conf > 0.0:
+                if pose is not None and conf >= MIN_WEAK_CONFIDENCE:
                     foot = np.array([d.foot, [d.foot[0], d.foot[1] + 1.0]])
                     wpt, ok = CFIT.backproject(cam, pose, foot)
                     if ok[0] and np.isfinite(wpt[0]).all() and np.isfinite(wpt[1]).all():
@@ -219,8 +232,11 @@ def run(work: Path, *, threshold: float = 0.25, batch: int = 8,
                         rec["note"] = "foot point does not back-project"
                 else:
                     rec["in_bounds"] = None
-                    rec["note"] = ("no pose for this frame at all; no field "
-                                   "position")
+                    rec["note"] = (
+                        "no pose for this frame at all" if pose is None else
+                        f"calibration confidence {conf:.4f} implies more than "
+                        f"{MAX_WEAK_ERROR_YD} yd of error, which is worse than "
+                        "dead reckoning; no field position")
                 recs.append(rec)
                 n_kept += 1
             frames_out.append({"f": i, "dets": recs})
@@ -240,6 +256,8 @@ def run(work: Path, *, threshold: float = 0.25, batch: int = 8,
             "score_threshold": threshold,
             "min_box_height_px": MIN_BOX_H,
             "min_calibration_confidence": MIN_CALIB_CONFIDENCE,
+            "min_weak_confidence": round(MIN_WEAK_CONFIDENCE, 5),
+            "max_weak_error_yd": MAX_WEAK_ERROR_YD,
             "max_yd_per_px": MAX_YD_PER_PX,
             "player_height_yd": PLAYER_HEIGHT_YD,
             "min_height_ratio": MIN_HEIGHT_RATIO,
