@@ -100,6 +100,20 @@ def score(work: Path, *, every: int = 3) -> dict:
         "note": "Truth is the tags and only the tags. A frame no tag speaks for "
                 "is not scored in either direction.",
     }
+    named = [e for e in tags if e.get("player")]
+    out["human_tags_naming_a_player"] = len(named)
+    if len(tags) >= 4 and not named:
+        # The normal case now, and it is not a failure - it is the tagging design
+        # working. Timing-only tags fix when the disc was in flight, which is what
+        # `ur/spans.py` needs, and they contain no identity, which is what a score
+        # needs. Saying "0.0" here would be scoring the solver against nothing.
+        out["verdict"] = (
+            f"not scorable: {len(tags)} tags, none naming a player. They fix the "
+            "timing, which is what ur.spans solves from; scoring needs the other "
+            "half. Name the receiver on a throw or two - select the player, then "
+            "press `c` - and those become the held-out truth. Start with the "
+            "throws ur.spans is least sure of; `spans.json` ranks them.")
+        return out
     if len(tags) < 4:
         out["verdict"] = ("not scorable: fewer than four human tags. Two throws "
                           "and two catches is the least that leaves anything to "

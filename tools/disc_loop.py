@@ -87,7 +87,18 @@ def turn(work: Path, *, every: int = 3, target: float = 0.9) -> dict:
             f"where held-out tags say the solver is {target:.0%} right"
             if not below else
             f"{len(below)} of {len(untagged)} untagged frames sit below {thr} yd")
+    # With timing-only tags the useful question is not "which frame" but "who
+    # holds this span" - `ur/spans.py` ranks them by its own margin, and one
+    # answer settles a whole span rather than a frame.
+    sp = work / "spans.json"
+    if sp.exists():
+        doc = json.loads(sp.read_text(encoding="utf-8"))
+        if doc.get("ask_next"):
+            out["ask_next"] = doc["ask_next"]
+            out["ask_next_kind"] = "span"
+            return out
     out["ask_next"] = diag["ask_next"]
+    out["ask_next_kind"] = "frame"
     return out
 
 
@@ -115,11 +126,18 @@ def main(argv: list[str] | None = None) -> int:
           f"confidence {r.get('confidence')}")
     print(f"[loop] {'STOP - ' if r['stop'] else 'KEEP GOING - '}{r['why']}")
     if not r["stop"]:
-        print("\n  Tag these next. Select the player, `t` on the release, "
-              "`c` on the catch:")
+        print("")
+        print("  Answer these next - select the player and press `c`, which "
+              "turns a guess into a hard constraint:")
         for q in r["ask_next"]:
-            print(f"    t={q['t']:>6.2f}s  margin {q['margin_yd']:>7.3f} yd   "
-                  f"{a.url}#t={q['t']}")
+            if r.get("ask_next_kind") == "span":
+                print(f"    t={q['t']:>6.2f}s  {q['question']}"
+                      f"  (the solver says {q['holder_guessed']}, margin "
+                      f"{q['margin_yd']} yd)")
+                print(f"              {a.url}#t={q['t']}")
+            else:
+                print(f"    t={q['t']:>6.2f}s  margin {q['margin_yd']:>7.3f}"
+                      f" yd   {a.url}#t={q['t']}")
     return 0
 
 

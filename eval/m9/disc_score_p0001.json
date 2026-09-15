@@ -1,0 +1,52 @@
+{
+  "possession_id": "p0001",
+  "human_tags": 6,
+  "frames": 360,
+  "frames_the_tags_determine": 0,
+  "note": "Truth is the tags and only the tags. A frame no tag speaks for is not scored in either direction.",
+  "unaided": {
+    "scored_frames": 0,
+    "frame_accuracy": NaN,
+    "held_frame_accuracy": null,
+    "confusion_top": [],
+    "what_it_means": "the holder inference with no human input at all, scored against a person for the first time"
+  },
+  "held_out": {
+    "every": 3,
+    "folds": [
+      {
+        "residue": 0,
+        "given_tags": 4,
+        "held_tags": 2,
+        "scored_frames": 0,
+        "frame_accuracy": null,
+        "held_frame_accuracy": null
+      },
+      {
+        "residue": 1,
+        "given_tags": 4,
+        "held_tags": 2,
+        "scored_frames": 0,
+        "frame_accuracy": null,
+        "held_frame_accuracy": null
+      },
+      {
+        "residue": 2,
+        "given_tags": 4,
+        "held_tags": 2,
+        "scored_frames": 0,
+        "frame_accuracy": null,
+        "held_frame_accuracy": null
+      }
+    ],
+    "mean_frame_accuracy": null,
+    "spread_across_folds": null,
+    "what_it_means": "two thirds of the tags given as hard constraints, the other third withheld from the solver and scored"
+  },
+  "calibration": {
+    "rows": [],
+    "threshold_yd": null,
+    "why": "only 0 held-out frames; a curve fitted to that would be a shape, not a calibration"
+  },
+  "calibration_note": "Accuracy against held-out tags, grouped by the solver's own min-marginal margin in yards. This is the only honest source of a stopping threshold: the physics checks in ur.disc can say a sequence is implausible and can never say a plausible one is right."
+}
