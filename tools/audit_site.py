@@ -35,6 +35,13 @@ WORK = Path("work")
 # the behaviour check D locks in.
 DRAWN_DISC_STATES = {"observed", "confirmed"}
 
+# How far outside the lines an OBSERVED player may be before it is a defect
+# rather than a sideline. Measured: across the six published possessions 374
+# observed positions are outside the field and the furthest is 2.5 yd, which is
+# where people stand. The boards at Breese Stevens are a few yards further out,
+# so 5 yd is past anywhere a player can be and still be on camera as a player.
+OFF_FIELD_LIMIT_YD = 5.0
+
 
 def published(pid: str) -> dict | None:
     """Read a published possession back out of the site, as a reader's browser does."""
@@ -124,6 +131,30 @@ def audit(pid: str) -> list[dict]:
         f"{len(drawn)} frames drawn, {len(bad)} of them from inference alone",
         "every drawn disc frame rests on a human tag",
         "docs/27: unaided holder inference scores 33 % held out")
+
+    # ---- E. nobody is observed somewhere there is no field --------------------
+    # Ultimate is played with people standing just out of bounds, so being outside
+    # the lines is not by itself wrong, and the measurement says so: across all six
+    # published possessions, 374 `observed` positions sit outside the field and the
+    # furthest is 2.5 yd. That is a player on the sideline, not a defect. So this
+    # is not a finding - it is a floor, set where the stands begin. Dead reckoning
+    # is exempt: docs/05 argues a ghost that drifts is more honest than one frozen,
+    # and `predicted` is allowed to wander.
+    fld = doc.get("field") or {}
+    L, W = fld.get("length_yd", 120.0), fld.get("width_yd", 53.333)
+    worst, n_bad = 0.0, 0
+    for pl in doc.get("players", []):
+        for st, e in zip(pl.get("state", []), pl.get("est", [])):
+            if not e or st not in ("observed", "confirmed"):
+                continue
+            d = max(0.0, -e[0], e[0] - L) ** 2 + max(0.0, -e[1], e[1] - W) ** 2
+            d = d ** 0.5
+            worst = max(worst, d)
+            n_bad += d > OFF_FIELD_LIMIT_YD
+    add("nobody observed in the stands", n_bad == 0,
+        f"{n_bad} observed positions over {OFF_FIELD_LIMIT_YD} yd out, worst {worst:.1f} yd",
+        f"0 beyond {OFF_FIELD_LIMIT_YD} yd outside the field",
+        "an observed position that far out is a calibration failure, not a sideline")
 
     return out
 
