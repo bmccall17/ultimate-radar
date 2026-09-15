@@ -560,7 +560,19 @@ function lastThrow(f){
   // whoever caught it, which is exactly what a target is; asking a tagger to fill
   // a `target` field as well would be asking twice for the same fact.
   const c=all.find(e=>e.type==="catch" && e.t>th.t);
-  return c ? Object.assign({}, th, {target:c.player, catch_t:c.t}) : th;
+  if(c && c.player) return Object.assign({}, th, {target:c.player, catch_t:c.t});
+  // A timing-only tag names nobody. `ur/spans.py` works out who from the
+  // tracking and `ur.disc` writes the answer into disc_meta.holder, so the
+  // receiver is whoever is holding it once the flight ends. Flagged `solved`,
+  // because a receiver the pipeline worked out is not a receiver you told it.
+  if(c && D.disc_meta){
+    const cf = clamp(Math.round(c.t*FPS), 0, NF-1);
+    for(let k=cf;k<Math.min(NF,cf+Math.round(FPS));k++){
+      const h = D.disc_meta.holder[k];
+      if(h) return Object.assign({}, th, {target:h, catch_t:c.t, solved:true});
+    }
+  }
+  return th;
 }
 function discTrusted(f){
   // A disc position exists for every frame, and most of them are not worth
@@ -571,7 +583,18 @@ function discTrusted(f){
   const m=D.disc_meta;
   if(!m) return !!(D.disc&&D.disc[f]);
   const st=m.state[f];
-  return !!(D.disc&&D.disc[f]) && (st==="confirmed"||st==="interpolated");
+  // `predicted` with `source: "solved"` is the timing-only case: a human tagged
+  // when the disc was in the air, and ur/spans.py worked out who from the
+  // tracking. That is weaker than a named tag and much stronger than the
+  // unaided inference docs/27 measured failing, because the flight boundaries
+  // are observed rather than guessed. It draws, and every card built on it says
+  // the holder was solved.
+  const solved = st==="predicted" && m.source && m.source[f]==="solved";
+  return !!(D.disc&&D.disc[f]) && (st==="confirmed"||st==="interpolated"||solved);
+}
+function discHolderSolved(f){
+  const m=D.disc_meta;
+  return !!(m && m.source && m.source[f]==="solved");
 }
 function discHolder(f){
   const m=D.disc_meta;
@@ -1115,9 +1138,15 @@ function renderCards(){
     if(m){ const q=at(m,f);
       const side = q[1]<h[1] ? "near sideline" : "far sideline";
       markV=`${md.toFixed(1)} yd, ${side} side`;
-      markC=`${m.id} marking ${holder}; disc pushed toward the ${q[1]<h[1]?"far":"near"} sideline`;
+      const sv = discHolderSolved(f);
+      markC=`${m.id} marking ${holder}; disc pushed toward the ${q[1]<h[1]?"far":"near"} sideline`
+            + (sv ? " · holder worked out from the tracking, not tagged" : "");
       markE=evidence(f,[holder,m.id]);
-      markX="The geometry only — not a force name, which depends on the thrower's handedness and broadcast video does not show it.";
+      if(sv && markE==="measured") markE="partial";
+      markX="The geometry only — not a force name, which depends on the thrower's handedness and broadcast video does not show it."
+        + (sv ? " Which player is holding it was solved from the timing you tagged;"
+           + " if it names the wrong one, this is the right geometry around the"
+           + " wrong person." : "");
     }
   }
   out.push(card("Mark", markV, markC, markE, markX));
@@ -1131,9 +1160,20 @@ function renderCards(){
     if(recP){ let bd=1e9,bs=null;
       for(const d of defs){ const q=at(d,tf); if(!q) continue;
         const v=dist(recP,q); if(v<bd){bd=v;bs=d.id} }
-      sepV=`${bd.toFixed(1)} yd`; sepC=`${rec} from ${bs} at the release, ${th.t.toFixed(1)}s`;
+      sepV=`${bd.toFixed(1)} yd`;
+      sepC=`${rec} from ${bs} at the release, ${th.t.toFixed(1)}s`
+           + (th.solved ? " · receiver worked out from the tracking, not tagged" : "");
+      // The positions may be measured and the *identity* still be a guess. A
+      // separation between the right two players and a separation between the
+      // wrong two are not the same number, so a solved receiver caps this at
+      // `partial` however well the players themselves were seen.
       sepE=evidence(tf,[rec,bs]);
-      sepX="How much room the receiver actually had when the disc left the hand.";
+      if(th.solved && sepE==="measured") sepE="partial";
+      sepX="How much room the receiver actually had when the disc left the hand."
+        + (th.solved ? " Who caught it was solved from the timing you tagged and"
+           + " the players' geometry — if it names the wrong player this is the"
+           + " right distance to the wrong person. Select the receiver and press"
+           + " `c` again to pin it." : "");
     } else { sepC=`throw at ${th.t.toFixed(1)}s has no tagged target`; }
   }
   out.push(card("Separation at release", sepV, sepC, sepE, sepX));
@@ -1221,7 +1261,13 @@ function renderIssues(){
   document.getElementById("issues").innerHTML = list.map((r,k)=>{
     const who = r.slots.length>4 ? `${r.slots.length} slots` : r.slots.join(", ");
     const op = (r.fix||{}).op;
-    let act = `<button data-go="${k}">Go to ${(r.t??0).toFixed(1)}s</button>`;
+    // An issue about a stretch gets sent to the START of it. Sending a reader to
+    // the moment a re-acquisition happened, when the re-acquisition may well be
+    // the correct half, is how a real defect reads as noise.
+    const hasSpan = r.from_t!==undefined && r.to_t!==undefined && r.to_t>r.from_t;
+    let act = hasSpan
+      ? `<button data-go="${k}">Watch ${r.from_t.toFixed(1)}–${r.to_t.toFixed(1)}s</button>`
+      : `<button data-go="${k}">Go to ${(r.t??0).toFixed(1)}s</button>`;
     if(op==="confirm_or_swap"){
       act += `<button data-ok="${k}">It is ${r.slots[0]}</button>` +
              `<select data-with="${k}"><option value="">swap with…</option>` +
@@ -1234,7 +1280,9 @@ function renderIssues(){
   }).join("");
   for(const b of document.querySelectorAll("#issues [data-go]")){
     b.onclick = () => { const r=list[+b.dataset.go];
-      S.f=clamp((r.fix&&r.fix.f!==undefined)?r.fix.f:r.frame,0,NF-1);
+      const start=(r.fix&&r.fix.watch_from_f!==undefined) ? r.fix.watch_from_f
+                 : (r.fix&&r.fix.f!==undefined) ? r.fix.f : r.frame;
+      S.f=clamp(start,0,NF-1);
       S.sel=r.slots[0]; seek(); };
   }
   for(const b of document.querySelectorAll("#issues [data-ok]")){
@@ -1274,16 +1322,27 @@ document.getElementById("dl").onclick = () => {
    authoritative to work from and fell back on inferring the holder from player
    geometry - which it then measured as not working (docs/27).
 
-   Two keys. Select a player, press `t` where they release and `c` where they
-   catch. The disc is exactly pinned by those two facts: held by the thrower up to
-   the release, in flight between, held by the receiver after. Nothing here writes
-   to disk - AD-9 means there is no server - so the log downloads as events.json,
-   which goes in the possession directory and `python -m ur.disc` reads.
+   **Selecting a player is optional, and usually not worth it.** The original
+   design asked for a player and a moment. In use the moment is the easy half -
+   you can see a release - and the player is the hard half, because identifying
+   a jersey at this range from a broadcast angle is exactly the thing the OCR
+   could not do either (M5 reads 7 % of crops).
+
+   The moment alone is worth most of it. It turns two things that were guesses
+   into hard facts: **when** the disc is in flight, and **how long** the flight
+   lasted. Given those, who threw and who caught is a constrained assignment
+   rather than a free search - the receiver of one throw is the thrower of the
+   next, and the distance between them over the flight time has to be a speed a
+   disc can actually fly. `ur/disc.py` solves that and says how sure it is.
+
+   So: press `t` on the release and `c` on the catch. If you happen to know who,
+   select them first and the tag becomes a hard constraint instead of a hint.
+   Nothing here writes to disk - AD-9 means there is no server - so the log
+   downloads as events.json, which goes in the possession directory.
    `TAGS` itself is declared up beside `allEvents`, which the metric cards use. */
 function addTag(type){
-  if(!S.sel){ flashTag("Select a player first — click their marker or roster row."); return; }
   const t = +(S.f/FPS).toFixed(3);
-  TAGS.push({t, type, player:S.sel, f:S.f, source:"human"});
+  TAGS.push({t, type, player:S.sel || null, f:S.f, source:"human"});
   TAGS.sort((a,b)=>a.t-b.t);
   renderTags(); draw();
 }
@@ -1295,14 +1354,21 @@ function flashTag(msg){
 function renderTags(){
   const el=document.getElementById("tags");
   if(!TAGS.length){
-    el.innerHTML=`<div class="empty">Nothing tagged yet. Select a player, then press
-      <b>t</b> on the frame they release and <b>c</b> on the frame they catch.
-      Two keys a throw is what turns the disc from a guess into a measurement.</div>`;
+    el.innerHTML=`<div class="empty">Nothing tagged yet. Press <b>t</b> on the frame
+      the disc is released and <b>c</b> on the frame it is caught. You do not need to
+      know who — the timing is the part the pipeline cannot see, and knowing it turns
+      who threw to whom into a constrained problem the tracking can attempt.
+      Select a player first only if you happen to be sure, and that tag becomes a
+      hard constraint.</div>`;
     return;
   }
+  const nAnon = TAGS.filter(g=>!g.player).length;
   el.innerHTML = TAGS.map((g,i)=>`<div class="issue">
-    <b>${g.type}</b> ${g.player} @ f${g.f} · ${g.t.toFixed(2)}s
-    <span class="why" style="display:inline">· ${i? "": "first"}</span></div>`).join("");
+    <b>${g.type}</b> ${g.player || "<span class='why' style='display:inline'>whoever it was</span>"}
+    @ f${g.f} · ${g.t.toFixed(2)}s</div>`).join("")
+    + (nAnon ? `<div class="why" style="display:block;margin-top:6px">${nAnon} timing-only
+        tag${nAnon===1?"":"s"}. <code>ur.disc</code> works out who from the tracking and
+        reports how sure it is; where it is not sure, it asks.</div>` : "");
 }
 document.getElementById("tagUndo").onclick = () => { TAGS.pop(); renderTags(); draw(); };
 document.getElementById("tagDl").onclick = () => {

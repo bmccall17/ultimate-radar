@@ -193,7 +193,13 @@ def reacquire_surprise(players: list[dict], fps: float) -> list[dict]:
                 "jump_yd": round(d, 2), "sigma_yd": round(sig, 2),
                 "sigmas": round(d / sig, 2),
                 "gap_frames": gap, "gap_s": round(gap / fps, 2),
-                "fix": {"op": "confirm_or_swap", "slot": p["id"], "f": f},
+                # Same reasoning as `contested_reacquisition`: the doubt covers
+                # the stretch the slot was estimating, and the reacquisition is
+                # only one of its two ends.
+                "from_f": max(0, f - gap), "from_t": round(max(0, f - gap) / fps, 3),
+                "to_f": f, "to_t": round(f / fps, 3),
+                "fix": {"op": "confirm_or_swap", "slot": p["id"], "f": f,
+                        "watch_from_f": max(0, f - gap)},
                 "why": (f"{p['id']} was estimated for {gap / fps:.1f} s and came back "
                         f"{d:.1f} yd from where it was predicted — {d / sig:.1f}x the "
                         "sigma it was claiming. Either the dead reckoning was wrong "
@@ -238,18 +244,37 @@ def contested_reacquisition(players: list[dict], fps: float) -> list[dict]:
             a = assoc[f] if f < len(assoc) else None
             jump = r.get("jump_from_prediction_yd")
             rank_key = jump if jump is not None else 0.0
-            why = (f"{p['id']} was estimated for {r['gap_s']:.1f} s and came back "
-                   f"{jump:.1f} yd from where it was dead-reckoned"
-                   if jump is not None else
-                   f"{p['id']} was estimated for {r['gap_s']:.1f} s before this")
+            # **What is in doubt is the stretch, not the instant.** The first
+            # version put the reacquisition frame on the row and said "if it is
+            # not the same player, everything after it is wrong" - naming one of
+            # the two possibilities and the wrong one, in the case that prompted
+            # this. A reader who goes to the reacquisition and sees it land
+            # correctly concludes the row is noise; what was actually wrong was
+            # the span *before* it, where the slot was dead-reckoning onto
+            # somebody else. Both ends are open and the row now says so, and
+            # sends you to the start of the doubtful stretch rather than the end.
+            g0 = max(0, f - int(r["gap_frames"]))
+            why = (f"{p['id']} is unverified from {g0 / fps:.1f} s to "
+                   f"{f / fps:.1f} s. It lost sight of whoever it was following, "
+                   f"dead-reckoned for {r['gap_s']:.1f} s, then matched somebody "
+                   + (f"{jump:.1f} yd from where it predicted"
+                      if jump is not None else "again"))
             if a:
                 why += (f", on a margin of {a['margin']:.2f} over "
                         f"{a['alts']} candidate(s), kit P {a['kit_p']:.2f}")
-            why += (". Nobody has checked whether it is the same player. If it is "
-                    "not, everything after it is the wrong player.")
+            why += (". Two things can be wrong and only one of them is at the end: "
+                    "either it picked up the wrong player here, and everything "
+                    "after is wrong - or it picked up the right one and had "
+                    "already been on the wrong player going in, which makes the "
+                    f"{r['gap_s']:.1f} s before this the part to look at. Watch "
+                    "the whole stretch, not the moment.")
             out.append({
-                "kind": "contested_reacquisition",
+                "kind": "unverified_stretch",
                 "frame": f, "t": round(f / fps, 3),
+                # The interval a human has to watch, and where "Go to" should
+                # land - the start, because that is where the doubt begins.
+                "from_f": g0, "from_t": round(g0 / fps, 3),
+                "to_f": f, "to_t": round(f / fps, 3),
                 "slots": [p["id"]], "team": p["team"],
                 "gap_frames": r["gap_frames"], "gap_s": r["gap_s"],
                 "jump_from_prediction_yd": jump,
@@ -259,7 +284,8 @@ def contested_reacquisition(players: list[dict], fps: float) -> list[dict]:
                 "kit_p": (a or {}).get("kit_p"),
                 "branch": (a or {}).get("branch"),
                 "runner_up": (a or {}).get("runner_up"),
-                "fix": {"op": "confirm_or_swap", "slot": p["id"], "f": f},
+                "fix": {"op": "confirm_or_swap", "slot": p["id"], "f": f,
+                        "watch_from_f": g0},
                 "why": why,
             })
     out.sort(key=lambda r: -r["rank_by"])

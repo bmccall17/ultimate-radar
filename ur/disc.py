@@ -389,6 +389,40 @@ def build(work: Path, *, verbose: bool = True) -> dict:
     # frame a human has spoken for, so the Viterbi path has to go through them and
     # the spans between them are still solved rather than guessed at.
     tagged = from_events(doc, events, ids)
+    # **Timing-only tags.** A human who pressed `t` and `c` without naming anybody
+    # has given the two facts this module could not get for itself - when the disc
+    # is in flight, and for how long - and `ur/spans.py` turns those into an
+    # assignment of holders over the spans between them. Its answer is folded in
+    # here as if it were a tag, with one difference that matters: the *timing* is
+    # a human's and the *identity* is solved, so those frames are `predicted`
+    # rather than `confirmed`. See `solved` below.
+    solved: list[int | None] = [None] * nf
+    if any(e.get("source") == "human" and e.get("type") in ("throw", "catch")
+           and not e.get("player") for e in events.get("events", [])):
+        from . import spans as SP
+        sp = SP.spans_from_events(events, nf, fps, ids)
+        if len(sp) >= 2:
+            SP.span_costs(doc, sp, ids)
+            path, span_margins = SP.solve(doc, sp, ids)
+            for seg, who in zip(sp, path):
+                for g in range(seg.a, seg.b + 1):
+                    if tagged[g] is None:
+                        solved[g] = who
+            # Between a tagged throw and the next tagged catch nobody holds it.
+            for i in range(len(sp) - 1):
+                if sp[i].throw_f is None or sp[i + 1].catch_f is None:
+                    continue
+                for g in range(sp[i].throw_f + 1, sp[i + 1].catch_f):
+                    if tagged[g] is None:
+                        solved[g] = none
+            if verbose:
+                thin = min((m for m in span_margins if np.isfinite(m)),
+                           default=None)
+                print(f"[disc] {len(sp)} held spans from timing-only tags; "
+                      f"thinnest margin {thin if thin is None else round(thin, 2)} yd")
+    for f, who in enumerate(solved):
+        if who is not None and tagged[f] is None:
+            tagged[f] = who
     # A tag naming somebody who is not on the offensive roster is dropped by
     # `from_events`, silently, and silence is the wrong answer: it is either a
     # turnover inside the possession (in which case `offense` in clip.json is
@@ -396,9 +430,13 @@ def build(work: Path, *, verbose: bool = True) -> dict:
     # before the number that comes out is believed.
     if verbose:
         known = set(ids)
+        # `None` is not a stray - it is a timing-only tag, which is the normal
+        # case now: the moment is what a person can see and the identity is what
+        # `ur/spans.py` is for.
         stray = sorted({e.get("player") for e in events.get("events", [])
                         if e.get("source") == "human"
                         and e.get("type") in ("throw", "catch")
+                        and e.get("player") is not None
                         and e.get("player") not in known})
         if stray:
             print(f"[disc] !! {len(stray)} human tag(s) name a player who is not "
@@ -436,13 +474,21 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             # The disc is exactly as well located as the player holding it, plus
             # an arm, and no better known than the claim that this is the holder.
             sigma = float(np.hypot(p["sigma"][f], HAND_OFFSET_YD))
-            state = ("confirmed" if human and st in ANCHORED else
+            # `confirmed` only when a person named this player. A holder the
+            # span solver worked out from a human's *timing* is `predicted` -
+            # the moment is observed, the identity is inferred, and collapsing
+            # the two would be the same over-claim as calling a mosaic frame
+            # observed.
+            named = human and solved[f] is None
+            state = ("confirmed" if named and st in ANCHORED else
                      "predicted" if st in ANCHORED else "unknown")
             samples.append({"f": f, "xy": [round(v, 3) for v in xy],
                             "z": HELD_HEIGHT_YD,
                             "state": state, "basis": "held", "holder": hid,
                             "sigma": round(sigma, 3),
-                            "source": "human" if human else "inferred",
+                            "source": ("human" if named else
+                                       "solved" if solved[f] is not None
+                                       else "inferred"),
                             "holder_cost": detail[f].get(hid, {}).get("cost"),
                             "mark": detail[f].get(hid, {}).get("mark")})
         else:
