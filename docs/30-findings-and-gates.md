@@ -36,6 +36,65 @@ median frame with a located player on it. That gap between "passes M1" and
 
 ## 2. The findings, in the order they cost the most
 
+### 2.0 The attacking direction has never actually been measured
+
+`ur.possess` fits the drift of the offence along x and `clip.json` records the
+answer as `attacking_direction`. On 2026-09-15 that was checked across every
+possession at once for the first time, and it does not survive.
+
+**Two teams on the field attack opposite endzones.** That statement needs no rule
+about when ends are switched, who receives the pull, or how quarters work. So
+within a quarter, a Sol possession and a Wind Chill possession must drift in
+opposite directions. They do not:
+
+| quarter | Sol on offence | Wind Chill on offence | |
+|---|---|---|---|
+| Q1 | p0008 **+53.8**, p0003 **+27.2** | p0009 **+20.2** | same sign |
+| Q2 | p0004 **−8.4** | p0005 **−23.3**, p0006 **−12.3** | same sign |
+| Q3 | p0007 **−1.8** | p0010 **−40.4** | same sign |
+| Q4 | p0001 −1.7 | p0015 +54.5 | consistent |
+
+Three of the four quarters contain a direct contradiction. Quarters are read off
+the broadcast score bug and now stored as `clip.json:quarter`.
+
+**The measurement is not the problem.** Three things were checked before blaming
+the number:
+
+- *The frame is shared.* Every possession carries an identical `venue_transform`
+  (`x_sign 1, x_offset 60`), and pointing the camera at field x = 60 in p0003,
+  p0005 and p0009 shows the same stand, the same videoboard over the halfway
+  line. The x-axis means the same thing in all of them.
+- *It is real movement, not framing.* The centroid is computed over players in
+  shot, so panning could have moved it. Recomputed over only the offence slots
+  anchored at **both** ends of the possession, the answer is identical to a
+  tenth of a yard — on the possessions where that cohort exists it is all seven.
+  `tools/gates.py:_drift` now uses a per-player least-squares slope anyway.
+- *The labels are right.* p0003's scorer is in light kit (Sol) and p0009's disc
+  is in the hands of a dark-kit player with a light-kit mark on them (Wind
+  Chill), both read off the frames.
+
+So the offence really does move that way, and "the offence moved +x" really is
+not "the offence attacks +x". **No possession's attacking direction is currently
+established**, including the six published ones.
+
+Two consequences were corrected the same day. `docs/30` previously recorded
+p0001 as *disputed* and p0010's direction as *wrong*; both rested on this check
+and neither is established. The viewer's overhead now labels the arrow
+`unverified`, and the "Deepest threat" card no longer concludes "the huck is on",
+because deep and goal-side are defined by an endzone nobody has pinned down.
+
+**One lead, offered as a lead.** Direction sign is predicted by the parity of
+`(point number + team)` on all ten possessions, with no exceptions — point number
+being goals scored before the cut, from the score bug. Ten for ten is worth
+writing down, but the model was chosen after seeing the data from a small family
+of candidates, so it is a hypothesis to test on the next cut, not a finding.
+
+What would settle it properly: the disc crosses a goal line when a point is
+scored, and both goal lines are at known x (20 and 100). A possession cut to
+*include* its score locates the attacking endzone directly, with no inference.
+`docs/29` avoided cutting through scores because endzone framing breaks the
+calibration — that trade is now worth revisiting for one deliberate cut.
+
 ### 2.1 An acceptance number is about the frames it sampled
 
 `ur/calibrate/accept.py` draws its held-out frames from the frames that already
@@ -136,17 +195,24 @@ known-unpublished possession or a documented open problem.
 | camera motion is possible | 0 frames over 1 yd | § 2.3 |
 | median roster in shot | ≥ 6 of 14 | publishing gate. Below this the median frame is mostly empty |
 | frames with nothing at all | ≤ 35 % | publishing gate |
-| attacking direction | file and play agree | `ur.possess` drift check |
+| offence drifts | reported, never gated | § 2.0. The drift is real; it is not the attacking direction |
 
 **Currently failing and expected to:** p0006, p0007, p0008 and p0010 on coverage
 and on camera motion — they have not been through the impossible-motion check and
-are not published. **p0010's attacking direction is wrong**: declared `+x`, the
-play drifts **−60.7 yd**. Re-cut it `-x` before it is ever published.
+are not published.
 
-**Failing and NOT expected to: p0001's attacking direction.** Declared `+x`, play
-drifts −8.4 yd. p0001 does not end in a goal so the drift is weak evidence, but
-it has never been settled and the overhead now says "disputed" on the landing
-page. Settle it.
+### Across possessions — three of four quarters fail
+
+| gate | threshold | where it comes from |
+|---|---|---|
+| Q*n*: opposite teams disagree | opposite drift signs | § 2.0. Two teams cannot attack the same endzone at once |
+
+**Failing and NOT expected to: Q1, Q2 and Q3.** This is § 2.0 and it is the
+session's largest correction rather than a tuning problem. Note what it replaced:
+this document previously called p0001 *disputed* and p0010 *wrong* on the
+strength of the per-possession drift check. Both of those readings are withdrawn
+— not because the possessions are fine, but because the check that condemned
+them does not measure what it claimed to.
 
 ### The disc — both gates fail, and this is the work
 
@@ -171,8 +237,11 @@ was not built against.
    Do it in that order: the current cost is known to be wrong, and a replacement
    tested only on the four spans that disproved the first one would prove
    nothing.
-3. **Settle p0001's attacking direction**, which is on the landing page.
-4. **Re-cut p0010 as `-x`** if it is ever wanted.
+3. **Settle the attacking direction for the whole game**, which § 2.0 shows is
+   unknown everywhere rather than doubtful in one place. The cheap way is one
+   deliberate cut that *includes* a score: the goal lines are at x = 20 and
+   x = 100, so watching which one the disc crosses names the endzone with no
+   inference. Then `clip.json:quarter` plus one known direction fixes the rest.
 
 ## 5. Parked deliberately
 

@@ -123,12 +123,89 @@ def check_possession(work: Path) -> dict:
     add("frames with nothing at all", blank <= PUBLISH_MAX_BLANK, f"{blank:.0%}",
         f"<= {PUBLISH_MAX_BLANK:.0%}", "publishing gate")
 
-    # The attacking direction, where the tracker can speak to it.
-    dc = doc["possession"].get("attacking_direction_check", {})
-    if dc.get("agrees") is False:
-        add("attacking direction", False,
-            f"declared {dc.get('declared')}, play drifts {dc.get('drift_yd')} yd",
-            "the file and the play agree")
+    # Which way the offence actually moved. Reported, never gated on its own:
+    # 2026-09-15 measured that this quantity is not the attacking direction. The
+    # cross-possession check below is the one that can fail.
+    add("offence drifts", True, f"{_drift(doc):+.1f} yd",
+        "reported, not gated",
+        "drift is not the attacking direction - see check_directions")
+    return out
+
+
+def _drift(doc: dict) -> float:
+    """Median per-player least-squares drift of the offence along x, in yards.
+
+    Per player and least-squares rather than a centroid of whoever is in frame,
+    so that panning the camera cannot move it. (Measured: on the possessions
+    where every offence slot is anchored at both ends the two agree exactly, so
+    the framing worry was unfounded - but the stronger statistic costs nothing.)
+    """
+    q = doc["possession"]
+    nf = int(q["frames"])
+    sl = []
+    for pl in doc["players"]:
+        if pl["team"] != q["offense"]:
+            continue
+        fs = [f for f in range(nf) if pl["est"][f]]
+        if len(fs) < nf // 3:
+            continue
+        sl.append(np.polyfit(fs, [pl["est"][f][0] for f in fs], 1)[0] * nf)
+    return float(np.median(sl)) if sl else float("nan")
+
+
+def check_directions(works: list[Path]) -> dict:
+    """Two teams cannot both attack the same endzone at the same time.
+
+    This is the one statement about attacking direction that needs no assumption
+    about the sport - not when ends are switched, not who receives the pull, only
+    that at any instant the two teams attack opposite endzones. So within a
+    quarter, a Sol possession and a Wind Chill possession must drift in opposite
+    directions along x.
+
+    It exists because `ur.possess` fits the drift of the offence and `clip.json`
+    records the answer as `attacking_direction`, and on 2026-09-15 that turned out
+    to be measuring something else: in three of the four quarters covered, **both
+    teams' offences drift the same way**. The frames are consistent across
+    possessions (identical venue transform; the camera aimed at field x = 60 shows
+    the same stand in p0003, p0005 and p0009) and the drift is real player
+    movement (measured over the seven offence slots anchored at both ends, not
+    over whoever is in shot). So the measurement is sound and the *interpretation*
+    is wrong. Until that is settled, no possession's attacking direction is
+    established, and `docs/30` says so.
+    """
+    out: dict = {"possession": "attacking direction (across possessions)",
+                 "checks": []}
+    byq: dict[int, list[tuple]] = {}
+    for w in works:
+        cp, pp = w / "clip.json", w / "possession.json"
+        if not pp.exists():
+            continue
+        clip = json.loads(cp.read_text(encoding="utf-8"))
+        q = clip.get("quarter")
+        if q is None:
+            continue
+        doc = json.loads(pp.read_text(encoding="utf-8"))
+        byq.setdefault(int(q), []).append(
+            (w.name, doc["possession"]["offense"], _drift(doc)))
+
+    for q in sorted(byq):
+        rows = byq[q]
+        teams = {t for _, t, _ in rows}
+        if len(teams) < 2:
+            out["checks"].append({
+                "name": f"Q{q}: opposite teams disagree", "pass": True,
+                "got": "only one team's offence cut here", "want": "not testable",
+                "note": ""})
+            continue
+        bad = [(a, b) for a in rows for b in rows
+               if a[1] != b[1] and a[2] * b[2] > 0 and a[0] < b[0]]
+        got = ", ".join(f"{n} {t} {d:+.1f}" for n, t, d in sorted(rows))
+        out["checks"].append({
+            "name": f"Q{q}: opposite teams disagree", "pass": not bad,
+            "got": got, "want": "opposite signs",
+            "note": ("both teams' offences drift the same way, which no "
+                     "arrangement of the sport allows - so this drift is not "
+                     "the attacking direction (docs/30)")})
     return out
 
 
@@ -201,6 +278,7 @@ def main(argv: list[str] | None = None) -> int:
              else sorted(q for q in Path("work").iterdir()
                          if (q / "possession.json").exists()))
     reports = [check_possession(w) for w in works]
+    reports.append(check_directions(works))
     reports.append(check_disc(works))
 
     failed = 0
@@ -210,7 +288,7 @@ def main(argv: list[str] | None = None) -> int:
             mark = "PASS" if c["pass"] else "FAIL"
             if not c["pass"]:
                 failed += 1
-            print(f"  [{mark}] {c['name']:<28} {str(c['got']):<34} want {c['want']}")
+            print(f"  [{mark}] {c['name']:<30} {str(c['got']):<46} want {c['want']}")
             if c.get("note") and not c["pass"]:
                 print(f"         {c['note']}")
     print(f"\n{failed} check(s) failing. docs/30-findings-and-gates.md says which "

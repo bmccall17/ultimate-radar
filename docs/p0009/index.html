@@ -934,18 +934,20 @@ function drawRadar(){
       rctx.moveTo(cx,cy-a); rctx.lineTo(cx,cy+a); rctx.stroke();
     }
   }
-  // Which way the offence is going, and whose claim that is. This was a
-  // hardcoded "attacking →" with a right arrow whatever the possession said,
-  // so on p0004 and p0005 - which attack -x - it pointed at the wrong endzone.
-  // It now reads the possession, names the team, and says when the pipeline's
-  // own check disagrees with the file rather than picking a side silently.
+  // Which way the offence is going - and, at the moment, an admission that
+  // nobody knows. This started as a hardcoded "attacking →" pointing right on
+  // every possession, which was wrong on the ones attacking -x. Reading it from
+  // the file fixed the arrow but not the claim: the file's direction comes from
+  // the drift of the offence, and on 2026-09-15 that was measured NOT to be the
+  // attacking direction - in three of the four quarters cut so far, BOTH teams'
+  // offences drift the same way, which no arrangement of the sport allows
+  // (tools/gates.py check_directions, docs/30). So the arrow is drawn as the
+  // file's claim and labelled as unverified, rather than asserted.
   rctx.font=`${10*RK}px ui-sans-serif,system-ui`;
   const dir = D.possession.attacking_direction==="+x" ? 1 : -1;
-  const chk = D.possession.attacking_direction_check || {};
   const team = (D.teams && D.teams[OFF] && D.teams[OFF].name) || OFF;
-  let lab = dir>0 ? `${team} attacking →` : `← ${team} attacking`;
-  if(chk.agrees===false) lab += "  (disputed — the play moves the other way)";
-  else if(chk.agrees===null || chk.agrees===undefined) lab += "  (unchecked)";
+  const lab = (dir>0 ? `${team} attacking →` : `← ${team} attacking`)
+            + "  (unverified — see docs/30)";
   const wdt = rctx.measureText(lab).width;
   rctx.fillText(lab, rx(FL/2)-wdt/2, ry(FW)-3*RK);
 
@@ -1222,9 +1224,15 @@ function renderCards(){
         goalSide = atk ? q[0]>deep.xy[0] : q[0]<deep.xy[0]; } }
     deepV=`${bd.toFixed(1)} yd`;
     deepC=`${deep.p.id} is deepest; ${bs} is nearest and ${goalSide?"is":"is NOT"} goal-side`;
-    deepE=evidence(f,[deep.p.id,bs].filter(Boolean));
-    deepX=goalSide?"Someone is between the deep threat and the endzone."
-                  :"Nobody is between the deep threat and the endzone — the huck is on.";
+    // "Deepest" and "goal-side" both mean nothing without knowing which endzone
+    // the offence attacks, and that is currently unverified on every possession
+    // (docs/30). The separation is a real measurement; which end it points at is
+    // not, so the card says so instead of concluding "the huck is on".
+    deepE="inferred";
+    deepX="Which end counts as deep is UNVERIFIED (docs/30), so read this as a "
+        + "separation, not as a conclusion: " + (goalSide
+            ? "a defender sits on the far side of the deepest cutter."
+            : "no defender sits on the far side of the deepest cutter.");
   }
   out.push(card("Deep cover", deepV, deepC, deepE, deepX));
 
