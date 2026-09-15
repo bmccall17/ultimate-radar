@@ -8,7 +8,7 @@ python -m tools.gates
 ```
 
 Every gate, every possession, one command, non-zero exit if anything fails.
-Sixteen checks fail today and `docs/30` § 3 says which are deliberate.
+Seventeen checks fail today and `docs/30` § 3 says which are deliberate.
 
 ## The one-paragraph version
 
@@ -37,8 +37,13 @@ ground truth, four identities on p0001, scored the solver **0 of 4**.
    stillness, which measurement says prefers the wrong answer. Order matters:
    get the second possession's tags first.
 
-3. **Settle p0001's attacking direction.** Declared `+x`, the play drifts
-   -8.4 yd, and the overhead now says "disputed" on the landing page.
+3. **Settle the attacking direction, for the whole game.** It is not a p0001
+   problem: `docs/30` section 2.0 measured that the drift check never measured
+   attacking direction at all, and in three of the four quarters cut so far
+   BOTH teams' offences drift the same way. Nothing is established anywhere.
+   Cheapest fix is one deliberate cut that includes a score - the goal lines are
+   at x = 20 and x = 100, so which one the disc crosses names the endzone with
+   no inference - then `clip.json:quarter` propagates it.
 
 ## Commands
 
