@@ -129,17 +129,21 @@ footer{color:var(--dim);font-size:12px;padding:6px 16px 26px}
 <div class="banner" id="provenance"></div>
 
 <main>
-  <section class="panel">
-    <h2>Camera view
-      <span class="spacer"></span>
-      <button id="tOverlay" aria-pressed="true">Overlay</button>
-      <button id="tMatch" aria-pressed="false">Matchups</button>
-      <button id="tChev" aria-pressed="true">Off-frame</button>
-    </h2>
-    <div class="stage" id="stage">
-      <video id="vid" playsinline preload="auto" hidden></video>
-      <canvas id="over" width="1280" height="720"></canvas>
+  <section class="stack">
+    <div class="panel">
+      <h2>Camera view
+        <span class="spacer"></span>
+        <button id="tOverlay" aria-pressed="true">Overlay</button>
+        <button id="tMatch" aria-pressed="false">Matchups</button>
+        <button id="tChev" aria-pressed="true">Off-frame</button>
+      </h2>
+      <div class="stage" id="stage">
+        <video id="vid" playsinline preload="auto" hidden></video>
+        <canvas id="over" width="1280" height="720"></canvas>
+      </div>
     </div>
+    <!-- Relabelling belongs under the picture you are reading the label off. -->
+    <div class="panel grow"><h2>Selected player</h2><div id="relabel"></div></div>
   </section>
 
   <!-- The overhead canvas is a fixed height and the camera view beside it is
@@ -1354,6 +1358,57 @@ function renderNowIssue(){
             queue is below.</div>` : "");
   wireIssueActions("#nowIssue", list);
 }
+// How far a relabel should reach. The two boundaries are the ones a reviewer
+// names out loud: the player leaves the camera, or the slot re-acquires and the
+// identity question reopens. `apply_swap` runs to the end of the possession, so
+// a *bounded* relabel is a swap here and a swap back there - two entries in the
+// append-only log, no new primitive, and both reversible.
+function relabelEnd(id, f){
+  const p=BY[id]; if(!p) return null;
+  for(let k=f+1;k<NF;k++){
+    if(p.state[k]==="unknown") return {f:k, why:"it leaves the camera"};
+    if(p.reacquire && p.reacquire[k]) return {f:k, why:"it re-acquires and the identity question reopens"};
+  }
+  return null;
+}
+let _relabelKey = null;
+function renderRelabel(){
+  const el=document.getElementById("relabel"); if(!el) return;
+  // draw() runs every animation frame while playing, and rebuilding this
+  // panel's innerHTML on each one would reset the dropdown under the pointer.
+  // Only redraw when the thing it describes has actually changed.
+  const key = `${S.sel}|${S.f}`;
+  if(key === _relabelKey) return;
+  _relabelKey = key;
+  if(!S.sel){
+    el.innerHTML=`<div class="empty">Click a player — on the video, the overhead or
+      the roster — to check or change the label the tracker has given them.</div>`;
+    return;
+  }
+  const p=BY[S.sel], f=S.f;
+  const end=relabelEnd(S.sel, f);
+  const same=PL.filter(q=>q.team===p.team && q.id!==p.id)
+               .map(q=>`<option value="${q.id}">${q.id}${q.jersey?" #"+q.jersey:""}</option>`).join("");
+  const until = end ? `${(end.f/FPS).toFixed(1)}s, where ${end.why}`
+                    : `the end of the possession — it neither leaves the camera nor re-acquires after this`;
+  el.innerHTML = `<div class="issue">
+      <b>${p.id}${p.jersey?" #"+p.jersey:""}</b> · ${p.team===OFF?"offence":"defence"}
+      · ${p.state[f]} at ${(f/FPS).toFixed(2)}s
+      <div class="why">If the tracker has this person under the wrong label, say who they
+        actually are. The change applies from <b>${(f/FPS).toFixed(1)}s</b> to
+        <b>${until}</b> — written as a swap and a swap back, so it is two entries in the
+        correction log and both can be undone.</div>
+      <select id="relabelTo"><option value="">this is actually…</option>${same}</select>
+      <button id="relabelGo">Relabel from here</button>
+    </div>`;
+  document.getElementById("relabelGo").onclick = () => {
+    const to=document.getElementById("relabelTo").value;
+    if(!to) return;
+    addCorrection({op:"swap", slots:[S.sel, to], from_f:f});
+    if(end) addCorrection({op:"swap", slots:[S.sel, to], from_f:end.f});
+    _relabelKey = null; draw(); renderRelabel();
+  };
+}
 function renderCorrections(){
   provenance();
   const el=document.getElementById("corrections");
@@ -1450,7 +1505,8 @@ function frameTime(n){
 function seekVideo(){ if(vid.hidden) return;
   try { vid.currentTime = frameTime(S.f); } catch(_) {} }
 function seek(){ scrub.value=S.f; seekVideo();
-  location.replace("#t="+(S.f/FPS).toFixed(2)); draw(); renderNowIssue(); }
+  location.replace("#t="+(S.f/FPS).toFixed(2)); draw(); renderNowIssue();
+  renderRelabel(); }
 // A hash-only navigation is same-document: the page keeps its state and never
 // re-seeks, so "Copy link to this moment" worked on a fresh load and did
 // nothing in-page. seek() writes the hash itself, so this has to no-op when the
@@ -1681,6 +1737,7 @@ document.getElementById("foot").innerHTML =
   "Cards marked <i>inferred</i> rest on at least one player nobody saw — do not quote them.";
 
 function draw(){
+  renderRelabel();
   syncChev();
   drawCamera(); drawRadar(); drawStrip(); renderCards(); renderRoster();
   const P=projector(S.f);
@@ -1756,7 +1813,7 @@ if(selfCheck.ok===false){
 // A currentTime set before the metadata arrives is dropped, so re-apply it once
 // the element knows its own duration — otherwise a link to #t=12 opens at 0.
 vid.addEventListener("loadedmetadata", () => { seekVideo(); sizeCanvases(); });
-renderIssues(); renderCorrections(); renderTags(); renderNowIssue();
+renderIssues(); renderCorrections(); renderTags(); renderNowIssue(); renderRelabel();
 applyTheme(); sizeCanvases(); seek();
 })();
 </script>
