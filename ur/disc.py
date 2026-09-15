@@ -62,6 +62,15 @@ SEED = 20260827
 
 ANCHORED = ("observed", "provisional", "confirmed")
 
+# ...and the narrower set: frames where the slot's OWN POSITION was seen, not
+# merely re-acquired. `provisional` is in ANCHORED because somebody really was
+# detected there, which is enough to let a slot be a *candidate* for the holder.
+# It is NOT enough to place the disc, because `provisional` means a
+# re-acquisition after a gap and whether it is even the same player is the open
+# question (docs/25 R4). Same set as the viewer's MEASURABLE and audit_site's
+# DRAWN_DISC_STATES, and for the same reason.
+POSITION_SEEN = ("observed", "confirmed")
+
 # UFA rule 15.1: the marker must be within 3 m of the thrower. 3 m = 3.281 yd.
 # This is a rule of the sport, not a tuned threshold - a candidate whose nearest
 # defender is further away than this is not being marked, so is not the thrower.
@@ -474,13 +483,27 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             # The disc is exactly as well located as the player holding it, plus
             # an arm, and no better known than the claim that this is the holder.
             sigma = float(np.hypot(p["sigma"][f], HAND_OFFSET_YD))
-            # `confirmed` only when a person named this player. A holder the
-            # span solver worked out from a human's *timing* is `predicted` -
-            # the moment is observed, the identity is inferred, and collapsing
-            # the two would be the same over-claim as calling a mosaic frame
-            # observed.
+            # `confirmed` only when a person named this player AND the slot's
+            # own position was seen on this frame. A holder the span solver
+            # worked out from a human's *timing* is `predicted` - the moment is
+            # observed, the identity is inferred, and collapsing the two would be
+            # the same over-claim as calling a mosaic frame observed.
+            #
+            # The second half of that test is the one that cost something. This
+            # used to accept any ANCHORED state, `provisional` included, and on
+            # p0003 the tracker lost O2 for 3.1 s, dead-reckoned it, then
+            # re-acquired 26.9 yd away on somebody standing over the sideline -
+            # a match official, as it turned out. The human tag at 21.27 s was
+            # right about WHO caught it and said nothing about where that marker
+            # had wandered to, so the disc was drawn on the official at the
+            # strongest state the format has. **A tag vouches for the holder, not
+            # for the holder's position**, and those are two facts. On a
+            # `provisional` frame the disc is now `predicted`, which the viewer
+            # declines to draw - it disappears for the stretch instead of
+            # asserting a place nothing saw. `source` stays `human`, because a
+            # person really did name this holder.
             named = human and solved[f] is None
-            state = ("confirmed" if named and st in ANCHORED else
+            state = ("confirmed" if named and st in POSITION_SEEN else
                      "predicted" if st in ANCHORED else "unknown")
             samples.append({"f": f, "xy": [round(v, 3) for v in xy],
                             "z": HELD_HEIGHT_YD,

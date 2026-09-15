@@ -172,6 +172,35 @@ def audit(pid: str) -> list[dict]:
         "every drawn disc frame rests on a human tag",
         "docs/27: unaided holder inference scores 33 % held out")
 
+    # ---- E. ...nor on a position nothing saw --------------------------------
+    # D checks WHO: does a drawn frame rest on a human tag. This checks WHERE,
+    # and they are two different facts about the same frame. A human tag names
+    # the holder; it says nothing about where the tracker's marker for that slot
+    # had drifted to. On p0003 the tracker lost O2, dead-reckoned it, and
+    # re-acquired 26.9 yd away on a match official standing over the sideline -
+    # and because `provisional` counted as good enough, the disc was published on
+    # the official at state `confirmed`, on the strength of a tag that was right
+    # about the catch. Three frames, all wrong, and D was green through every one
+    # of them.
+    #
+    # Distance cannot catch this: the "nobody observed in the stands" check below
+    # measures how far outside the lines a position is, worst 2.04 yd against a
+    # 5 yd threshold, because a sideline official stands exactly where a sideline
+    # player stands. Provenance can.
+    by = {q["id"]: q for q in doc.get("players", [])}
+    holders = meta.get("holder") or []
+    ghost = [i for i in drawn
+             if i < len(holders) and holders[i] in by
+             and by[holders[i]]["state"][i] not in DRAWN_DISC_STATES]
+    add("no disc drawn on a guessed position", not ghost,
+        f"{len(drawn)} frames drawn, {len(ghost)} of them on a holder whose own "
+        "position was not seen"
+        + ("" if not ghost else
+           " - " + ", ".join(f"f{i} {holders[i]} {by[holders[i]]['state'][i]}"
+                             for i in ghost[:4])),
+        "the holder's own position is observed or confirmed on every drawn frame",
+        "a tag vouches for WHO held it, not for where that slot's marker is")
+
     # ---- E. nobody is observed somewhere there is no field --------------------
     # Ultimate is played with people standing just out of bounds, so being outside
     # the lines is not by itself wrong, and the measurement says so: across all six

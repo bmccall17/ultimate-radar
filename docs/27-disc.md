@@ -45,6 +45,22 @@ separation-at-release computed from a guessed holder is not a worse measurement 
 separation; it is a measurement of something else, and `docs/05`'s propagation rules already
 know what to do with that.
 
+**`confirmed` also needs the holder's own position to have been seen, and that was learned
+the expensive way.** A tag is a statement about **who** held the disc. It says nothing about
+where the tracker's marker for that slot had drifted to, and the two were collapsed: any
+`ANCHORED` state counted, `provisional` included. On p0003 the tracker lost O2 at 18.0 s,
+dead-reckoned it for 3.1 s, and re-acquired 26.9 yd away on somebody standing a yard over
+the far sideline — a match official. The human tag at 21.27 s was correct about the catch,
+so the disc was published **on the official, at `confirmed`**, the strongest state the
+format has. Three frames on the live site, and every disc gate was green through all of
+them: the one that checks `source` saw an honest `human`, and the one that checks how far
+outside the lines a position is saw 2.04 yd against a 5 yd threshold — because a sideline
+official stands exactly where a sideline player stands. Distance cannot separate them;
+provenance can. `ur/disc.py:POSITION_SEEN` is now the narrower test, and
+`no disc drawn on a guessed position` (`tools/audit_site.py`) is the gate. On a
+`provisional` holder the disc is `predicted` and the viewer declines to draw it — it
+disappears for the stretch rather than asserting a place nothing saw.
+
 ## Holder inference, and the measurement that sank it
 
 The idea is sound on paper. In ultimate the thrower plants a pivot foot, and UFA rule §15.1

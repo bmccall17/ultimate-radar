@@ -76,6 +76,10 @@ ISSUE = {
     # The unnamed span is the jersey-#20 player, who has no correct slot
     # anywhere in p0003 - the same root cause as #4, not a separate problem.
     "disc not lost for long": 4,
+    # Likewise: a disc drawn on a slot whose marker has wandered onto somebody
+    # else is the tracker losing the player, which is #4. The disc stage only
+    # decides whether to publish the mistake.
+    "no disc drawn on a guessed position": 4,
     # Reported rather than gated today, so it never fails and never shows a
     # number here - the mapping is so the ticket is findable if it ever does.
     "...longest blind stretch": 8,
