@@ -975,8 +975,15 @@ function drawRadar(){
     // which is the one thing a colour is good for here: it lets the eye follow
     // the disc off one player, through the air, and onto the next.
     const d=D.disc[S.f];
+    // Offset into the hand when somebody is holding it. The disc's position IS
+    // the holder's position, so drawn honestly it lands exactly on their marker,
+    // hides the team colour underneath and reads as a bullseye rather than as a
+    // player with a disc. A fixed offset keeps the dot visible and continuous -
+    // it never blinks out - while leaving the player legible.
+    const held = discHolder(S.f);
+    const off = held ? 4.6*RK : 0;
     rctx.save();
-    rctx.beginPath(); rctx.arc(rx(d[0]),ry(d[1]),3*RK,0,7);
+    rctx.beginPath(); rctx.arc(rx(d[0])+off,ry(d[1])-off,3*RK,0,7);
     rctx.fillStyle=css("--disc"); rctx.fill();
     rctx.strokeStyle=css("--bg"); rctx.lineWidth=1*RK; rctx.stroke();
     rctx.restore();
