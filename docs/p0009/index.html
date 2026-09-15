@@ -870,6 +870,23 @@ function drawCamera(){
     }
     octx.globalAlpha=1;
   }
+
+  // The disc itself on the video, so the same hue carries it the whole way:
+  // ring on the thrower, a dot crossing the grass, ring on the receiver. In
+  // flight the position is `interpolated` between two human-tagged endpoints -
+  // an estimate, and drawn hollow to say so, because nothing in this project
+  // has ever detected a disc. When it is held the ring already says where it
+  // is, so the dot would only sit on top of the player.
+  if(discTrusted(S.f) && !holder){
+    const d=D.disc[S.f];
+    const q=P.project(d[0],d[1],(d[2]!==undefined?d[2]:1.0));
+    if(q && q[0]>=0 && q[0]<=IW && q[1]>=0 && q[1]<=IH){
+      const u=q[0]*s, v=q[1]*s;
+      octx.beginPath(); octx.arc(u,v,4.6*k,0,7);
+      octx.strokeStyle=HALO; octx.lineWidth=4.4*k; octx.stroke();
+      octx.strokeStyle=DISC_ONVID; octx.lineWidth=2.2*k; octx.stroke();
+    }
+  }
 }
 function drawChevron(p,xy,col,s,k,staleS){
   // docs/06: non-negotiable. Without it the overlay implies the off-frame
