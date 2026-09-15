@@ -104,6 +104,13 @@ td.n{font:12px ui-monospace,Consolas,monospace}
 .issue button{padding:2px 8px;font-size:11.5px;margin-right:5px}
 .empty{padding:10px 12px;color:var(--dim);font-size:12.5px}
 footer{color:var(--dim);font-size:12px;padding:6px 16px 26px}
+.stack{display:flex;flex-direction:column;gap:14px;min-height:0}
+.stack .grow{flex:1;display:flex;flex-direction:column;min-height:120px}
+.stack .grow > div{overflow:auto}
+#nowIssue:not(:empty){border-bottom:1px solid var(--line)}
+#nowIssue .issue{border:0}
+.nowlab{font-size:11px;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--dim);padding:8px 11px 0}
 .legend{display:flex;flex-wrap:wrap;gap:12px;padding:6px 16px 0;
   color:var(--dim);font-size:12px}
 .legend i{display:inline-block;width:11px;height:11px;border-radius:50%;
@@ -135,18 +142,32 @@ footer{color:var(--dim);font-size:12px;padding:6px 16px 26px}
     </div>
   </section>
 
-  <section class="panel">
-    <h2>Overhead
-      <span class="spacer"></span>
-      <button id="tSpace" aria-pressed="false">Space</button>
-      <button id="tTrails" aria-pressed="true">Trails</button>
-      <button id="tPin" aria-pressed="false">Pin</button>
-    </h2>
-    <canvas id="radar" width="840" height="400"></canvas>
-    <div class="legend">
-      <span><i style="background:var(--sol)"></i><span id="lgO"></span></span>
-      <span><i style="background:var(--chill)"></i><span id="lgD"></span></span>
-      <span>solid = observed · dashed = estimated · broken ring = identity unconfirmed · disc with no dot = not seen for over 2.2 s · ring = sigma, true scale · a wide ring on a seen player means the frame itself is weakly placed</span>
+  <!-- The overhead canvas is a fixed height and the camera view beside it is
+       not, which left a dead rectangle under the legend exactly where a
+       reviewer is already looking. The two things you do while scrubbing -
+       judge the stretch under review, and tag a throw - live there now. The
+       full queue and the correction log stay below; this is the bit that has
+       to be in the same eyeline as the video. -->
+  <section class="stack">
+    <div class="panel">
+      <h2>Overhead
+        <span class="spacer"></span>
+        <button id="tSpace" aria-pressed="false">Space</button>
+        <button id="tTrails" aria-pressed="true">Trails</button>
+        <button id="tPin" aria-pressed="false">Pin</button>
+      </h2>
+      <canvas id="radar" width="840" height="400"></canvas>
+      <div class="legend">
+        <span><i style="background:var(--sol)"></i><span id="lgO"></span></span>
+        <span><i style="background:var(--chill)"></i><span id="lgD"></span></span>
+        <span>solid = observed · dashed = estimated · broken ring = identity unconfirmed · disc with no dot = not seen for over 2.2 s · ring = sigma, true scale · a wide ring on a seen player means the frame itself is weakly placed</span>
+      </div>
+    </div>
+    <div class="panel grow">
+      <h2>This moment <span class="spacer"></span>
+        <button id="tagUndo">Undo tag</button><button id="tagDl">Download events</button></h2>
+      <div id="nowIssue"></div>
+      <div id="tags"></div>
     </div>
   </section>
 </main>
@@ -174,11 +195,6 @@ footer{color:var(--dim);font-size:12px;padding:6px 16px 26px}
     <div class="panel" style="margin-bottom:14px">
       <h2>Needs a human <span class="spacer"></span><span class="mono" id="nIssues"></span></h2>
       <div id="issues"></div>
-    </div>
-    <div class="panel">
-      <h2>Throws and catches <span class="spacer"></span>
-        <button id="tagUndo">Undo</button><button id="tagDl">Download events</button></h2>
-      <div id="tags"></div>
     </div>
     <div class="panel">
       <h2>Corrections <span class="spacer"></span>
@@ -1266,23 +1282,65 @@ function renderIssues(){
     return `<div class="issue"><b>${r.kind.replace(/_/g," ")}</b> · ${who}
       <div class="why">${r.why}</div>${act}</div>`;
   }).join("");
-  for(const b of document.querySelectorAll("#issues [data-go]")){
+  wireIssueActions("#issues", list);
+}
+
+// Both the full queue and the "This moment" panel render the same controls, so
+// they are wired in one place - two copies of a correction handler is two
+// chances for one of them to write a different op.
+function wireIssueActions(root, list){
+  for(const b of document.querySelectorAll(root+" [data-go]")){
     b.onclick = () => { const r=list[+b.dataset.go];
       const start=(r.fix&&r.fix.watch_from_f!==undefined) ? r.fix.watch_from_f
                  : (r.fix&&r.fix.f!==undefined) ? r.fix.f : r.frame;
       S.f=clamp(start,0,NF-1);
       S.sel=r.slots[0]; seek(); };
   }
-  for(const b of document.querySelectorAll("#issues [data-ok]")){
+  for(const b of document.querySelectorAll(root+" [data-ok]")){
     b.onclick = () => { const r=list[+b.dataset.ok];
       addCorrection({op:"confirm", slot:r.fix.slot, f:r.fix.f}); draw(); };
   }
-  for(const s of document.querySelectorAll("#issues [data-with]")){
+  for(const s of document.querySelectorAll(root+" [data-with]")){
     s.onchange = () => { if(!s.value) return;
       const r=list[+s.dataset.with];
       addCorrection({op:"swap", slots:[r.slots[0], s.value], from_f:r.fix.f});
       s.value=""; draw(); };
   }
+}
+// The stretch you are standing in, if any, and otherwise the next one coming.
+// Rendered on every seek so the panel beside the video always answers "is this
+// moment one somebody has to look at, and what do I do about it".
+function renderNowIssue(){
+  const el=document.getElementById("nowIssue");
+  if(!el) return;
+  const list=(window.ISSUES&&window.ISSUES.issues)||[];
+  const spanned = list.map((r,k)=>({r,k}))
+    .filter(({r})=>r.from_f!==undefined && r.to_f!==undefined);
+  const here = spanned.filter(({r})=>S.f>=r.from_f && S.f<=r.to_f);
+  const ahead = spanned.filter(({r})=>r.from_f>S.f)
+                       .sort((a,b)=>a.r.from_f-b.r.from_f).slice(0,1);
+  // Several slots can be unverified at once - four, at 9.5 s on p0001 - and
+  // listing them all pushes the tagging pane off the panel. Two, and a count.
+  const all = here.length ? here : ahead;
+  const show = all.slice(0,2);
+  if(!show.length){ el.innerHTML=""; return; }
+  const same = id => PL.filter(p=>BY[id]&&p.team===BY[id].team&&p.id!==id)
+                       .map(p=>`<option>${p.id}</option>`).join("");
+  el.innerHTML = `<div class="nowlab">${here.length
+      ? "you are inside a stretch nobody has checked"
+      : "next stretch to check"}</div>`
+    + show.map(({r,k})=>`<div class="issue">
+        <b>${r.slots.join(", ")}</b> · ${r.from_t.toFixed(1)}–${r.to_t.toFixed(1)}s
+        <div class="why">${r.why}</div>
+        ${here.length ? "" : `<button data-go="${k}">Watch it</button>`}
+        ${(r.fix||{}).op==="confirm_or_swap" ? `<button data-ok="${k}">It is ${r.slots[0]}</button>
+          <select data-with="${k}"><option value="">swap with…</option>${same(r.slots[0])}</select>` : ""}
+      </div>`).join("")
+    + (all.length>show.length
+        ? `<div class="why" style="padding:0 11px 8px">and ${all.length-show.length}
+            other slot${all.length-show.length===1?"":"s"} unverified here — the full
+            queue is below.</div>` : "");
+  wireIssueActions("#nowIssue", list);
 }
 function renderCorrections(){
   provenance();
@@ -1380,7 +1438,7 @@ function frameTime(n){
 function seekVideo(){ if(vid.hidden) return;
   try { vid.currentTime = frameTime(S.f); } catch(_) {} }
 function seek(){ scrub.value=S.f; seekVideo();
-  location.replace("#t="+(S.f/FPS).toFixed(2)); draw(); }
+  location.replace("#t="+(S.f/FPS).toFixed(2)); draw(); renderNowIssue(); }
 // A hash-only navigation is same-document: the page keeps its state and never
 // re-seeks, so "Copy link to this moment" worked on a fresh load and did
 // nothing in-page. seek() writes the hash itself, so this has to no-op when the
@@ -1686,6 +1744,7 @@ if(selfCheck.ok===false){
 // A currentTime set before the metadata arrives is dropped, so re-apply it once
 // the element knows its own duration — otherwise a link to #t=12 opens at 0.
 vid.addEventListener("loadedmetadata", () => { seekVideo(); sizeCanvases(); });
-renderIssues(); renderCorrections(); renderTags(); applyTheme(); sizeCanvases(); seek();
+renderIssues(); renderCorrections(); renderTags(); renderNowIssue();
+applyTheme(); sizeCanvases(); seek();
 })();
 </script>
