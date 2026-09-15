@@ -234,10 +234,18 @@ def draw_video_pane(img, P, n, safe):
     # for the whole of M4 after the gates were in fact measured. A caption that
     # cannot go out of date is one that reads the file it is captioning.
     g = P.get("gates") or {}
-    banner = (f"M4 tracker - per-player recall {g['per_player_recall']:.4f} "
-              f"on {g.get('measured_on', '?')}"
-              if P.get("gates_measured") and g.get("per_player_recall") is not None
-              else "M4 tracker - gates NOT measured")
+    if P.get("gates_measured") and g.get("per_player_recall") is not None:
+        banner = (f"M4 tracker - per-player recall {g['per_player_recall']:.4f} "
+                  f"on {g.get('measured_on', '?')}")
+    elif g.get("measured_on"):
+        # Not "NOT measured", which would be false - measured, just not here, and
+        # the numbers deliberately do not travel. docs/30 section 2.1: a figure
+        # without its denominator is not a result, and its denominator is a
+        # different possession's hand labels.
+        banner = (f"M4 tracker - gates measured on {g['measured_on']}, "
+                  f"NOT on this possession")
+    else:
+        banner = "M4 tracker - gates NOT measured"
     cv2.putText(img, banner, (18, 76),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, WARN, 2, cv2.LINE_AA)
     return img

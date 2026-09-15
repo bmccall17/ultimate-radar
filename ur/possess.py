@@ -154,10 +154,20 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             # containment 80 %" over footage on which neither has ever been
             # measured. Naming the possession they came from is what lets a
             # reader, and the viewer, tell the difference.
+            # Naming the possession stopped the viewer *announcing* them as its
+            # own, but it left the numbers sitting in every page's data, where
+            # anything reading possession.js still gets 0.9744 for p0003. Clicking
+            # through the published site on 2026-09-15 is what made that concrete.
+            # So the values now travel only on the possession they were measured
+            # on; everywhere else the keys are null and the pointer remains.
+            # tools/audit_site.py enforces it.
             "measured_on": "p0001",
-            "per_player_recall": 0.9744,
+            "per_player_recall": (0.9744 if clip["possession_id"] == "p0001"
+                                  else None),
             "identity_switches_caught": None,
-            "sigma_containment": 0.829,
+            "sigma_containment": (0.829 if clip["possession_id"] == "p0001"
+                                  else None),
+            "measured_here": clip["possession_id"] == "p0001",
             "note": "Per-player recall is 0.9744 against a threshold left "
                     "deliberately unset, because the statistic is chaotically "
                     "sensitive at this sample size - it moves non-monotonically "

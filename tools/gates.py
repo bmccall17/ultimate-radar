@@ -28,6 +28,8 @@ from pathlib import Path
 
 import numpy as np
 
+_PID = __import__("re").compile(r"p\d{4}")
+
 # --------------------------------------------------------------------------- #
 # thresholds, each with the measurement behind it. docs/30 carries the argument.
 # --------------------------------------------------------------------------- #
@@ -285,6 +287,31 @@ def check_disc(works: list[Path]) -> dict:
     return out
 
 
+def check_site() -> dict:
+    """The published site, which is the only thing anybody actually sees.
+
+    Every other gate here reads `work/`. A site can be stale, can publish tags it
+    then ignores, and can carry one possession's numbers on another's page while
+    all of them stay green - which is how clicking through the live site on
+    2026-09-15 found two defects the suite could not see. `tools/audit_site.py`
+    carries the checks and the reasoning.
+    """
+    from tools import audit_site as A
+    out: dict = {"possession": "the published site", "checks": []}
+    try:
+        ids = sorted({"p0001"} | {q.name for q in A.SITE.iterdir()
+                                  if q.is_dir() and _PID.fullmatch(q.name)})
+    except FileNotFoundError:
+        out["checks"].append({"name": "site is built", "pass": False,
+                              "got": "no docs/", "want": "tools.build_site has run",
+                              "note": "AGENTS rule 7"})
+        return out
+    for pid in ids:
+        for c in A.audit(pid):
+            out["checks"].append({**c, "name": f"{pid}: {c['name']}"})
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="tools.gates")
     p.add_argument("work", nargs="*", default=None)
@@ -294,6 +321,7 @@ def main(argv: list[str] | None = None) -> int:
                          if (q / "possession.json").exists()))
     reports = [check_possession(w) for w in works]
     reports.append(check_directions(works))
+    reports.append(check_site())
     reports.append(check_disc(works))
 
     failed = 0

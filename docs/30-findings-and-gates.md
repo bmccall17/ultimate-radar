@@ -210,6 +210,32 @@ known-unpublished possession or a documented open problem.
 and on camera motion — they have not been through the impossible-motion check and
 are not published.
 
+### The published site — 24 checks, all passing, and they were not before
+
+`tools/audit_site.py`, folded into `python -m tools.gates`. Every other gate in
+this document reads `work/`; these read `docs/`, which is the only thing anybody
+sees. They exist because clicking through the live site on 2026-09-15 found two
+defects that the whole suite was green through.
+
+| gate | threshold | where it comes from |
+|---|---|---|
+| site is current | published events == `work/<id>/events.json` | AGENTS rule 7 — the live site is the deliverable |
+| published tags are used | tags naming a player produce disc frames sourced `human` | p0003 and p0009 published 14 and 12 human tags while every disc frame was still `inferred`. `ur.disc` had not been re-run, so the tagging bought **nothing** on the site. Fixed: 0 → 485 and 0 → 405 frames |
+| no borrowed gate numbers | numeric gates only on the possession they were measured on | every page shipped p0001's `per_player_recall: 0.9744` in its data. `measured_on` labelled it honestly, but anything reading `possession.js` still got p0001's recall for p0003. The numbers now travel only with their own possession |
+| no disc drawn from the failed inference | every drawn frame rests on a human tag | already true, now locked in — the viewer correctly suppressed all 385 `predicted` frames on p0009 |
+
+Two things that audit taught about writing the audit itself. **Match behaviour,
+not source text**: the first version grepped the rendered HTML for "the huck is
+on" and flagged it, when the phrase survived only inside a code comment.
+**A gate that fires on the wrong thing is worse than no gate**: the staleness
+check first compared against `possession.json`'s `events`, which stays empty
+until `ur.possess` re-runs, so it failed the instant any tag existed.
+
+And a pipeline-order trap worth knowing: `ur.possess` reads `disc.json`, so
+tagging requires `ur.disc` **then** `ur.possess`. Running them the other way
+round silently republishes the old disc, which is exactly what the "published
+tags are used" check caught me doing.
+
 ### Across possessions — three of four quarters fail
 
 | gate | threshold | where it comes from |
