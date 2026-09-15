@@ -331,3 +331,48 @@ One caveat on the denominator: p0009's last throw ends at the goal catch, where
 O6's position is `predicted` and lands outside the sideline. That is where the
 4.19 yd/s comes from. The span is graded anyway — dropping the inconvenient one
 is how a number starts flattering itself — but it is one of the seven.
+
+### The second held-out possession: p0003, and the verdict
+
+p0003 was tagged after the model was frozen, so it is a second clean test.
+
+| | spans | accuracy |
+|---|---|---|
+| p0001 — training | 4 / 4 | 100 % (proves nothing) |
+| p0009 — held out | 3 / 7 | 43 % |
+| **p0003 — held out** | **1 / 5** | **20 %** |
+| **both held out** | **4 / 12** | **33 %** |
+| gate | | ≥ 75 % |
+
+Seven candidates per span, so chance is about 14 %. **33 % is better than guessing
+and nowhere near usable, and the honest reading of "43 %" a possession earlier is
+that n = 7 was too small to tell.** The margin over all sixteen spans correlates
+with correctness at **r = −0.16** — no longer strongly inverted, but still not a
+confidence.
+
+The one p0003 span it got right is the weakest of the five: the true holder is
+anchored on 5 of that span's 71 frames. Three of the four it got wrong had the
+true holder anchored on *every* frame of the span. So the failures are not a
+tracking-coverage problem; the model is being shown the right players and
+choosing the wrong one.
+
+**Two things p0003 exposed that are not about accuracy.**
+
+*The span model has no room for a turnover.* The tagger marked **D5** catching at
+31.40 s and throwing at 32.73 s — a Wind Chill defender with the disc, in a
+possession whose cut note in `clip.json` states "no turnover (disc held by a Sol
+player at 1586, 1594, 1604 and 1611)". `ur/spans.py` builds its candidate list
+from the offence only, so a defender's name silently resolves to "unnamed" and
+the span is guessed among the seven Sol players. Whatever the footage really
+shows, one of those two records is wrong, and the solver cannot represent the
+possibility that the tagger is right.
+
+*A goal is scored where the tracking is not.* Both p0009's goal and p0003's goal
+were expected to settle the attacking direction for free — a goal is caught in an
+endzone and the goal lines are at known x. Neither could. p0003 has **no anchored
+player at all from 33 s to the end**, and p0009's goal catch is `predicted` and
+lands outside the sideline. That is not bad luck: the camera tightens on the
+endzone to show a score, which is exactly the framing `docs/29` measured as
+breaking the calibration. **Scores are systematically the least observable moments
+in the footage**, which is worth knowing before planning any measurement around
+one — including the direction cut proposed in `docs/30` § 2.0.

@@ -233,12 +233,16 @@ def check_disc(works: list[Path]) -> dict:
         # Tags that contradict each other are not truth. check_disc talks to the
         # solver directly rather than through ur.spans.build, so it has to repeat
         # build's refusal or it would quietly score against a contradiction.
-        bad = sum(1 for x in tspans if x.conflict)
-        bad += sum(1 for i in range(len(tspans) - 1)
-                   if tspans[i].fixed is not None
-                   and tspans[i].fixed == tspans[i + 1].fixed)
+        #
+        # A *conflict* is no longer fatal: it means a throw went untagged, and
+        # spans_from_events already leaves that span unknown, so it drops out of
+        # the truth by itself. A *self-pass* is fatal - it is two tags that cannot
+        # both be true, and nothing can be scored around it.
+        bad = sum(1 for i in range(len(tspans) - 1)
+                  if tspans[i].fixed is not None
+                  and tspans[i].fixed == tspans[i + 1].fixed)
         if bad:
-            per.append(f"{work.name} NOT GRADED ({bad} contradictory tags)")
+            per.append(f"{work.name} NOT GRADED ({bad} self-passes in the tags)")
             continue
         blind = {"events": [{**e, "player": None} for e in ev.get("events", [])]}
         sp = SP.spans_from_events(blind, nf, fps, ids)

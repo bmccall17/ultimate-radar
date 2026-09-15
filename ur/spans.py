@@ -168,8 +168,15 @@ def spans_from_events(events: dict, nf: int, fps: float,
                 # overwrite the catch, which turned a tagging mistake into a
                 # confident answer. Record it instead; `build` refuses to solve.
                 if cur.fixed is not None and cur.fixed != who:
+                    # The catch and the throw name different people, so a throw
+                    # happened in between and was not tagged: the span is really
+                    # two spans and one holder cannot describe it. Neither name is
+                    # wrong, so neither is thrown away and neither is trusted -
+                    # the span becomes unknown, and is not scored against.
                     cur.conflict = (ids[cur.fixed], ids[who])
-                cur.fixed = who
+                    cur.fixed = None
+                else:
+                    cur.fixed = who
             spans.append(cur)
             cur = Span(a=f + 1, b=nf - 1)      # flight, closed by the next catch
             cur.a = None                        # marks this as the flight gap
@@ -405,12 +412,15 @@ def build(work: Path, *, events_path: Path | None = None,
     # way round it. Refusing is the only honest response: a possession scored
     # against tags that disagree with themselves measures nothing.
     problems = []
-    for i, sp in enumerate(spans):
-        if sp.conflict:
-            problems.append(
-                f"span {i} ({sp.a / fps:.2f}-{sp.b / fps:.2f}s) is named twice and "
-                f"the names disagree: the catch says {sp.conflict[0]}, the throw "
-                f"says {sp.conflict[1]}")
+    contested = [f"span {i} ({sp.a / fps:.2f}-{sp.b / fps:.2f}s): the catch says "
+                 f"{sp.conflict[0]} and the throw says {sp.conflict[1]}, so a throw "
+                 f"between them was not tagged. Left unknown and not scored."
+                 for i, sp in enumerate(spans) if sp.conflict]
+    if contested:
+        out["contested_spans"] = contested
+        if verbose:
+            for q in contested:
+                print(f"[spans] note: {q}")
     for i in range(len(spans) - 1):
         a, b = spans[i], spans[i + 1]
         if a.fixed is not None and a.fixed == b.fixed:
