@@ -16,7 +16,13 @@ request is not available from `file://`:
 - `issues.json` — the "needs a human" queue, as `window.ISSUES`;
 - `identities.json` — voted jersey numbers, as `window.IDENTITIES`, and merged
   onto each slot so the overlay can label it;
-- `events.json` — hand-tagged and suggested events, onto `POSSESSION.events`.
+- `events.json` — hand-tagged and suggested events, onto `POSSESSION.events`,
+  and its `observed` block, which carries a confirmed attacking direction.
+
+The attacking direction is also *resolved* here rather than copied, onto
+`POSSESSION.possession.attacking_direction_resolved`: it is a property of a
+`(quarter, team)` (AD-10), so answering it needs every possession at once and the
+page has only itself.
 
 Only the first is required. A working directory that has not reached M5 still
 renders; the panes that have nothing say so.
@@ -36,6 +42,46 @@ def _maybe(work: Path, name: str) -> dict | None:
         print(f"[make_view] - {name} not present; that pane will say so")
         return None
     return json.loads(p.read_text(encoding="utf-8"))
+
+
+def _attacking_direction(work: Path, doc: dict) -> None:
+    """Resolve `(quarter, team) -> direction` and bake the answer into the page.
+
+    Resolution is a cross-possession question and the viewer is a single-file
+    page with no siblings to read (AD-9), so it is answered here, at build time,
+    over every possession beside this one. That is what lets one confirmation in
+    p0009 light up the rest of Q1: the page carries the resolved fact and says
+    where it came from, rather than carrying a claim of its own.
+
+    Nothing is written back to `work/` - the observations stay the only stored
+    thing (AD-10). A quarter nobody has confirmed, or one two people contradict
+    each other about, resolves to None, and the viewer says `unverified`.
+    """
+    from ur import direction as DIR
+
+    q = doc["possession"].get("quarter")
+    # Looked up for the team ON OFFENCE, which is the only team this possession
+    # names. `offense` is one value for the whole possession and CONTEXT.md says
+    # it is wrong after a turnover - but the stored fact is keyed by team and is
+    # not, so when the possession model grows a turnover this lookup changes and
+    # nothing in `work/` does. That is what AD-10 bought by moving the fact off
+    # the possession, and it is bought here whether or not it is spent yet.
+    team = doc["possession"]["offense"]
+    try:
+        table, conflicts = DIR.resolve_work(work.parent)
+    except (ValueError, KeyError) as e:
+        print(f"[make_view] ! attacking direction not resolved: {e}")
+        doc["possession"]["attacking_direction_resolved"] = None
+        return
+    got = DIR.for_possession(table, q, team)
+    doc["possession"]["attacking_direction_resolved"] = got
+    if got:
+        print(f"[make_view] + attacking direction, Q{q}: {DIR.describe(got)}")
+    else:
+        print(f"[make_view] - attacking direction: nothing confirmed for Q{q} "
+              f"{team}; the page will say unverified")
+    for c in conflicts:
+        print(f"[make_view] ! {c['detail']}")
 
 
 def build(work: Path, out: Path, video: str | None = None) -> Path:
@@ -66,6 +112,15 @@ def build(work: Path, out: Path, video: str | None = None) -> Path:
     if ev:
         doc["events"] = ev.get("events", [])
         print(f"[make_view] + events.json: {len(doc['events'])} event(s)")
+        if ev.get("observed"):
+            doc["observed"] = ev["observed"]
+        # The file's own note travels so the viewer's download can put it back.
+        # p0003's is three hundred words on how its identities were arrived at,
+        # and a download that dropped it would quietly destroy the only record.
+        if ev.get("note"):
+            doc["events_note"] = ev["note"]
+
+    _attacking_direction(work, doc)
 
     issues = _maybe(work, "issues.json")
     if issues:

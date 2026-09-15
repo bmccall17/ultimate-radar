@@ -237,6 +237,41 @@ authoritative). An event written to demonstrate the schema carried `source: "hum
 until `ur/disc.py` read it as truth and forced a holder for one frame in the middle of
 another player's possession. If it is not a real observation, it is not `human`.
 
+### `observed` — statements about the possession, not about a moment
+
+```json
+{"schema":"ultimate-radar/events@1",
+ "possession_id":"p0009",
+ "observed":{"attacking_direction":{"team":"chill","direction":"-x","source":"human"}},
+ "events":[]}
+```
+
+A block beside `events` for facts a human states about the whole possession rather than
+about one instant. It holds one key today.
+
+`attacking_direction` names **which team** and **which end**, and the team is not optional
+decoration: `offense` is a single value for the whole possession, so after a turnover it is
+wrong, and an observation that inherited its team from it would be wrong with it (AD-10).
+The shorthand `"attacking_direction": "+x"` is accepted and means the team `clip.json` has
+on offence.
+
+This is an **observation**, and the fact it contributes to is stored nowhere. Direction
+belongs to a `(quarter, team)`, and `ur/direction.py` resolves it across every possession at
+read time: one confirmation settles the other team in that quarter and every possession in
+it. A direction arrived at that way is marked `derived`, names the possession it came from,
+and is **never written back here** — that would make the derivation its own evidence and
+destroy the only check there is, which is that two independent confirmations in one quarter
+must disagree about the end (`tools.gates`, `Qn: opposite teams disagree`).
+
+`clip.json:attacking_direction` stays what it always was: a **declaration** typed at cut
+time. It is now checked against the resolved fact instead of being the source of it.
+
+The file's top-level `note` is carried onto `possession.json` as `events_note` by
+`tools/make_view.py`, purely so the viewer's **Download events** can put it back. That
+download replaces `events.json` wholesale, and p0003's note is three hundred words on how
+its identities were arrived at — a round trip that dropped it would destroy the only record
+of them.
+
 ## disc.json
 
 ```json
@@ -280,13 +315,22 @@ correction rather than deleting it, so the log stays a true history.
 ## possession.json — what the viewer reads
 
 One self-contained file: `clip.json` fields, plus resolved per-slot arrays, plus events, plus
-derived metrics. The synthetic fixture `fixtures/possession_demo.json` is a valid instance
+derived metrics. `attacking_direction_resolved` is the exception to "self-contained": it is
+a property of a `(quarter, team)` and so needs every possession at once, which is why
+`tools/make_view.py` writes it as the page is built rather than `ur/possess.py` writing it
+here. It is `null` where nobody has confirmed that quarter, and the viewer then says
+`unverified`. The synthetic fixture `fixtures/possession_demo.json` is a valid instance
 (with an extra `truth` array the real pipeline will not have, used only to render a
 stand-in camera view). Its shape:
 
 ```json
 {"schema":"ultimate-radar/possession@0.2",
- "possession":{...}, "field":{...}, "teams":{...},
+ "possession":{"quarter":1,"attacking_direction":"+x",
+               "attacking_direction_source":"declared",
+               "attacking_direction_resolved":{"team":"sol","direction":"+x",
+                                               "source":"derived","from":["p0009"]},
+               "offence_drift_check":{"drift_yd":21.8,"agrees":true}},
+ "field":{...}, "teams":{...},
  "camera":{"image_w":1280,"image_h":720,"position_yd":[58,-21,13],
            "per_frame":[{"aim":[48.5,24.1],"focal_px":1180.4}]},
  "disc":[[x,y,height_yd]],

@@ -207,8 +207,24 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             "duration_s": clip["duration_s"],
             "offense": offense,
             "defense": defense,
+            # The quarter is what attacking direction belongs to (AD-10), so it
+            # travels with the possession rather than staying behind in
+            # clip.json where only the pipeline can see it.
+            "quarter": clip.get("quarter"),
+            # A DECLARATION, typed at cut time, and named as one. It is not the
+            # source of the direction any more - `ur.direction` resolves that
+            # from what a human confirmed, across possessions - and
+            # `tools.gates` checks this against it rather than the other way
+            # round. `tools.make_view` adds `attacking_direction_resolved`
+            # beside it, because resolving needs every possession at once and
+            # this module only ever sees one.
             "attacking_direction": clip["attacking_direction"],
-            "attacking_direction_check": _direction_check(
+            "attacking_direction_source": "declared",
+            # Named for what it measures. It was `attacking_direction_check`,
+            # beside `attacking_direction`, and three near-identical names for a
+            # declaration, a drift and a fact is how the drift got mistaken for
+            # the direction in the first place (docs/30 section 2.0).
+            "offence_drift_check": _direction_check(
                 players, offense, clip["attacking_direction"],
                 clip["field"]["length_yd"], clip["field"]["endzone_yd"]),
             "clip_frames_sync": {**clip["source"]["clip_frames_sync"],
@@ -263,15 +279,19 @@ def build(work: Path, *, verbose: bool = True) -> dict:
               f"min {min(coverage)}, max {max(coverage)}")
         print(f"[possess] detections the tracker did not use: " +
               ", ".join(f"{k} {v}" for k, v in lo.most_common()))
-        dc = doc["possession"]["attacking_direction_check"]
+        # The drift, and only the drift. Which end is being attacked is not
+        # decided here any more (AD-10) - `python -m ur.direction` is.
+        dc = doc["possession"]["offence_drift_check"]
         if dc["agrees"] is False:
-            print(f"[possess] !! attacking direction: {dc['why']}")
-        elif dc["agrees"] is None:
-            print(f"[possess] attacking direction not checkable here: "
+            print(f"[possess] !! the drift disagrees with the declaration: "
                   f"{dc['why']}")
+        elif dc["agrees"] is None:
+            print(f"[possess] the drift says nothing here: {dc['why']}")
         else:
-            print(f"[possess] attacking direction {dc['declared']} agrees with "
-                  f"the play: the offence moved {dc['drift_yd']:+.1f} yd")
+            print(f"[possess] the offence drifted {dc['drift_yd']:+.1f} yd, the "
+                  f"way clip.json declares ({dc['declared']}). That is agreement "
+                  "between two guesses, not a measured direction - docs/30 "
+                  "section 2.0.")
     return doc
 
 
@@ -282,10 +302,14 @@ def _direction_check(players: list[dict], offense: str, declared: str,
                      length_yd: float, endzone_yd: float) -> dict:
     """Which way did the offence actually go, against what `clip.json` claims?
 
-    `attacking_direction` is the one field in `clip.json` a person types from
-    memory. It is inherited by copy-paste from the previous possession more
-    easily than anything else there, and nothing downstream ever contradicts
-    it - the viewer's deep-threat card simply names the wrong player, plausibly.
+    **This is not the attacking direction, and it was once mistaken for it.**
+    `docs/30` section 2.0: the drift of the offence was recorded as the
+    direction, and across quarters it does not survive - in three of the four
+    quarters cut, both teams' offences drift the same way. Direction now comes
+    from `ur.direction`, resolved from what a human confirmed. What is left here
+    is a flag on the *declaration*: `attacking_direction` is the one field in
+    `clip.json` a person types from memory, and it is inherited by copy-paste
+    from the previous possession more easily than anything else there.
 
     **The obvious check does not work here, and it is worth saying why.** "Does
     the offence finish inside the endzone it was attacking" would be decisive,
@@ -343,12 +367,16 @@ def _direction_check(players: list[dict], offense: str, declared: str,
     out["agrees"] = measured == declared
     if not out["agrees"]:
         out["why"] = (
-            f"the offence moved {drift:+.1f} yd but clip.json says {declared}. "
-            "That is not proof - a possession can go backwards - so watch the "
-            f"clip. If it is wrong, re-run ur.ingest with "
-            f"--attacking-direction {measured} (the cut is deterministic, so "
-            "clip.mp4 and frames/ come back identical - check clip_sha256 - and "
-            "nothing downstream needs redoing), then ur.possess.")
+            f"the offence moved {drift:+.1f} yd but clip.json declares {declared}. "
+            "Neither of those is the attacking direction (docs/30 section 2.0) - "
+            "a possession can go backwards, and the drift was measured not to "
+            "predict the end being attacked at all. To settle it, confirm the "
+            "direction against the footage: `python -m ur.direction confirm "
+            f"<work> --direction +x|-x`. To correct the declaration alone, re-run "
+            f"ur.ingest with --attacking-direction {measured} (the cut is "
+            "deterministic, so clip.mp4 and frames/ come back identical - check "
+            "clip_sha256 - and nothing downstream needs redoing), then "
+            "ur.possess.")
     return out
 
 

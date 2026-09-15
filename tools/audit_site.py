@@ -23,6 +23,7 @@ survived only inside a code comment. What a page *asserts* lives in its data.
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import re
 import sys
@@ -66,6 +67,27 @@ def published(pid: str) -> dict | None:
     return json.JSONDecoder().raw_decode(txt[i:])[0] if i >= 0 else None
 
 
+@functools.lru_cache(maxsize=1)
+def _direction_table():
+    """Resolve `(quarter, team) -> direction` over `work/` once per run."""
+    from ur import direction as DIR
+    try:
+        return DIR.resolve_work(WORK)[0]
+    except (OSError, ValueError, KeyError):
+        return {}
+
+
+def _resolved_now(pid: str) -> dict | None:
+    """What this possession's page SHOULD be saying about the attacking direction."""
+    from ur import direction as DIR
+    cp = WORK / pid / "clip.json"
+    if not cp.exists():
+        return None
+    clip = json.loads(cp.read_text(encoding="utf-8"))
+    return DIR.for_possession(_direction_table(), clip.get("quarter"),
+                              clip["offense"])
+
+
 def audit(pid: str) -> list[dict]:
     out: list[dict] = []
 
@@ -85,15 +107,26 @@ def audit(pid: str) -> list[dict]:
     # the moment any tag existed. A gate that fires on the wrong thing is worse
     # than no gate: it trains you to ignore it.
     ev_p = WORK / pid / "events.json"
-    live_n = (len(json.loads(ev_p.read_text(encoding="utf-8")).get("events", []))
-              if ev_p.exists() else 0)
+    ev = (json.loads(ev_p.read_text(encoding="utf-8")) if ev_p.exists()
+          else {"events": []})
+    live_n = len(ev.get("events", []))
     src = WORK / pid / "possession.json"
     if src.exists():
         live = json.loads(src.read_text(encoding="utf-8"))
+        # The attacking direction goes stale in a way tags cannot, and checking
+        # this possession's own `observed` block would miss it. `make_view`
+        # RESOLVES the direction across every possession at build time (AD-10),
+        # so a confirmation made in p0008 changes what p0003's page should say
+        # while nothing in p0003 changes at all. Compare the resolved answer,
+        # which is the thing the reader sees.
+        pub_dir = doc["possession"].get("attacking_direction_resolved")
         same = (len(doc.get("events", [])) == live_n
-                and doc["possession"]["frames"] == live["possession"]["frames"])
+                and doc["possession"]["frames"] == live["possession"]["frames"]
+                and pub_dir == _resolved_now(pid))
         add("site is current", same,
-            f"{len(doc.get('events', []))} events published, {live_n} in work/",
+            f"{len(doc.get('events', []))} events published, {live_n} in work/"
+            + ("; the direction on the page is not the one work/ resolves to"
+               if pub_dir != _resolved_now(pid) else ""),
             "the published page matches the pipeline",
             "run tools.build_site - the site is the deliverable (AGENTS rule 7)")
 

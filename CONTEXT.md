@@ -86,9 +86,31 @@ ultimate field frame.
 > fixed ends within a quarter, so every possession in Q1 with Sol on offence has
 > the same direction, and Wind Chill's is the opposite. Holding it per possession
 > writes one fact many times and lets the copies disagree — which is exactly the
-> contradiction `tools.gates` finds in three of four quarters. It also survives a
-> turnover, where a per-possession value does not: direction follows whoever
-> actually has the disc, not the `offense` field.
+> contradiction `tools.gates` used to find in three of four quarters. It also
+> survives a turnover, where a per-possession value does not: direction follows
+> whoever actually has the disc, not the `offense` field.
+
+**Confirmed / derived / declared** — where a direction came from, and a separate
+vocabulary from the per-frame **evidence state** above, because it is about a
+statement rather than about a position.
+
+- **Confirmed** — a human watched that quarter and said which end. The only
+  source there is: `docs/30` § 2.0 measured that the drift of the offence does
+  not answer this. Written as an **observation** into the possession where it was
+  made, `events.json:observed`.
+- **Derived** — the other team was confirmed in that quarter, so this is the
+  other end. As true as the confirmation it comes from, and **never written down
+  as one**: a derivation recorded as evidence becomes its own constraint, and it
+  would also destroy the check that two confirmations in one quarter must
+  disagree about the end.
+- **Declared** — `clip.json:attacking_direction`, typed at cut time. In the
+  general sense above: written down and never checked. It is not a source of
+  direction, it is a thing to check against one.
+
+The *fact* is never stored, only the observations. `ur/direction.py` resolves
+`(quarter, team) → direction` from all of them at read time, so nothing is
+written twice and a contradiction stays a contradiction instead of becoming a
+value somebody had to pick between.
 
 **Ultimate frame** — field coordinates in yards, `x` 0–120 along the length with
 goal lines at 20 and 100, `y` 0–53⅓ across. Shared by every possession: the same

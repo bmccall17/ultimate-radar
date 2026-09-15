@@ -64,6 +64,15 @@ ISSUE = {
     "Q2: opposite teams": 5,
     "Q3: opposite teams": 5,
     "Q4: opposite teams": 5,
+    # Both of these can only fail once somebody has confirmed a direction, and
+    # making the declaration agree with the confirmation is the last step of
+    # landing AD-10 rather than separate work - so they sit with #5 rather than
+    # getting a ticket that would have nothing in it but a clip.json edit.
+    "declared direction holds": 5,
+    "confirmations are readable": 5,
+    # Reported rather than gated, like the two below: an unconfirmed quarter is
+    # a queue, not a defect. Mapped so the ticket is findable from the number.
+    "...quarters confirmed": 5,
     # The unnamed span is the jersey-#20 player, who has no correct slot
     # anywhere in p0003 - the same root cause as #4, not a separate problem.
     "disc not lost for long": 4,
@@ -196,54 +205,111 @@ def check_directions(works: list[Path]) -> dict:
 
     This is the one statement about attacking direction that needs no assumption
     about the sport - not when ends are switched, not who receives the pull, only
-    that at any instant the two teams attack opposite endzones. So within a
-    quarter, a Sol possession and a Wind Chill possession must drift in opposite
-    directions along x.
+    that at any instant the two teams attack opposite endzones. Within a quarter,
+    then, a Sol confirmation and a Wind Chill confirmation must point opposite
+    ways, and one of them settles the other.
 
-    It exists because `ur.possess` fits the drift of the offence and `clip.json`
-    records the answer as `attacking_direction`, and on 2026-09-15 that turned out
-    to be measuring something else: in three of the four quarters covered, **both
-    teams' offences drift the same way**. The frames are consistent across
-    possessions (identical venue transform; the camera aimed at field x = 60 shows
-    the same stand in p0003, p0005 and p0009) and the drift is real player
-    movement (measured over the seven offence slots anchored at both ends, not
-    over whoever is in shot). So the measurement is sound and the *interpretation*
-    is wrong. Until that is settled, no possession's attacking direction is
-    established, and `docs/30` says so.
+    **This check used to be fed the drift of the offence, and that was the
+    defect.** `ur.possess` fit the drift along x and `clip.json` recorded the
+    answer as `attacking_direction`; on 2026-09-15 three of the four quarters cut
+    came back with both teams drifting the same way. The frames are consistent
+    across possessions and the movement is real (`docs/30` section 2.0), so the
+    measurement was sound and the *interpretation* was wrong: the offence moving
+    +x is not the offence attacking +x. AD-10 moved the fact to where it belongs -
+    one direction per (quarter, team), confirmed by a human against the footage
+    and resolved by `ur.direction`.
+
+    So what fails here now is a contradiction between two people who watched, and
+    that is a failure worth having: it means a quarter is mis-read off the score
+    bug or a confirmation is wrong. A quarter nobody has confirmed has nothing to
+    contradict, and says so rather than failing - the unconfirmed ones are counted
+    in `...quarters confirmed`, which is reported beside these and is the number
+    to read if every line below says PASS and the viewer still says `unverified`.
     """
+    from ur import direction as DIR
+
     out: dict = {"possession": "attacking direction (across possessions)",
                  "checks": []}
-    byq: dict[int, list[tuple]] = {}
-    for w in works:
-        cp, pp = w / "clip.json", w / "possession.json"
-        if not pp.exists():
-            continue
-        clip = json.loads(cp.read_text(encoding="utf-8"))
-        q = clip.get("quarter")
-        if q is None:
-            continue
-        doc = json.loads(pp.read_text(encoding="utf-8"))
-        byq.setdefault(int(q), []).append(
-            (w.name, doc["possession"]["offense"], _drift(doc)))
 
-    for q in sorted(byq):
-        rows = byq[q]
-        teams = {t for _, t, _ in rows}
-        if len(teams) < 2:
-            out["checks"].append({
-                "name": f"Q{q}: opposite teams disagree", "pass": True,
-                "got": "only one team's offence cut here", "want": "not testable",
-                "note": ""})
-            continue
-        bad = [(a, b) for a in rows for b in rows
-               if a[1] != b[1] and a[2] * b[2] > 0 and a[0] < b[0]]
-        got = ", ".join(f"{n} {t} {d:+.1f}" for n, t, d in sorted(rows))
+    clips: dict[str, dict] = {}
+    for w in works:
+        cp = w / "clip.json"
+        if cp.exists() and (w / "possession.json").exists():
+            clips[w.name] = json.loads(cp.read_text(encoding="utf-8"))
+
+    try:
+        obs = DIR.observations([w for w in works if w.name in clips])
+    except ValueError as e:
         out["checks"].append({
-            "name": f"Q{q}: opposite teams disagree", "pass": not bad,
-            "got": got, "want": "opposite signs",
-            "note": ("both teams' offences drift the same way, which no "
-                     "arrangement of the sport allows - so this drift is not "
-                     "the attacking direction (docs/30)")})
+            "name": "confirmations are readable", "pass": False, "got": str(e),
+            "want": "every events.json:observed block parses",
+            "note": "a confirmation the resolver cannot read settles nothing"})
+        return out
+    table, conflicts = DIR.resolve(obs)
+
+    quarters = sorted({int(c["quarter"]) for c in clips.values()
+                       if c.get("quarter") is not None})
+    confirmed_qs = {q for (q, _), e in table.items() if e["source"] == "confirmed"}
+
+    for q in quarters:
+        bad = [c for c in conflicts if c["quarter"] == q]
+        here = sorted((t, e) for (qq, t), e in table.items() if qq == q)
+        got = (", ".join(DIR.describe(e) for _, e in here)
+               or "nobody has confirmed a direction in this quarter")
+        out["checks"].append({
+            "name": f"Q{q}: opposite teams disagree",
+            "pass": not bad,
+            "got": "; ".join(c["detail"] for c in bad) if bad else got,
+            "want": "opposite ends, or nothing claimed",
+            "note": "two people watched the same quarter and disagree - watch it "
+                    "again and clear the wrong one with `python -m ur.direction "
+                    "clear <work>`"})
+
+    # Reported, never gated. The checks above pass on an empty quarter because an
+    # empty quarter makes no claim, which is honest and also useless - this is the
+    # line that says how much of the job is actually done. Gating it would fail
+    # every possession cut before somebody got round to watching it, which is a
+    # queue, not a defect.
+    out["checks"].append({
+        "name": "...quarters confirmed", "pass": True,
+        "got": f"{len(confirmed_qs)} of {len(quarters)}"
+               + (f" (Q{', Q'.join(str(x) for x in sorted(set(quarters) - confirmed_qs))}"
+                  " unconfirmed)" if set(quarters) - confirmed_qs else ""),
+        "want": "reported, not gated",
+        "note": ""})
+
+    # The declaration typed at cut time, now checkable against the resolved fact
+    # rather than being the source of it (AD-10). This is the only thing that ever
+    # catches a `--attacking-direction` copy-pasted from the previous possession.
+    for pid in sorted(clips):
+        clip = clips[pid]
+        got = DIR.for_possession(table, clip.get("quarter"), clip["offense"])
+        if got is None:
+            continue
+        agrees = got["direction"] == clip["attacking_direction"]
+        # What to do about a mismatch depends on where the right answer came
+        # from, and getting that backwards is the brief's second trap one human
+        # step removed. `clip.json` is not an input to the resolver, so a DERIVED
+        # value typed into it cannot feed back - but it stops looking derived the
+        # moment it is there, and this check would then be agreeing with a
+        # declaration that came from itself. So only a confirmation is allowed to
+        # send somebody to re-cut.
+        fix = ("re-cut with `--attacking-direction "
+               f"{got['direction']}` - the cut is deterministic, so nothing "
+               "downstream needs redoing"
+               if got["source"] == "confirmed" else
+               f"do NOT re-cut to {got['direction']} on this: it is derived from "
+               f"{', '.join(got['from'])}, and typing it into clip.json turns a "
+               "derivation into a declaration that then vouches for itself. "
+               "Confirm this possession directly - `python -m ur.direction "
+               f"confirm work/{pid} --direction=<+x|-x>` - and re-cut only if the "
+               "confirmation still disagrees")
+        out["checks"].append({
+            "name": f"{pid}: declared direction holds", "pass": agrees,
+            "got": f"clip.json says {clip['attacking_direction']}, "
+                   f"{DIR.describe(got)}",
+            "want": "the declaration matches what was confirmed",
+            "note": fix})
     return out
 
 

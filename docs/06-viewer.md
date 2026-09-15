@@ -47,7 +47,11 @@ Both views stack to one column below ~980 px. Everything must work at 400 px wid
 ## Overhead view
 
 - Field to scale: 120 × 53⅓ yd, endzones tinted, 10-yard lines, brick marks, an
-  "attacking →" label so orientation is never in doubt.
+  "attacking →" label that says where it got the arrow from — `confirmed` by a
+  human, `derived` from a confirmation elsewhere in the same quarter, or
+  `unverified`, dimmed, when neither (AD-10, `docs/30` § 2.0). Underneath it, the
+  control that settles it: one click says which way, and it settles the whole
+  quarter. It rides out with the tags in `events.json`.
 - **The camera frustum**, dashed, with everything outside it scrimmed. This is the most
   important element on the page.
 - Players per the evidence conventions in `docs/05-uncertainty.md`.

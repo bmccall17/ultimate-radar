@@ -6,10 +6,15 @@ disc. This is the summary and, more usefully, **the list of things that have to
 pass**.
 
 ```bash
-python -m tools.gates            # every gate, every possession, one command
+python -m tools.gates                       # every gate, every possession
+python -m unittest discover -s tests -t .   # the one pure-logic module, on invented data
 ```
 
-It exits non-zero if anything fails. Some things fail on purpose; § 3 says which.
+The gates exit non-zero if anything fails. Some things fail on purpose; § 3 says
+which. `tests/` holds stdlib `unittest` cases for `ur/direction.py` and nothing
+else: everything else in the pipeline is graded against real footage, which the
+gates do, and a resolver that has to turn two contradictory human statements into
+a refusal cannot be graded that way — the contradiction has to be invented.
 
 ---
 
@@ -38,9 +43,10 @@ median frame with a located player on it. That gap between "passes M1" and
 
 ### 2.0 The attacking direction has never actually been measured
 
-`ur.possess` fits the drift of the offence along x and `clip.json` records the
+`ur.possess` fit the drift of the offence along x and `clip.json` recorded the
 answer as `attacking_direction`. On 2026-09-15 that was checked across every
-possession at once for the first time, and it does not survive.
+possession at once for the first time, and it does not survive. **The finding
+stands; what was built on top of it is at the end of this section.**
 
 **Two teams on the field attack opposite endzones.** That statement needs no rule
 about when ends are switched, who receives the pull, or how quarters work. So
@@ -94,6 +100,17 @@ scored, and both goal lines are at known x (20 and 100). A possession cut to
 *include* its score locates the attacking endzone directly, with no inference.
 `docs/29` avoided cutting through scores because endzone framing breaks the
 calibration — that trade is now worth revisiting for one deliberate cut.
+
+**What was done instead, 2026-09-15 (AD-10, issue #5).** The measurement was not
+replaced with a better measurement; the fact was moved to where it can be stated.
+Direction is held once per `(quarter, team)`, a human confirms it against the
+footage — one click under the overhead, or `python -m ur.direction confirm` — and
+`ur/direction.py` resolves the rest: the other team attacks the other end, and
+every possession in the quarter follows. The observation is written into that
+possession's `events.json`; the fact is stored nowhere, so no two copies of it can
+disagree. `clip.json:attacking_direction` went back to being a declaration,
+checked against the confirmation rather than feeding it. § 3 has the gates and
+the count of quarters actually confirmed, which is the number to read.
 
 ### 2.1 An acceptance number is about the frames it sampled
 
@@ -210,7 +227,7 @@ known-unpublished possession or a documented open problem.
 and on camera motion — they have not been through the impossible-motion check and
 are not published.
 
-### The published site — 24 checks, all passing, and they were not before
+### The published site — 39 checks, all passing, and they were not before
 
 `tools/audit_site.py`, folded into `python -m tools.gates`. Every other gate in
 this document reads `work/`; these read `docs/`, which is the only thing anybody
@@ -219,7 +236,7 @@ defects that the whole suite was green through.
 
 | gate | threshold | where it comes from |
 |---|---|---|
-| site is current | published events == `work/<id>/events.json` | AGENTS rule 7 — the live site is the deliverable |
+| site is current | published events **and confirmed direction** == `work/<id>/events.json` | AGENTS rule 7 — the live site is the deliverable. The direction was added with AD-10: `make_view` resolves it into the page at build time, so a confirmation made after the last build is one the reader never sees, and the page goes on saying `unverified` over something somebody had settled |
 | published tags are used | tags naming a player produce disc frames sourced `human` | p0003 and p0009 published 14 and 12 human tags while every disc frame was still `inferred`. `ur.disc` had not been re-run, so the tagging bought **nothing** on the site. Fixed: 0 → 485 and 0 → 405 frames |
 | no borrowed gate numbers | numeric gates only on the possession they were measured on | every page shipped p0001's `per_player_recall: 0.9744` in its data. `measured_on` labelled it honestly, but anything reading `possession.js` still got p0001's recall for p0003. The numbers now travel only with their own possession |
 | no disc drawn from the failed inference | every drawn frame rests on a human tag | already true, now locked in — the viewer correctly suppressed all 385 `predicted` frames on p0009 |
@@ -236,18 +253,47 @@ tagging requires `ur.disc` **then** `ur.possess`. Running them the other way
 round silently republishes the old disc, which is exactly what the "published
 tags are used" check caught me doing.
 
-### Across possessions — three of four quarters fail
+### Across possessions — nothing claimed, and nothing contradicted
 
 | gate | threshold | where it comes from |
 |---|---|---|
-| Q*n*: opposite teams disagree | opposite drift signs | § 2.0. Two teams cannot attack the same endzone at once |
+| Q*n*: opposite teams disagree | confirmed directions point opposite ways | § 2.0. Two teams cannot attack the same endzone at once |
+| *n* : *m* quarters confirmed | reported, not gated | the queue, not a defect |
+| p*NNNN*: declared direction holds | `clip.json` matches what was confirmed | AD-10 |
 
-**Failing and NOT expected to: Q1, Q2 and Q3.** This is § 2.0 and it is the
-session's largest correction rather than a tuning problem. Note what it replaced:
-this document previously called p0001 *disputed* and p0010 *wrong* on the
-strength of the per-possession drift check. Both of those readings are withdrawn
-— not because the possessions are fine, but because the check that condemned
-them does not measure what it claimed to.
+**All passing, and read the second line before believing the first.** These
+checks used to be fed the **drift** of the offence, and Q1, Q2 and Q3 failed on
+it. That failure was real and its cause was § 2.0: the drift is not the
+attacking direction, so a contradiction between two drifts was never a
+contradiction about direction. AD-10 moved the fact to a `(quarter, team)` and
+put a human in front of it, and what these check now is whether two people who
+watched the same quarter disagree.
+
+So a quarter nobody has confirmed passes, because it claims nothing. **The number
+that says how much of the job is done is `...quarters confirmed`**, and today it
+is **0 of 4**. Until it moves, every published page says `unverified` over its
+arrow and the `Deep cover` card stays a separation rather than a conclusion —
+which is the honest state, not a broken one.
+
+Confirming is one click under the overhead, or:
+
+```bash
+python -m ur.direction confirm work/p0003 --direction=+x   # note the =, -x is not a flag
+python -m ur.direction                                     # what is known now
+```
+
+One confirmation per quarter is the whole ask: the other team attacks the other
+end, and every possession in that quarter follows — including ones not yet cut.
+A direction reached that way is marked `derived` and never recorded as a
+confirmation of its own, so a second confirmation in the same quarter remains an
+independent check rather than an echo.
+
+Note what this replaced: this document previously called p0001 *disputed* and
+p0010 *wrong* on the strength of the per-possession drift check. Both readings
+are withdrawn — not because the possessions are fine, but because the check
+that condemned them does not measure what it claimed to. `p*NNNN*: declared
+direction holds` is where a wrong `--attacking-direction` gets caught now, and it
+stays silent until the quarter has a confirmation to check against.
 
 ### The disc — both gates fail, and this is the work
 
@@ -272,11 +318,13 @@ was not built against.
    Do it in that order: the current cost is known to be wrong, and a replacement
    tested only on the four spans that disproved the first one would prove
    nothing.
-3. **Settle the attacking direction for the whole game**, which § 2.0 shows is
-   unknown everywhere rather than doubtful in one place. The cheap way is one
-   deliberate cut that *includes* a score: the goal lines are at x = 20 and
-   x = 100, so watching which one the disc crosses names the endzone with no
-   inference. Then `clip.json:quarter` plus one known direction fixes the rest.
+3. **Confirm one direction per quarter.** The surface exists now (AD-10, § 2.0):
+   open a possession, click which way it is attacking under the overhead, and
+   download `events.json` over the one in `work/`. Four clicks for four quarters
+   settles every possession cut and uncut, and it is the difference between the
+   published pages saying `unverified` and saying something. Do Q1 first, from
+   p0003 or p0009 — both are well covered, and confirming **both** of them puts
+   the cross-check to work instead of leaving it a formality.
 
 ## 5. Parked deliberately
 
