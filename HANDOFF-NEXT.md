@@ -8,7 +8,7 @@ python -m tools.gates
 ```
 
 Every gate, every possession, one command, non-zero exit if anything fails.
-Seventeen checks fail today and `docs/30` § 3 says which are deliberate.
+Seventeen checks fail today (all 24 site checks pass) and `docs/30` § 3 says which are deliberate.
 
 ## The one-paragraph version
 
@@ -50,7 +50,8 @@ ground truth, four identities on p0001, scored the solver **0 of 4**.
 ```bash
 python -m tools.scout goals --out eval/m9/goals.json    # find candidates
 python -m tools.pipeline work/pXXXX --from calibrate    # the whole chain
-python -m tools.gates                                   # every gate
+python -m tools.gates                                   # every gate, site audit included
+python -m tools.audit_site                              # just the published site
 python -m ur.spans work/pXXXX                           # who threw to whom
 python -m tools.disc_score work/pXXXX --out eval/m9     # score against tags
 python -m tools.disc_loop work/pXXXX                    # what to ask next
