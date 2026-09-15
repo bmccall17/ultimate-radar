@@ -649,6 +649,10 @@ const teamColour = t => t===OFF ? css("--sol") : css("--chill");
 const ONVID = "rgba(255,255,255,.92)";   // near-white stroke
 const HALO  = "rgba(10,14,10,.55)";      // dark halo under it
 const WARN_ONVID = "#ffcf5c";
+// The disc hue as a literal. Same reason as ONVID above: this canvas sits on
+// floodlit grass, not on the page, so a CSS variable that looks right in the UI
+// can be invisible here and a theme change must not be able to erase it.
+const DISC_ONVID = "#ff7a45";
 
 if (D.video_src) { vid.src = D.video_src; vid.hidden = false; }
 
@@ -747,7 +751,7 @@ function drawSyntheticScene(P,s){
       // The same ring as the overhead, laid on the ground at their feet rather
       // than round their body, so it does not cover the player you are trying to
       // identify. Dashed on a solved holder, for the reason in drawFormation.
-      g.save(); g.strokeStyle=css("--disc"); g.lineWidth=Math.max(1.4,w*0.12);
+      g.save(); g.strokeStyle=DISC_ONVID; g.lineWidth=Math.max(1.4,w*0.12);
       if(!camHolderSure) g.setLineDash([w*0.22,w*0.22]);
       g.beginPath(); g.ellipse(c[0],c[1],w*0.95,w*0.37,0,0,7); g.stroke(); g.restore();
     }
@@ -758,7 +762,7 @@ function drawSyntheticScene(P,s){
   if(discTrusted(f)){ const d=D.disc[f], dp=gp(d[0],d[1],d[2]);
     if(dp){ g.save(); g.translate(dp[0],dp[1]);
       const r=Math.max(2,900/dp[2]*0.36)*s;
-      g.fillStyle=css("--disc"); g.beginPath(); g.ellipse(0,0,r,r*0.42,0,0,7); g.fill();
+      g.fillStyle=DISC_ONVID; g.beginPath(); g.ellipse(0,0,r,r*0.42,0,0,7); g.fill();
       g.strokeStyle="rgba(20,30,20,.55)"; g.lineWidth=Math.max(.7,r*0.13); g.stroke();
       g.restore(); } }
   const vg=g.createRadialGradient(W/2,H/2,H*0.35,W/2,H/2,H*0.95);
@@ -838,6 +842,19 @@ function drawCamera(){
     octx.setLineDash(ANCHORED.has(st)?[]:[5*k,4*k]);
     if(ringPath(octx,P,xy[0],xy[1],0.95,s)) octx.stroke();
     octx.setLineDash([]);
+    // Whoever has the disc gets a second, wider ring in the disc's own hue, so
+    // the same colour answers "where is the disc" on the video and on the
+    // overhead. Halo first, as everything on this canvas does. Dashed when the
+    // holder was solved rather than named - docs/27 puts that at 31 % held out.
+    if(p.id===holder){
+      octx.save();
+      if(discHolderSolved(S.f)) octx.setLineDash([5*k,4*k]);
+      if(ringPath(octx,P,xy[0],xy[1],1.55,s)){
+        octx.strokeStyle=HALO; octx.lineWidth=5*k; octx.stroke();
+        octx.strokeStyle=DISC_ONVID; octx.lineWidth=2.6*k; octx.stroke();
+      }
+      octx.restore();
+    }
     if(ANCHORED.has(st)){ octx.fillStyle=col; octx.beginPath();
       octx.arc(u,v,2.8*k,0,7); octx.fill(); }
     if(st==="provisional"){ octx.strokeStyle=col; octx.lineWidth=1.3*k;
