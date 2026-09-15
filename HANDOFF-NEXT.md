@@ -1,74 +1,63 @@
-# Next session — start here
+# Start here
 
-Written 2026-09-14 at the end of a long session. `docs/29-scouting-possessions.md`
-is the full write-up of what was built; this is only what is *not done*.
-
-## Goal 2 is the open one, and it is blocked on twenty keystrokes
-
-Everything around the disc is built, measured and pushed. Nothing has been
-measured against a human, because there are no tags yet.
-
-**What to ask for:** open <https://bmccall17.github.io/ultimate-radar/> (p0001),
-press `t` on the frame each throw is released and `c` on the frame it is caught.
-**No player selection needed** — that changed this session and it matters:
-identifying a jersey at this range is the thing M5's OCR failed at, and the
-moment is the half a person can actually see. Then **Download events** and put
-the file at `work/p0001/events.json`.
-
-**What happens then, in order:**
+**Read `docs/30-findings-and-gates.md`.** It is the state of the project, the
+findings, and the list of things that have to pass. Then:
 
 ```bash
-python -m ur.spans work/p0001        # who threw to whom, with a margin per span
-python -m ur.disc  work/p0001        # folds it in; flights become `interpolated`
-python -m tools.disc_score work/p0001 --out eval/m9   # the first ground truth
-python -m tools.disc_loop  work/p0001                 # what to tag next, or stop
-python -m ur.possess work/p0001 && python -m tools.build_site   # AGENTS rule 7
+python -m tools.gates
 ```
 
-- `tools/disc_score.py` holds out every third tag over all three folds and
-  scores the unaided inference against them. **This is the first ground truth in
-  the project.** Expect it to be bad — `docs/27` says so.
-- `tools/disc_loop.py` refuses to stop without a threshold calibrated on
-  held-out tags, which is `docs/27`'s first trap. Its second trap — never feed
-  the solver's own output back as a constraint — is enforced in code: only
-  `source: "human"` events are ever constraints.
-- **The bar** (from the original brief): at least one throw where "Separation at
-  release" shows a number not labelled `inferred`. With timing-only tags the
-  receiver is *solved*, so the card shows a number capped at `partial` and says
-  "worked out from the tracking, not tagged". **Clearing the bar as written
-  needs a tag that names the receiver** — select the player, then `c`.
+Every gate, every possession, one command, non-zero exit if anything fails.
+Sixteen checks fail today and `docs/30` § 3 says which are deliberate.
 
-## Also open
+## The one-paragraph version
 
-- **p0009 at 25.8 s, p0003 at 32.6 s.** Not a calibration fault: the camera
-  follows the throw and only 5-8 of 14 players are anchored, the rest frozen at
-  their last seen position. A viewer presentation question, not a pipeline one.
-  Nothing proposed yet.
-- **The `Space` toggle.** It is `docs/06`'s spec - a nearest-player Voronoi over
-  the whole pitch - and it does not inform, because it colours 40-yard cells
-  over grass nobody can contest and ignores that players are moving. The version
-  that answers a question is time-to-reach. Player speed is measured across six
-  possessions and 18,246 observed steps: p50 3.52, p90 6.81, p99 10.47 yd/s.
-  Owner has parked this deliberately.
-- **`docs/` is 222 MB** and each published possession adds ~35 MB to git history
-  permanently. Re-encoding the published clips smaller would roughly quarter it.
-- **Four possessions cut and unpublished** - p0006, p0007, p0008, p0010 - all
-  passing M1 acceptance, none with a median frame that has a located player on
-  it. p0008 passes at 0.077 yd, better than anything published, on 35 % of its
-  frames.
-- **`docs/08` #5, the field length**, is still unresolved and still the
-  highest-leverage unknown. Six calibrated possessions now exist, several
-  endzone-framed, which is what that risk says it needs.
+Six possessions are published and all six pass every pipeline gate. The
+calibration work is done and measured: the halfway line turns out to be the whole
+game, and `ur/calibrate/mosaic.py` plus three independent checks now recover the
+frames that have none. **Goal 2 is the open one.** The disc tagging surface,
+the span solver, the scorer and the loop are all built and wired — and the first
+ground truth, four identities on p0001, scored the solver **0 of 4**.
+
+## The next three things
+
+1. **Tag p0009.** It is the best remaining possession (86 % calibrated, 9 of 14
+   in shot). Open <https://bmccall17.github.io/ultimate-radar/p0009/>, press `t`
+   on each release and `c` on each catch — **no player selection needed** — then
+   go back and name the holder on each span by selecting the player and pressing
+   `c` again. Download events, drop at `work/p0009/events.json`.
+
+   That is what `tools/gates.py` needs for its two disc gates: eight graded spans
+   across at least two possessions, so a fix cannot be fitted to the cases it is
+   tested on.
+
+2. **Then rebuild the span cost around flight speed.** The three true throws on
+   p0001 fly at 11.0, 11.0 and 11.2 yd/s over a 2.7x range of distance;
+   `ur/spans.py` uses speed only as a 2-40 yd/s admissibility gate and ranks on
+   stillness, which measurement says prefers the wrong answer. Order matters:
+   get the second possession's tags first.
+
+3. **Settle p0001's attacking direction.** Declared `+x`, the play drifts
+   -8.4 yd, and the overhead now says "disputed" on the landing page.
+
+## Commands
+
+```bash
+python -m tools.scout goals --out eval/m9/goals.json    # find candidates
+python -m tools.pipeline work/pXXXX --from calibrate    # the whole chain
+python -m tools.gates                                   # every gate
+python -m ur.spans work/pXXXX                           # who threw to whom
+python -m tools.disc_score work/pXXXX --out eval/m9     # score against tags
+python -m tools.disc_loop work/pXXXX                    # what to ask next
+python -m tools.build_site                              # AGENTS rule 7
+```
 
 ## Two things not to relearn
 
 - **No still-based pre-filter predicts whether a possession will calibrate.**
-  Three were tried; correlation +0.11 across nine known outcomes, and the
-  best-scoring candidate of all 49 calibrates at 35 %. Screening means running
-  the calibration: six minutes, six wide.
-- **Measure the outcome, not the log.** Three fixes this session printed success
-  while leaving the defect in place - a loop bound capped at six iterations that
-  reported "dropped 6" for every possession alike, an acceptance cliff
-  calibrated on the wrong population, and a check comparing against neighbours
-  that had already been removed. All three were caught by re-measuring the
-  artefact afterwards.
+  Three were tried; r = +0.11 over nine known outcomes, and the best-scoring
+  candidate of all 49 calibrates at 35 %. Screening means running the
+  calibration: six minutes, six wide.
+- **Measure the artefact, not the log.** Three fixes in this session printed
+  success while leaving the defect in place. All three were caught by
+  re-measuring the output afterwards.
