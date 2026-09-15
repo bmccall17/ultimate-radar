@@ -183,6 +183,29 @@ def audit(pid: str) -> list[dict]:
         "an unnamed span between two named ones leaves the disc unattributed "
         "across all three; name the holder and the hole closes")
 
+    # Reported, not gated: the longest stretch INSIDE the tagged region where a
+    # reader sees no disc at all. The check above bounds an impossible flight on
+    # physics; this one has no principled threshold, and picking a number that
+    # happened to fail p0003 would be the tuning trap in reverse. It is here
+    # because it is the quantity the reader actually experiences, and because
+    # naming a holder does not supply it - knowing WHO has the disc does not say
+    # WHERE it is. p0003's 21.27-26.33 s span is named O2 and still mostly blank,
+    # because the tracker observes O2 on 6 of its 77 frames.
+    tagged = [e for e in doc.get("events", []) if e.get("source") == "human"]
+    if tagged:
+        a = int(round(min(e["t"] for e in tagged) * fps))
+        b = min(int(round(max(e["t"] for e in tagged) * fps)), len(states))
+        run = blind = 0
+        for i in range(a, b):
+            drawn = states[i] in ("confirmed", "interpolated") or (
+                states[i] == "predicted" and i < len(sources)
+                and sources[i] == "solved")
+            run = 0 if drawn else run + 1
+            blind = max(blind, run)
+        add("...longest blind stretch", True, f"{blind / fps:.1f} s",
+            "reported, not gated",
+            "")
+
     return out
 
 
