@@ -502,15 +502,22 @@ without anything claiming to be measured that is not.
 
 ## Four that are not published, and why
 
-| | offence | calibration accepts | median roster in shot |
-|---|---|---|---|
-| p0006 | Wind Chill | 27 % | 0 of 14 |
-| p0007 | Sol | 39 % | 0 of 14 |
-| p0008 | Sol | 44 % | 0 of 14 |
-| p0010 | Wind Chill | 32 % | 0 of 14 |
+| | offence | calibration accepts | median roster in shot | blank frames | M1 mean | M1 max |
+|---|---|---|---|---|---|---|
+| p0006 | Wind Chill | 27 % | 0 of 14 | 53 % | 0.328 | 1.480 |
+| p0007 | Sol | 39 % | 0 of 14 | 52 % | 0.241 | 0.797 |
+| p0008 | Sol | 35 % | 0 of 14 | 52 % | 0.077 | 0.454 |
+| p0010 | Wind Chill | 27 % | 0 of 14 | 60 % | 0.199 | 0.816 |
 
-The mosaic lifts all four and not nearly enough. The median frame still has no located
-player on it. A page that is blank for half its scrub bar is not a possession.
+**All four pass M1 acceptance, and p0008 passes it better than any published possession**
+at 0.077 yd. That is the whole argument of "M1 acceptance is a measurement of the frames
+that already passed the confidence gate", restated: on the third of p0008 that calibrates,
+the calibration is excellent. The median frame still has no located player on it, and a
+page that is blank for half its scrub bar is not a possession.
+
+p0008 is also where the previous section's mistake showed up loudest. Before the
+known-geometry gate it read 0.983 yd mean and **25.129 yd max**, because a single refit had
+locked onto the wrong paint. Afterwards, 0.077 and 0.454.
 
 ## The pre-filter is dead, and screening is a calibration run
 
