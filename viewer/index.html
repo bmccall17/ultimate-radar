@@ -1468,6 +1468,22 @@ function addTag(type){
   // That happened on the whole back half of the first p0009 tagging pass, and
   // nobody throws to themselves - so catch it here, where it costs one keystroke
   // to fix, rather than in ur.spans after the file has been handed over.
+  // A marker you can click is not the same as a player somebody saw. Where a
+  // slot is dead-reckoned its marker keeps moving on the prediction, and on
+  // p0003 one drifted off the field entirely and came to rest on a player from
+  // the OTHER team - who was then tagged as D5, which read downstream as a
+  // turnover in a possession that had none. The tag may still be right about who
+  // it is; what it cannot be is evidence, so it is named as a guess.
+  if(S.sel){
+    const st = (BY[S.sel]||{}).state ? BY[S.sel].state[S.f] : null;
+    if(st && st!=="observed" && st!=="confirmed"){
+      flashTag(`<b>${S.sel} is <code>${st}</code> on this frame, not observed.</b>
+        That marker is where the tracker <i>predicts</i> ${S.sel} is, and a predicted
+        marker can drift onto somebody else. Tagged anyway and flagged
+        <code>unobserved</code> — if you are going by the picture rather than the
+        label, deselect and tag the timing alone.`);
+    }
+  }
   const prev = TAGS.length ? TAGS[TAGS.length-1] : null;
   if(type==="catch" && S.sel && prev && prev.type==="throw" && prev.player===S.sel){
     flashTag(`<b>${S.sel} cannot catch their own throw.</b> The selection is still
@@ -1475,7 +1491,10 @@ function addTag(type){
       catch unnamed — a timing-only catch is useful and a wrong name is not.`);
     return;
   }
-  TAGS.push({t, type, player:S.sel || null, f:S.f, source:"human"});
+  const selState = S.sel && BY[S.sel] && BY[S.sel].state ? BY[S.sel].state[S.f] : null;
+  const shaky = !!(S.sel && selState && selState!=="observed" && selState!=="confirmed");
+  TAGS.push({t, type, player:S.sel || null, f:S.f, source:"human",
+             ...(shaky ? {named_on:selState} : {})});
   TAGS.sort((a,b)=>a.t-b.t);
   renderTags(); draw();
 }
@@ -1509,7 +1528,8 @@ document.getElementById("tagDl").onclick = () => {
     possession_id:D.possession.id,
     note:"source is 'human' or 'suggested'. Tagged in the viewer; drop this in the "
        + "possession directory and re-run `python -m ur.disc`.",
-    events:TAGS.map(({t,type,player,source})=>({t,type,player,source}))},null,1)],
+    events:TAGS.map(({t,type,player,source,named_on})=>(
+      named_on ? {t,type,player,source,named_on} : {t,type,player,source}))},null,1)],
     {type:"application/json"});
   const u=URL.createObjectURL(blob), a=document.createElement("a");
   a.href=u; a.download="events.json"; a.click(); URL.revokeObjectURL(u);

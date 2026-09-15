@@ -376,3 +376,54 @@ endzone to show a score, which is exactly the framing `docs/29` measured as
 breaking the calibration. **Scores are systematically the least observable moments
 in the footage**, which is worth knowing before planning any measurement around
 one — including the direction cut proposed in `docs/30` § 2.0.
+
+### Two of the findings above are withdrawn, and the reason matters more than they did
+
+The tagger checked p0003 against the footage. Both of the things "p0003 exposed"
+were mine, not the data's:
+
+- **There is no turnover.** The D5 catch-and-throw at 31.40–32.73 s is a Sol
+  player carrying a Wind Chill label. `clip.json`'s "no turnover" note was right
+  and the doubt cast on it here was wrong.
+- **There are no untagged throws.** The two "chain breaks" are tracking identity
+  errors. At 5.67 s O1 catches; by 8.73 s the tracker has lost O1 and put the same
+  person under the label O5, so the tagger — clicking the same human both times —
+  produced "O1 caught, O5 threw". At 21.27–26.33 s the player is jersey #20 and is
+  *neither* O1 nor O5; no slot names them correctly at all.
+
+**What that means is the important part: the identity ground truth is not
+independent of the tracker.** A tagger selects a person in the picture and the
+name they get back is the tracker's name for that person. Where the tracker's
+identity is wrong the tag is wrong, and the solver is being graded against its own
+upstream's mistake. On a stretch where two slots have been swapped, "which slot
+holds the disc" is not a well-posed question, and no cost function can be right
+about it.
+
+**The mechanism, which is fixable.** At 31.40 s the D5 marker is `interpolated`,
+by 31.80 s `predicted`, and its dead reckoning walks it to y = −3.4 — off the
+field — while the kit classifier, which never sees a prediction, reports 0.99 all
+the way through. The kit model did not fail. A marker that is only a prediction
+drifted onto a real player of the other team and was clickable, and the tag it
+produced was indistinguishable from a tag on somebody observed. The viewer now
+says so at tag time and stamps such a tag `named_on: <state>`.
+
+**Three things were tested against this and none of them rescued the accuracy.**
+
+| | |
+|---|---|
+| corrected tags, all graded spans | 8 / 17 = 47 % |
+| corrected, held out (p0003 + p0009) | 4 / 13 = 31 % |
+| held out, restricted to spans whose truth names an **observed** player | **3 / 9 = 33 %** |
+
+The last row is the one that settles it. If the failures were caused by tags on
+dead-reckoned ghosts, grading only the trustworthy spans would lift the number; it
+does not move it. p0003 scores **0 / 3** on precisely the spans where the truth is
+solid. **The model is wrong about spans where everything is observed and named
+correctly**, which is what the 33 % means and why no amount of tag hygiene will
+fix it.
+
+And a check that came to nothing, recorded so it is not retried: all three
+mislabelled stretches fall inside a flagged `unverified_stretch`, which sounds
+like the issue detector predicting them until you notice that **issues cover 83 %
+of p0003's timeline**. Three hits at an 83 % base rate is p ≈ 0.57. It predicted
+nothing.
