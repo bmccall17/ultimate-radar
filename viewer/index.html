@@ -918,8 +918,20 @@ function drawRadar(){
       rctx.moveTo(cx,cy-a); rctx.lineTo(cx,cy+a); rctx.stroke();
     }
   }
+  // Which way the offence is going, and whose claim that is. This was a
+  // hardcoded "attacking →" with a right arrow whatever the possession said,
+  // so on p0004 and p0005 - which attack -x - it pointed at the wrong endzone.
+  // It now reads the possession, names the team, and says when the pipeline's
+  // own check disagrees with the file rather than picking a side silently.
   rctx.font=`${10*RK}px ui-sans-serif,system-ui`;
-  rctx.fillText("attacking →", rx(FL/2)-22*RK, ry(FW)-3*RK);
+  const dir = D.possession.attacking_direction==="+x" ? 1 : -1;
+  const chk = D.possession.attacking_direction_check || {};
+  const team = (D.teams && D.teams[OFF] && D.teams[OFF].name) || OFF;
+  let lab = dir>0 ? `${team} attacking →` : `← ${team} attacking`;
+  if(chk.agrees===false) lab += "  (disputed — the play moves the other way)";
+  else if(chk.agrees===null || chk.agrees===undefined) lab += "  (unchecked)";
+  const wdt = rctx.measureText(lab).width;
+  rctx.fillText(lab, rx(FL/2)-wdt/2, ry(FW)-3*RK);
 
   if(S.pin!==null) drawFormation(S.pin, true);
   if(S.trails) drawTrails();
