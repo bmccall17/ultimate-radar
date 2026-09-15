@@ -23,18 +23,21 @@
   --sol:#2f3a44; --sol-fill:#e9edf2; --chill:#2f6fd0; --chill-fill:#dbe7fa;
   --warn:#8a5a00; --warn-bg:#fdf3dc; --ok:#2f6b3a; --field:#e7efe1;
   --field-line:#b9c7ae; --scrim:rgba(246,247,244,.72); --sel:#b8860b;
+  --disc:#d93f0b;
 }
 :root[data-theme=dark]{
   --bg:#11140f; --panel:#181c15; --line:#2b3126; --ink:#e7eae2; --dim:#8e9785;
   --sol:#eef1ea; --sol-fill:#343b31; --chill:#5b9bf0; --chill-fill:#20304a;
   --warn:#e0b05a; --warn-bg:#382d12; --ok:#7bc389; --field:#1d271a;
   --field-line:#3c4a36; --scrim:rgba(17,20,15,.72); --sel:#d8a33a;
+  --disc:#ff7a45;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){
   --bg:#11140f; --panel:#181c15; --line:#2b3126; --ink:#e7eae2; --dim:#8e9785;
   --sol:#eef1ea; --sol-fill:#343b31; --chill:#5b9bf0; --chill-fill:#20304a;
   --warn:#e0b05a; --warn-bg:#382d12; --ok:#7bc389; --field:#1d271a;
   --field-line:#3c4a36; --scrim:rgba(17,20,15,.72); --sel:#d8a33a;
+  --disc:#ff7a45;
 }}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);
@@ -728,6 +731,8 @@ function drawSyntheticScene(P,s){
   // Bodies come from truth, not from est. The overlay is the estimate; where the two
   // disagree you are looking at the tracker being wrong, which is the point.
   const at_=p=>(p.truth&&p.truth[f])||p.est[f];
+  const camHolder = discHolder(f);
+  const camHolderSure = camHolder && !discHolderSolved(f);
   const order=[];
   for(const p of PL){ const xy=at_(p); if(!xy) continue;
     const c=gp(xy[0],xy[1],0); if(c) order.push({p,xy,c}); }
@@ -738,6 +743,14 @@ function drawSyntheticScene(P,s){
     const w=h*0.30, J=KIT[p.team]||KIT.sol;
     g.save(); g.globalAlpha=.32; g.fillStyle="#0B140B";
     g.beginPath(); g.ellipse(c[0],c[1],w*0.72,w*0.28,0,0,7); g.fill(); g.restore();
+    if(p.id===camHolder){
+      // The same ring as the overhead, laid on the ground at their feet rather
+      // than round their body, so it does not cover the player you are trying to
+      // identify. Dashed on a solved holder, for the reason in drawFormation.
+      g.save(); g.strokeStyle=css("--disc"); g.lineWidth=Math.max(1.4,w*0.12);
+      if(!camHolderSure) g.setLineDash([w*0.22,w*0.22]);
+      g.beginPath(); g.ellipse(c[0],c[1],w*0.95,w*0.37,0,0,7); g.stroke(); g.restore();
+    }
     g.fillStyle=J.bot; g.fillRect(c[0]-w/2,c[1]-h*0.46,w,h*0.46);
     g.fillStyle=J.top; g.fillRect(c[0]-w/2,c[1]-h*0.86,w,h*0.42);
     g.fillStyle="#C99A73"; g.beginPath(); g.arc(c[0],c[1]-h*0.92,h*0.11,0,7); g.fill();
@@ -745,7 +758,7 @@ function drawSyntheticScene(P,s){
   if(discTrusted(f)){ const d=D.disc[f], dp=gp(d[0],d[1],d[2]);
     if(dp){ g.save(); g.translate(dp[0],dp[1]);
       const r=Math.max(2,900/dp[2]*0.36)*s;
-      g.fillStyle="#F6F7F2"; g.beginPath(); g.ellipse(0,0,r,r*0.42,0,0,7); g.fill();
+      g.fillStyle=css("--disc"); g.beginPath(); g.ellipse(0,0,r,r*0.42,0,0,7); g.fill();
       g.strokeStyle="rgba(20,30,20,.55)"; g.lineWidth=Math.max(.7,r*0.13); g.stroke();
       g.restore(); } }
   const vg=g.createRadialGradient(W/2,H/2,H*0.35,W/2,H/2,H*0.95);
@@ -956,9 +969,17 @@ function drawRadar(){
   drawFormation(S.f, false);
 
   if(discTrusted(S.f)){
+    // One hue, `--disc`, worn by the disc and by whoever is holding it. docs/05
+    // says form never hue for *uncertainty*, and that still holds - the dashes
+    // below carry the doubt. This hue identifies an object, not a confidence,
+    // which is the one thing a colour is good for here: it lets the eye follow
+    // the disc off one player, through the air, and onto the next.
     const d=D.disc[S.f];
+    rctx.save();
     rctx.beginPath(); rctx.arc(rx(d[0]),ry(d[1]),3*RK,0,7);
-    rctx.fillStyle=css("--ink"); rctx.fill();
+    rctx.fillStyle=css("--disc"); rctx.fill();
+    rctx.strokeStyle=css("--bg"); rctx.lineWidth=1*RK; rctx.stroke();
+    rctx.restore();
   }
 }
 const hatches = new Map();
@@ -1044,6 +1065,12 @@ function clipToUnseen(ctx, f){
 }
 function drawFormation(f, ghost){
   const scale=(radar.width-2*RPAD)/FL;
+  // Who is holding it, if anybody. `discHolder` returns null unless the disc
+  // itself is drawable, so the ring can never outlive the disc - and during a
+  // flight the holder is null by construction, which is what makes the disc
+  // visibly leave one player and arrive at another.
+  const holder = ghost ? null : discHolder(f);
+  const holderSure = holder && !discHolderSolved(f);
   for(const p of PL){
     const xy=at(p,f); if(!xy) continue;
     const st=p.state[f], col=teamColour(p.team);
@@ -1079,9 +1106,22 @@ function drawFormation(f, ghost){
       rctx.beginPath(); rctx.arc(rx(xy[0]),ry(xy[1]),rr+3*RK,0,7); rctx.stroke();
       rctx.setLineDash([]);
     }
+    if(p.id===holder){
+      // Solid when a human named them; dashed when ur.spans worked them out,
+      // which docs/27 measures at 31 % held out. A solid ring there would be
+      // asserting something that is wrong two times in three.
+      rctx.save();
+      rctx.strokeStyle=css("--disc"); rctx.lineWidth=2.4*RK;
+      if(!holderSure) rctx.setLineDash([3*RK,3*RK]);
+      rctx.beginPath(); rctx.arc(rx(xy[0]),ry(xy[1]),rr+5.5*RK,0,7); rctx.stroke();
+      rctx.restore();
+    }
     if(p.id===S.sel&&!ghost){
+      // Pushed out when this player also has the disc, so the two rings read as
+      // two facts rather than one thick smear.
       rctx.strokeStyle=css("--sel"); rctx.lineWidth=2*RK;
-      rctx.beginPath(); rctx.arc(rx(xy[0]),ry(xy[1]),rr+4*RK,0,7); rctx.stroke();
+      rctx.beginPath();
+      rctx.arc(rx(xy[0]),ry(xy[1]),rr+(p.id===holder?9.5:4)*RK,0,7); rctx.stroke();
     }
     rctx.globalAlpha=1;
   }
