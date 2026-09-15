@@ -193,3 +193,89 @@ Two things to get right when it is built:
   symmetrically, which is an assumption wearing a number.
 - **LOOSE is unimplemented.** A disc on the ground after a turn is rare and needs a turnover
   event to bracket it. Nothing in `p0001` needs it.
+
+---
+
+# The first ground truth, 2026-09-14
+
+**Six timing-only tags and four identities on p0001. The span solver got 0 of 4.**
+
+This is the first time anything in this project has been scored against a person
+rather than against physics, which is what the section above said was needed. The
+answer is worse than the section expected.
+
+## What was tagged, and what the solver said
+
+The tagging design changed first, and the change is the reason there are tags at
+all: `t` and `c` with **nobody selected**. The moment is the half a person can
+see; identifying a jersey at this range is the half M5's OCR failed at, reading
+7 % of crops. `ur/spans.py` then solves who from the timing, constrained by the
+chain (the receiver of one throw is the thrower of the next), no self-passes, and
+a disc's speed range.
+
+| span | truth | solved | margin the solver reported |
+|---|---|---|---|
+| 0.00–7.60 s | **O7** | O5 | 0.93 yd |
+| 8.47–9.93 s | **O4 #50** | O1 | 1.58 yd |
+| 11.80–15.87 s | **O5 #5** | O3 | 1.58 yd |
+| 16.53–23.93 s | **O4 #50** | O1 | 1.58 yd |
+
+O7 → O4 → O5 → O4, and the solver said O5 → O1 → O3 → O1. Nothing in common.
+
+## Three things that follow, and only one of them is encouraging
+
+**The emission cost is measuring the wrong thing.** Ranked by "combined path
+length of a candidate and their nearest defender", the true holder comes
+**3rd, 3rd, 3rd and 1st of seven**. Summed over the possession the truth costs
+28.6 yd against the solver's pick at 20.6 — the model does not merely fail to
+separate them, it **actively prefers the wrong answer**. That is not noise to be
+averaged away with more tags. `docs/27` above argued the stillness signal was
+drowned by tracker error and near-stationary pairs; measured against a person, it
+is worse than that.
+
+**The margin is not a confidence, and the loop was going to lean on it.** All
+four wrong answers carry margins of 0.93–1.58 yd, which is the same range a right
+answer would produce. "Ask where the margin is thinnest" — the whole of step 4 —
+rests on a quantity that has now been observed to be uninformative on the only
+four cases with truth. It is not calibrated and must not be presented as though
+it were.
+
+Note the fourth span especially: the truth **ranked first on emission** and the
+solver still picked O1, because the chain had already committed to a wrong
+holder upstream. The chain constraint is real and it propagates early errors to
+the end.
+
+## The encouraging one: a disc flies at one speed
+
+The three true throws:
+
+| throw | | distance | flight | speed |
+|---|---|---|---|---|
+| 7.60 s | O7 → O4 | 9.5 yd | 0.87 s | **11.0 yd/s** |
+| 9.93 s | O4 → O5 | 20.5 yd | 1.87 s | **11.0 yd/s** |
+| 15.87 s | O5 → O4 | 7.5 yd | 0.67 s | **11.2 yd/s** |
+
+Over a 2.7× range of distance, the speed is constant to within 2 %. Every
+endpoint is `observed`, so these are measurements rather than dead reckoning.
+
+The solver's own picks, by contrast, imply 11.3, **2.0** and 8.0 yd/s — and 2.0
+is precisely the floor of the admissible band, meaning the penalty was pushing
+against that pair and the solver took it anyway because the emission cost told
+it to.
+
+**So the speed was used as a wide gate when it should have been the signal.**
+`FLIGHT_SPEED_YD_S = (2, 40)` only rules out the absurd. A cost that *prefers*
+assignments whose implied speeds are consistent — with each other and with
+~11 yd/s — would have rejected the middle pick outright. That is the change to
+make, and it is grounded in three measurements rather than a parameter sweep.
+
+n = 3 throws on one possession. It is a striking regularity and it is not yet a
+constant; the next possession's tags either confirm it or do not.
+
+## What this does not undermine
+
+The tagged moments themselves are worth exactly what they claimed. With the four
+identities supplied, p0001 now carries **181 `confirmed` disc frames and 48
+`interpolated` flights**, and the Mark and Separation-at-release cards read off
+a holder a human named. The tagging surface and the round trip work. It is the
+*inference* between tags that has now been measured and failed.
