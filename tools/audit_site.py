@@ -203,7 +203,7 @@ def audit(pid: str) -> list[dict]:
             run = 0 if drawn else run + 1
             blind = max(blind, run)
         add("...longest blind stretch", True, f"{blind / fps:.1f} s",
-            "reported, not gated",
+            "reported, not gated - issue #8",
             "")
 
     return out

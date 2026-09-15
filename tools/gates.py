@@ -67,6 +67,9 @@ ISSUE = {
     # The unnamed span is the jersey-#20 player, who has no correct slot
     # anywhere in p0003 - the same root cause as #4, not a separate problem.
     "disc not lost for long": 4,
+    # Reported rather than gated today, so it never fails and never shows a
+    # number here - the mapping is so the ticket is findable if it ever does.
+    "...longest blind stretch": 8,
     "median roster in shot": 6,
     "frames with nothing at all": 6,
     "camera motion is possible": 6,
