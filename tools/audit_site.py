@@ -18,6 +18,14 @@ two of those three. The checks below are the findings turned into tests.
 the problems; a string match against rendered HTML is not the test, because the
 first version of that flagged the phrase "the huck is on" as a live claim when it
 survived only inside a code comment. What a page *asserts* lives in its data.
+
+**One check breaks that rule, and it had to.** Five pages printed `Recall 0 %
+and sigma containment 0 %` off fields that were `null`, because
+`Math.round(null * 100)` is `0`. The data was right and said "unmeasured"; the
+rendering invented the zero. No amount of reading the fields can see that, so
+`no unmeasured percentage printed` runs the page's own sentence under node and
+reads the string it produces - not a Python copy of the formatting, which would
+only ever agree with itself. `tools/gate_sentence.py` carries the machinery.
 """
 
 from __future__ import annotations
@@ -30,6 +38,7 @@ import sys
 from pathlib import Path
 
 from tools import checks as C
+from tools import gate_sentence as GS
 
 SITE = Path("docs")
 WORK = Path("work")
@@ -53,9 +62,16 @@ OFF_FIELD_LIMIT_YD = 5.0
 MAX_DRAWN_FLIGHT_S = 5.0
 
 
+def site_path(pid: str, name: str) -> Path:
+    """Where a published file for `pid` lives. p0001 is the landing page, so its
+    folder is `docs/` itself and every other possession gets a subdirectory -
+    a rule that was written out twice before it was written down once."""
+    return (SITE if pid == "p0001" else SITE / pid) / name
+
+
 def published(pid: str) -> dict | None:
     """Read a published possession back out of the site, as a reader's browser does."""
-    p = SITE / "possession.js" if pid == "p0001" else SITE / pid / "possession.js"
+    p = site_path(pid, "possession.js")
     if not p.exists():
         return None
     txt = p.read_text(encoding="utf-8")
@@ -163,6 +179,58 @@ def audit(pid: str) -> list[dict]:
         f"measured_on = {on!r}; numbers present: {carried or 'none'}",
         "numbers only on the possession they were measured on",
         "another possession's tracker numbers are readable off this page")
+
+    # ---- C2. ...nor prints one for a measurement nobody took -----------------
+    # C reads the fields; these read what the page says about them, and they are
+    # two different facts. C was green on all five pages that printed a rounded
+    # `0 %` for a null, because the fields were right and the formatter was not.
+    # docs/30 § 2.7 carries the finding; tools/gate_sentence.py carries the
+    # machinery and the argument for rendering rather than re-deriving.
+    idx = site_path(pid, "index.html")
+    if not idx.exists():
+        # Silence here would be the worst outcome: the rows would vanish from
+        # the run and the total would shrink by one with nobody the wiser.
+        add("no unmeasured percentage printed", False, f"no {idx}",
+            "the site carries a page to read",
+            "possession.js is published and index.html is not - the build is "
+            "half-done, run tools.build_site")
+    else:
+        try:
+            html = idx.read_text(encoding="utf-8")
+            said = GS.render(html, doc)
+            loose = GS.invented(html, doc)
+            shown = GS.percentages(said)
+            add("no unmeasured percentage printed", not loose,
+                (f"prints {', '.join(v + ' %' for v in loose[:4])} with every "
+                 "measurement removed" if loose else
+                 "prints " + ", ".join(v + " %" for v in shown) if shown
+                 else "prints no percentage"),
+                "every percentage on the page survives only because a field "
+                "behind it was measured",
+                "a null recall rounds to `0 %`, which states a measurement "
+                "nobody took (docs/05)")
+            # The other half of the same sentence. A page that prints no number
+            # and also says nothing has not told the reader its accuracy is
+            # unknown - it has just left a gap where a figure would go, and a
+            # gap reads as "fine". #11 asks for both halves.
+            if not GS.measured(doc):
+                add("an unmeasured page says so", GS.UNMEASURED in said.lower(),
+                    f"{'says' if GS.UNMEASURED in said.lower() else 'never says'} "
+                    f"'{GS.UNMEASURED}'",
+                    f"the word '{GS.UNMEASURED}' appears in the sentence",
+                    "silence about an unknown accuracy reads as a good one")
+        # Deliberately broad. Everything below this line is a way of failing to
+        # READ the page - node missing, gateSentence renamed, node throwing -
+        # and every one of them has to land as a red row. A traceback out of
+        # here takes down all 114 rows and reports nothing about any of them,
+        # which is the failure mode this whole file was written against.
+        except Exception as e:
+            add("no unmeasured percentage printed", False,
+                f"{type(e).__name__}: {e}".strip()[:160],
+                "the sentence can be rendered and read",
+                "the accuracy sentence is JS, so reading it needs node on PATH "
+                "and a `gateSentence` to find - a gate that cannot run has not "
+                "passed")
 
     # ---- D. nothing is drawn from an inference that failed its gate ----------
     # Behavioural, not textual: count the frames the viewer would draw a disc

@@ -2013,22 +2013,43 @@ function provenance(){
   // never do. Say which possession the number came from whenever it is not this
   // one, and say plainly that this one is unmeasured.
   function gateSentence(g, id){
-    const r = `${Math.round(g.per_player_recall*100)} % of player-frames`;
-    const s = `sigma containment ${Math.round(g.sigma_containment*100)} %`;
+    // A null is not a zero, and `Math.round(null*100)` rounds one into the other.
+    // Five pages printed a percentage for recall and for sigma containment off
+    // fields that say nobody measured them, which is docs/05's one prohibition:
+    // a page must not state a measurement that was never taken. An absent field
+    // now prints no figure at all, and the sentence says the accuracy is
+    // unmeasured rather than leaving a gap that reads as fine. #11, docs/30 2.7
+    const pct = v => (typeof v === "number" && isFinite(v))
+      ? `${Math.round(v*100)} %` : null;
+    const r = pct(g.per_player_recall), s = pct(g.sigma_containment);
+    const parts = [];
+    if(r) parts.push(`recall ${r} of player-frames`);
+    if(s) parts.push(`sigma containment ${s}`);
     // No re-acquisition on any possession has been labelled by a human, so there
     // is no honest switch-detection number to print. Saying nothing is wrong too:
-    // the reader would assume the queue is exhaustive. docs/25 R4.
+    // the reader would assume the queue is exhaustive. docs/25 R4. It is a count
+    // of this possession's own slots, so it holds on a page with no accuracy.
     const nProv = PL.reduce((n,p)=>n+p.state.filter(x=>x==="provisional").length,0);
     const sw = g.identity_switches_caught==null
-      ? ` ${nProv} re-acquisition${nProv===1?"":"s"} are marked provisional and`
+      ? ` ${nProv} re-acquisition${nProv===1?" is":"s are"} marked provisional and`
         + ` unreviewed — no swap-detection rate has been measured.`
       : ` Identity switches caught: ${g.identity_switches_caught}.`;
-    if(!g.measured_on || g.measured_on===id)
-      return `Tracker recall ${r}, ${s} (docs/17).${sw} `;
-    return `<b>Accuracy on this possession is unmeasured.</b> Recall ${r} and ${s} ` +
-           `were measured on <code>${g.measured_on}</code> (docs/17), against hand ` +
-           `labels that do not exist for this one. Treat them as a prior, not a ` +
-           `result. `;
+    const here = !g.measured_on || g.measured_on===id;
+    if(here && parts.length)
+      return `Tracker ${parts.join(", ")} (docs/17).${sw} `;
+    if(parts.length)
+      return `<b>Accuracy on this possession is unmeasured.</b> The tracker's ` +
+             `${parts.join(" and ")} were measured on <code>${g.measured_on}</code> ` +
+             `(docs/17), against hand labels that do not exist for this one. Treat ` +
+             `them as a prior, not a result.${sw} `;
+    return `<b>Accuracy on this possession is unmeasured.</b> ` +
+           (here
+             ? `No recall or sigma-containment figure has been measured against ` +
+               `hand labels here, so there is none to print.`
+             : `Recall and sigma containment were measured on ` +
+               `<code>${g.measured_on}</code> (docs/17), against hand labels that ` +
+               `do not exist for this one, and those numbers are not carried onto ` +
+               `this page.`) + `${sw} `;
   }
   // which is the same rule ur/resolve.py::active() uses.
   const undone = new Set(LOG.filter(c=>c.op==="revert").map(c=>c.target));

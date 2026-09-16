@@ -46,6 +46,7 @@ LICENSE files and project pages in September 2026; re-check before release, and 
 | Pipeline architecture reference | **TrackLab** — `TrackingLaboratory/tracklab` | MIT | read it, don't necessarily depend on it |
 | Ingest | **yt-dlp** — `yt-dlp/yt-dlp` | Unlicense | — |
 | Ingest | **ffmpeg / ffprobe** — gyan.dev "full" build 9.0.1 | **GPL-3.0** (that build; see note) | an LGPL build, if we ever link rather than exec |
+| Reading the published page | **Node.js** 24.13.0 — `nodejs/node` | MIT (bundled components all permissive; see note) | none: reading a rendered sentence needs a JS engine, and this is the permissive one |
 
 ### Added in M0 (2026-09-12)
 
@@ -102,6 +103,23 @@ the GPL off our own code. Two constraints follow and should not be forgotten:
 
 `ur/ffprobe.py` records the exact ffmpeg version string into every `clip.json`, so which
 build produced a given artefact is always answerable.
+
+**On Node.js.** Added 2026-09-16 for `tools/gate_sentence.py`. The viewer's accuracy
+sentence is JavaScript, so a gate that reads what a reader actually sees needs a JS engine to
+render it — `docs/30` § 2.7 is the defect that made that necessary. Verified against
+`nodejs/node`'s own `LICENSE` (the Windows MSI installs no copy of it, so the repo file was
+the one read): Node itself is **MIT**, and the bundled components the same file enumerates
+are MIT, Apache-2.0, BSD-style, Unicode or public domain. **Nothing GPL, AGPL or
+non-commercial.**
+
+Same posture as ffmpeg, for the same reason: it is invoked as a **separate process** via
+`subprocess`, handed two temporary files, and neither vendored nor redistributed. MIT would
+not punish linking anyway; keeping the pattern identical means there is one rule about
+external binaries in this project rather than two.
+
+It is a **development dependency only.** Nothing the site serves needs it and no reader
+needs it — it runs inside `python -m tools.gates`, and if it is missing, the check fails
+loudly saying so rather than skipping, because a gate that cannot run has not passed.
 
 Weights carry their own terms. Where a repo is permissive but the weights are distributed
 separately with no stated licence (DEIM is one), treat the weights as **unconfirmed** and

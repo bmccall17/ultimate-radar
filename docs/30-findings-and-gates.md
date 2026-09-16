@@ -7,14 +7,21 @@ pass**.
 
 ```bash
 python -m tools.gates                       # every gate, every possession
-python -m unittest discover -s tests -t .   # the one pure-logic module, on invented data
+python -m unittest discover -s tests -t .   # the pure-logic modules, on invented data
 ```
 
 The gates exit non-zero if anything fails. Some things fail on purpose; § 3 says
-which. `tests/` holds stdlib `unittest` cases for `ur/direction.py` and nothing
-else: everything else in the pipeline is graded against real footage, which the
-gates do, and a resolver that has to turn two contradictory human statements into
-a refusal cannot be graded that way — the contradiction has to be invented.
+which. They need **`node` on PATH** as well as the Python environment: two of the
+site checks read the accuracy sentence the viewer *renders*, which is JavaScript,
+and § 2.7 is the defect that made that necessary. Without node those two rows go
+red saying so rather than quietly skipping, because a gate that cannot run has
+not passed. Licence and reasoning: `docs/07-licenses.md`. `tests/` holds stdlib `unittest` cases for the three things that can be
+graded on invented data rather than on footage: `ur/direction.py`, whose job is
+to turn two contradictory human statements into a refusal; `tools/checks.py`,
+which is the difference between a gate and a measurement; and
+`tools/gate_sentence.py`, which renders the viewer's accuracy sentence so a gate
+can read it. Everything else in the pipeline is graded against real footage,
+which the gates do.
 
 ---
 
@@ -203,15 +210,56 @@ applied to frames whose paint was degenerate; and a smoothness check comparing
 against neighbours that had already been removed. All three were caught by
 re-measuring the output afterwards, and none by reading what the tool said.
 
+### 2.7 A null is not a zero, and only the rendered sentence can tell you
+
+Five of the six published pages printed a rounded **`0 %`** for tracker recall
+and again for sigma containment. Nobody had measured either on those
+possessions: `per_player_recall` and `sigma_containment` are `null` in their
+data, and `measured_on` says `p0001`. The data was correct and honest.
+`Math.round(null * 100)` is `0`, so the viewer turned "unmeasured" into
+"measured, and terrible" on its way to the screen.
+
+Every data-side check was green through all five, and correctly so — including
+`no borrowed gate numbers` in the site table in § 3, which exists to stop exactly
+this class of misstatement and could not see it, because the misstatement was not
+in the numbers. It was in the rounding.
+
+This is the limit of the rule at the top of `tools/audit_site.py`, which says to
+read the published JSON and not the rendered page. That rule is right about what
+a page *asserts*, and it is blind to what a page *prints* when the two disagree.
+So two checks now run the viewer's own `gateSentence` under node against the
+published document and read the string that comes back —
+`tools/gate_sentence.py`. Not a Python re-implementation of the formatting: a
+second copy would agree with itself and catch nothing, and it would have to
+reproduce JS's half-up rounding rather than Python's half-to-even to avoid
+disagreeing about `12.5`.
+
+The test is not "does the printed number match the expected one". It is: **render
+the page a second time with every measurement removed, and see what still
+prints.** A figure that survives having its measurement taken away was never
+resting on one. That is what makes it catch the bug on `p0001` as well, where
+the page prints a true `97 %` today over code that was one null away from
+printing `0 %` — comparing values would have called that page clean.
+
+Printing no number is only half the fix, so the second check asks the page to
+say the word. A page that prints nothing and says nothing has left a gap where a
+figure would go, and a gap reads as "fine".
+
+The general form, and the reason this is a finding rather than a bug report: **a
+formatter is a place a claim can be invented.** Rule 3 in `AGENTS.md` gets every
+position to the page with its evidence state attached, and then one `Math.round`
+threw the state away. Anywhere a null, a NaN or an empty list passes through
+arithmetic on its way to a reader, the number that lands is a claim nobody made.
+
 ---
 
 ## 3. The gates, and which of them fail on purpose
 
-`python -m tools.gates` prints **132 rows, and only 108 of them can fail.** It
+`python -m tools.gates` prints **143 rows, and only 119 of them can fail.** It
 ends on two totals, and they are not the same kind of number:
 
 ```
-94 of 108 failable check(s) pass, 14 failing.
+105 of 119 failable check(s) pass, 14 failing.
 24 informational row(s) report a measurement and no verdict.
 ```
 
@@ -267,7 +315,7 @@ counted as a passing check.
 and on camera motion — they have not been through the impossible-motion check and
 are not published.
 
-### The published site — 45 rows, 42 of them failable, all passing
+### The published site — 56 rows, 53 of them failable, all passing
 
 `tools/audit_site.py`, folded into `python -m tools.gates`. Every other gate in
 this document reads `work/`; these read `docs/`, which is the only thing anybody
@@ -279,6 +327,8 @@ defects that the whole suite was green through.
 | site is current | published events **and confirmed direction** == `work/<id>/events.json` | AGENTS rule 7 — the live site is the deliverable. The direction was added with AD-10: `make_view` resolves it into the page at build time, so a confirmation made after the last build is one the reader never sees, and the page goes on saying `unverified` over something somebody had settled |
 | published tags are used | tags naming a player produce disc frames sourced `human` | p0003 and p0009 published 14 and 12 human tags while every disc frame was still `inferred`. `ur.disc` had not been re-run, so the tagging bought **nothing** on the site. Fixed: 0 → 485 and 0 → 405 frames |
 | no borrowed gate numbers | numeric gates only on the possession they were measured on | every page shipped p0001's `per_player_recall: 0.9744` in its data. `measured_on` labelled it honestly, but anything reading `possession.js` still got p0001's recall for p0003. The numbers now travel only with their own possession |
+| no unmeasured percentage printed | render the page a second time with **every measurement removed**; no percentage may survive | § 2.7. Five pages printed a rounded `0 %` for recall and sigma containment off `null` fields. These two are the only checks here that read the **rendered sentence** rather than the data behind it, because the data was right and the sentence was not — they run the viewer's own `gateSentence` under node (`tools/gate_sentence.py`), which is why `node` has a row in `docs/07`. Taking the measurement away rather than comparing against an expected value is what makes it catch the bug on p0001 too, where it was latent behind a real 97 %. #11 |
+| an unmeasured page says so | the word `unmeasured` appears in the sentence, on a page with no measurement of its own | § 2.7, the other half. Printing no number is not the same as saying there is none: a gap where a figure would go reads as "fine". Only the five pages with nothing measured carry this row; p0001 has numbers and says so. #11 |
 | no disc drawn from the failed inference | every drawn frame rests on a human tag | already true, now locked in — the viewer correctly suppressed all 385 `predicted` frames on p0009 |
 | no disc drawn on a guessed position | the holder's own position is `observed`/`confirmed` on every drawn frame | the check above asks WHO, this asks WHERE, and they are two facts about one frame. p0003 published the disc on a match official at `confirmed`: the tracker lost O2, re-acquired 26.9 yd away over the sideline, and a correct tag about the catch carried the disc there. 3 frames → 0. The tracker's own error is #4; this is the stage that was publishing it |
 
