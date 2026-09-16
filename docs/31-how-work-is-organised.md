@@ -17,12 +17,22 @@ same rule: the definition of done is a check somebody else can run.
 them by ticket at the end, so the gate output *is* the sprint board:
 
 ```
-  [FAIL] span identity accuracy   8/17 = 47%   want >= 75% over at least 8 spans  #1
+  [FAIL]     span identity accuracy   8/18 = 44%   want >= 75% over at least 8 spans  #1
+  [measured] ...quarters confirmed    0 of 4       a queue, not a defect
+
+94 of 108 failable check(s) pass, 14 failing.
+24 informational row(s) report a measurement and no verdict.
 
 by ticket - each closes when its checks all pass:
   https://github.com/bmccall17/ultimate-radar/issues/1   1 failing check(s)
   https://github.com/bmccall17/ultimate-radar/issues/6   12 failing check(s)
 ```
+
+Only the bracketed rows are gates, and only a gate can close a ticket. A
+`[measured]` row reports a number and holds it to no threshold, so it never
+fails, owns no ticket and is counted apart — `docs/30` § 3 lists all of them.
+Counting one into the green total inflates the number a reader trusts, and
+pointing a ticket at one gives it a definition of done it can never fail to meet.
 
 If a failing check has no ticket, the run says so. Open one, or write in
 `docs/30` why the failure is permanent. A failing check that nobody owns and

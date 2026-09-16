@@ -207,8 +207,48 @@ re-measuring the output afterwards, and none by reading what the tool said.
 
 ## 3. The gates, and which of them fail on purpose
 
-`python -m tools.gates`. Sixteen checks currently fail, and every one is either a
-known-unpublished possession or a documented open problem.
+`python -m tools.gates` prints **132 rows, and only 108 of them can fail.** It
+ends on two totals, and they are not the same kind of number:
+
+```
+94 of 108 failable check(s) pass, 14 failing.
+24 informational row(s) report a measurement and no verdict.
+```
+
+The fourteen failures are every one either a known-unpublished possession or a
+documented open problem, and the tables below say which. The twenty-four
+informational rows are **measurements** — numbers with no threshold to hold them
+to — and the first table below names all twenty-four and what each is waiting
+for.
+
+Until 2026-09-16 those twenty-four were built as gates with an unconditional
+pass. They printed `[PASS]`, they counted into one total of 132, and that total
+was the number a reader trusted. It was inflated by rows that could not have done
+anything else — and worse, `docs/31` closes an issue when a named check flips to
+PASS, so a row that can never flip is a definition of done that can never be met.
+They now print `[measured]`, carry the reason there is no threshold instead of a
+`want`, and are totalled apart. `tools/checks.py` holds the distinction and is
+where a new check picks its kind.
+
+### The rows that cannot fail, and what each is waiting for
+
+Twenty-four rows, four kinds. Each reports a number the run is better for
+carrying, and none of them can be a gate today. What is in the last column is
+what would make one failable — and until that exists, a threshold on it would be
+a number chosen to make current output pass, which is the first of the three
+things the brief asks not to happen.
+
+| row | rows per run | what it reports | why it is not a gate today | what would make it one |
+|---|---|---|---|---|
+| `...measured on` | 10, one per possession | the fraction of frames the M1 mean was measured on | there is no fraction below which the possession is *wrong*. A thin denominator makes the **mean** weaker evidence; it is not itself a defect, and the mean it qualifies is already gated. § 2.1 | a measured relation between usable fraction and the error on the frames the acceptance never sampled. Nothing has measured that, and § 2.2 suggests the honest quantity is "is the halfway line in shot", which is a different row |
+| `offence drifts` | 10, one per possession | median per-player least-squares drift of the offence along x | § 2.0: this quantity is **not** the attacking direction, so no value of it is right or wrong. It stayed in the run because the movement is real and worth seeing, not because it decides anything | nothing, and that is the point. The thing it was mistaken for is gated across possessions in `Qn: opposite teams disagree`; this row is the diagnostic that was promoted to a fact once already |
+| `...quarters confirmed` | 1 | how many quarters have a human-confirmed attacking direction — today **0 of 4** | an unconfirmed quarter claims nothing, so there is nothing to contradict. Gating it would fail every possession cut before somebody got round to watching it, and a queue is not a defect | confirming becoming part of cutting a possession rather than a backlog. Then `0 of 4` **is** a defect, the threshold is *all of them*, and it moves to the failable total under #5 |
+| `...longest blind stretch` | 3, the published possessions carrying human tags | the longest stretch inside the tagged region where a reader sees no disc at all | no principled threshold exists. `disc not lost for long` bounds a *flight* at 5 s on physics — every human-tagged flight runs 0.27–3.20 s. This one has no physics behind it, and a number picked because it happened to fail p0003 is tuning a constant to produce a verdict, backwards | #8. Naming a holder does not supply a position — p0003's 21.27–26.33 s span is named O2 and still mostly blank, because the tracker observes O2 on 6 of its 77 frames. A threshold needs a distribution measured across more than three tagged possessions |
+
+The count moves with the work: ten possessions in `work/`, so ten of each
+per-possession row, and a fourth published possession with tags adds a fourth
+`...longest blind stretch`. What does not move is that none of them can be
+counted as a passing check.
 
 ### Per possession — all six published ones pass
 
@@ -216,18 +256,18 @@ known-unpublished possession or a documented open problem.
 |---|---|---|
 | M1 acceptance, mean | < 0.75 yd | `docs/04` M1, unchanged since the first milestone |
 | M1 acceptance, max | < 1.5 yd | `docs/04` M1 |
-| …measured on | reported, never gated | § 2.1. A mean without its denominator is not a result |
+| …measured on | *measurement* — see below | § 2.1. A mean without its denominator is not a result |
 | roster structure | zero problems | `docs/04` M4, AD-2 |
 | camera motion is possible | 0 frames over 1 yd | § 2.3 |
 | median roster in shot | ≥ 6 of 14 | publishing gate. Below this the median frame is mostly empty |
 | frames with nothing at all | ≤ 35 % | publishing gate |
-| offence drifts | reported, never gated | § 2.0. The drift is real; it is not the attacking direction |
+| offence drifts | *measurement* — see below | § 2.0. The drift is real; it is not the attacking direction |
 
 **Currently failing and expected to:** p0006, p0007, p0008 and p0010 on coverage
 and on camera motion — they have not been through the impossible-motion check and
 are not published.
 
-### The published site — 45 checks, all passing, and they were not before
+### The published site — 45 rows, 42 of them failable, all passing
 
 `tools/audit_site.py`, folded into `python -m tools.gates`. Every other gate in
 this document reads `work/`; these read `docs/`, which is the only thing anybody
@@ -259,7 +299,7 @@ tags are used" check caught me doing.
 | gate | threshold | where it comes from |
 |---|---|---|
 | Q*n*: opposite teams disagree | confirmed directions point opposite ways | § 2.0. Two teams cannot attack the same endzone at once |
-| *n* : *m* quarters confirmed | reported, not gated | the queue, not a defect |
+| *n* : *m* quarters confirmed | *measurement* — see below | the queue, not a defect |
 | p*NNNN*: declared direction holds | `clip.json` matches what was confirmed | AD-10 |
 
 **All passing, and read the second line before believing the first.** These

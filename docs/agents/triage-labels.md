@@ -34,7 +34,7 @@ state it is in.
 
 | Label | Meaning here |
 |---|---|
-| `needs-gate` | The ticket has no named check in `python -m tools.gates` yet, so it has no definition of done. Defining the check is the first task. |
+| `needs-gate` | The ticket has no named check in `python -m tools.gates` yet, so it has no definition of done. Defining the check is the first task. A `[measured]` row does not count: it reports a number and holds it to no threshold, so it can never flip to PASS. |
 | `needs-human` | Blocked on tagging, or on a judgement only somebody watching the footage can make. **This is about the footage.** `ready-for-human` above is a triage state about who does the work. |
 | `research` | Parked. An experiment, not a release blocker. Nothing here can stop a publish. |
 | `index` | The game-wide possession index and what derives from it. |

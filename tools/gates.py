@@ -11,7 +11,14 @@ reporting "dropped 6" for every possession alike, a cliff calibrated on the
 wrong population. A gate you have to remember is a gate that will be forgotten,
 and a gate whose output you have to read carefully is only slightly better.
 
-Exit code is non-zero if anything fails, so it can sit in front of a publish.
+Exit code is non-zero if anything fails, so it can sit in front of a publish -
+and **only a gate can fail**. The run prints two totals, because it carries two
+kinds of row: gates, which hold a measurement to a threshold and return a
+verdict, and measurements, which report a number and claim nothing. Counting the
+second kind into a green total inflates the number a reader trusts, and `docs/31`
+closes an issue when a named check flips to PASS, which a row that cannot flip
+never will. `tools/checks.py` holds the distinction; `docs/30` section 3 names
+every measurement and why it has no threshold today.
 
 **Every threshold here is documented in `docs/30-findings-and-gates.md` with the
 measurement it came from.** None of them are set to make current output pass; two
@@ -27,6 +34,8 @@ import sys
 from pathlib import Path
 
 import numpy as np
+
+from tools import checks as C
 
 _PID = __import__("re").compile(r"p\d{4}")
 
@@ -70,8 +79,8 @@ ISSUE = {
     # getting a ticket that would have nothing in it but a clip.json edit.
     "declared direction holds": 5,
     "confirmations are readable": 5,
-    # Reported rather than gated, like the two below: an unconfirmed quarter is
-    # a queue, not a defect. Mapped so the ticket is findable from the number.
+    # A measurement, not a gate: an unconfirmed quarter is a queue, not a
+    # defect. Mapped so the ticket is findable the day it becomes failable.
     "...quarters confirmed": 5,
     # The unnamed span is the jersey-#20 player, who has no correct slot
     # anywhere in p0003 - the same root cause as #4, not a separate problem.
@@ -80,8 +89,8 @@ ISSUE = {
     # else is the tracker losing the player, which is #4. The disc stage only
     # decides whether to publish the mistake.
     "no disc drawn on a guessed position": 4,
-    # Reported rather than gated today, so it never fails and never shows a
-    # number here - the mapping is so the ticket is findable if it ever does.
+    # A measurement today, so it never fails and never shows a number here -
+    # the mapping is so the ticket is findable the day it gets a threshold.
     "...longest blind stretch": 8,
     "median roster in shot": 6,
     "frames with nothing at all": 6,
@@ -107,8 +116,13 @@ def check_possession(work: Path) -> dict:
     out: dict = {"possession": work.name, "checks": []}
 
     def add(name, ok, got, want, note=""):
-        out["checks"].append({"name": name, "pass": bool(ok), "got": got,
-                              "want": want, "note": note})
+        """A gate: it can fail, and it counts in the failable total."""
+        out["checks"].append(C.gate(name, ok, got, want, note))
+
+    def report(name, got, why):
+        """A measurement: a number with no threshold to hold it to. See
+        tools/checks.py, and docs/30 § 3 for why each one is not a gate."""
+        out["checks"].append(C.measurement(name, got, why))
 
     cal_p, poss_p = work / "calibration.json", work / "possession.json"
     if not poss_p.exists():
@@ -126,11 +140,13 @@ def check_possession(work: Path) -> dict:
         add("M1 acceptance, max", a["max_error_yd"] is not None
             and a["max_error_yd"] < M1_MAX_YD, a["max_error_yd"],
             f"< {M1_MAX_YD} yd")
-        # Not a pass/fail - the number the mean has to be read beside.
-        add("...measured on", True, f"{a.get('usable_fraction', 0):.0%} of frames",
-            "reported, not gated",
-            "a mean over the frames that already passed the confidence gate is "
-            "not a statement about the possession")
+        # The denominator the mean above has to be read beside. Not a gate: a
+        # mean over the frames that already cleared the confidence gate is not a
+        # statement about the possession, and there is no fraction below which
+        # the possession is wrong - a thin denominator makes the MEAN weaker
+        # evidence, it is not itself a defect. docs/30 § 2.1.
+        report("...measured on", f"{a.get('usable_fraction', 0):.0%} of frames",
+               "no threshold: this qualifies the mean above, docs/30 section 2.1")
     else:
         add("M1 acceptance", False, "not run", "eval/m1-<id>/m1_acceptance.json")
 
@@ -174,12 +190,12 @@ def check_possession(work: Path) -> dict:
     add("frames with nothing at all", blank <= PUBLISH_MAX_BLANK, f"{blank:.0%}",
         f"<= {PUBLISH_MAX_BLANK:.0%}", "publishing gate")
 
-    # Which way the offence actually moved. Reported, never gated on its own:
-    # 2026-09-15 measured that this quantity is not the attacking direction. The
-    # cross-possession check below is the one that can fail.
-    add("offence drifts", True, f"{_drift(doc):+.1f} yd",
-        "reported, not gated",
-        "drift is not the attacking direction - see check_directions")
+    # Which way the offence actually moved. Never a gate: 2026-09-15 measured
+    # that this quantity is not the attacking direction (docs/30 § 2.0), so
+    # there is no value of it that is right or wrong. The cross-possession check
+    # in check_directions is the one that can fail.
+    report("offence drifts", f"{_drift(doc):+.1f} yd",
+           "drift is not the attacking direction, docs/30 section 2.0")
     return out
 
 
@@ -244,10 +260,10 @@ def check_directions(works: list[Path]) -> dict:
     try:
         obs = DIR.observations([w for w in works if w.name in clips])
     except ValueError as e:
-        out["checks"].append({
-            "name": "confirmations are readable", "pass": False, "got": str(e),
-            "want": "every events.json:observed block parses",
-            "note": "a confirmation the resolver cannot read settles nothing"})
+        out["checks"].append(C.gate(
+            "confirmations are readable", False, str(e),
+            "every events.json:observed block parses",
+            "a confirmation the resolver cannot read settles nothing"))
         return out
     table, conflicts = DIR.resolve(obs)
 
@@ -260,27 +276,27 @@ def check_directions(works: list[Path]) -> dict:
         here = sorted((t, e) for (qq, t), e in table.items() if qq == q)
         got = (", ".join(DIR.describe(e) for _, e in here)
                or "nobody has confirmed a direction in this quarter")
-        out["checks"].append({
-            "name": f"Q{q}: opposite teams disagree",
-            "pass": not bad,
-            "got": "; ".join(c["detail"] for c in bad) if bad else got,
-            "want": "opposite ends, or nothing claimed",
-            "note": "two people watched the same quarter and disagree - watch it "
-                    "again and clear the wrong one with `python -m ur.direction "
-                    "clear <work>`"})
+        out["checks"].append(C.gate(
+            f"Q{q}: opposite teams disagree",
+            not bad,
+            "; ".join(c["detail"] for c in bad) if bad else got,
+            "opposite ends, or nothing claimed",
+            "two people watched the same quarter and disagree - watch it "
+            "again and clear the wrong one with `python -m ur.direction "
+            "clear <work>`"))
 
-    # Reported, never gated. The checks above pass on an empty quarter because an
-    # empty quarter makes no claim, which is honest and also useless - this is the
-    # line that says how much of the job is actually done. Gating it would fail
-    # every possession cut before somebody got round to watching it, which is a
-    # queue, not a defect.
-    out["checks"].append({
-        "name": "...quarters confirmed", "pass": True,
-        "got": f"{len(confirmed_qs)} of {len(quarters)}"
-               + (f" (Q{', Q'.join(str(x) for x in sorted(set(quarters) - confirmed_qs))}"
-                  " unconfirmed)" if set(quarters) - confirmed_qs else ""),
-        "want": "reported, not gated",
-        "note": ""})
+    # Never a gate. The checks above pass on an empty quarter because an empty
+    # quarter makes no claim, which is honest and also useless - this is the line
+    # that says how much of the job is actually done. Gating it would fail every
+    # possession cut before somebody got round to watching it, and a queue is not
+    # a defect. It becomes a gate the day confirming is somebody's standing job
+    # rather than a backlog, and not before.
+    out["checks"].append(C.measurement(
+        "...quarters confirmed",
+        f"{len(confirmed_qs)} of {len(quarters)}"
+        + (f" (Q{', Q'.join(str(x) for x in sorted(set(quarters) - confirmed_qs))}"
+           " unconfirmed)" if set(quarters) - confirmed_qs else ""),
+        "a queue, not a defect: an unconfirmed quarter claims nothing"))
 
     # The declaration typed at cut time, now checkable against the resolved fact
     # rather than being the source of it (AD-10). This is the only thing that ever
@@ -308,12 +324,10 @@ def check_directions(works: list[Path]) -> dict:
                "Confirm this possession directly - `python -m ur.direction "
                f"confirm work/{pid} --direction=<+x|-x>` - and re-cut only if the "
                "confirmation still disagrees")
-        out["checks"].append({
-            "name": f"{pid}: declared direction holds", "pass": agrees,
-            "got": f"clip.json says {clip['attacking_direction']}, "
-                   f"{DIR.describe(got)}",
-            "want": "the declaration matches what was confirmed",
-            "note": fix})
+        out["checks"].append(C.gate(
+            f"{pid}: declared direction holds", agrees,
+            f"clip.json says {clip['attacking_direction']}, {DIR.describe(got)}",
+            "the declaration matches what was confirmed", fix))
     return out
 
 
@@ -380,25 +394,24 @@ def check_disc(works: list[Path]) -> dict:
         per.append(f"{work.name} {ok}/{n}")
 
     acc = correct / graded if graded else None
-    out["checks"].append({
-        "name": "span identity accuracy", "pass": bool(graded >= MIN_GRADED_SPANS
-                                                       and acc is not None
-                                                       and acc >= SPAN_ACCURACY),
-        "got": (f"{correct}/{graded}" + (f" = {acc:.0%}" if acc is not None else "")
-                + (f"  [{', '.join(per)}]" if per else "")),
-        "want": f">= {SPAN_ACCURACY:.0%} over at least {MIN_GRADED_SPANS} spans",
-        "note": "needs identity tags: select the player, then press `c`"})
+    out["checks"].append(C.gate(
+        "span identity accuracy",
+        graded >= MIN_GRADED_SPANS and acc is not None and acc >= SPAN_ACCURACY,
+        (f"{correct}/{graded}" + (f" = {acc:.0%}" if acc is not None else "")
+         + (f"  [{', '.join(per)}]" if per else "")),
+        f">= {SPAN_ACCURACY:.0%} over at least {MIN_GRADED_SPANS} spans",
+        "needs identity tags: select the player, then press `c`"))
 
     corr = None
     if len(pairs) >= MIN_GRADED_SPANS and len({p[1] for p in pairs}) > 1:
         corr = float(np.corrcoef([p[0] for p in pairs], [p[1] for p in pairs])[0, 1])
-    out["checks"].append({
-        "name": "margin predicts correctness",
-        "pass": corr is not None and corr >= MARGIN_CORRELATION,
-        "got": "not enough graded spans" if corr is None else f"r = {corr:+.2f}",
-        "want": f"r >= {MARGIN_CORRELATION}",
-        "note": "docs/27 step 4 asks for the next tag where the margin is "
-                "thinnest; that is only a strategy if the margin means something"})
+    out["checks"].append(C.gate(
+        "margin predicts correctness",
+        corr is not None and corr >= MARGIN_CORRELATION,
+        "not enough graded spans" if corr is None else f"r = {corr:+.2f}",
+        f"r >= {MARGIN_CORRELATION}",
+        "docs/27 step 4 asks for the next tag where the margin is thinnest; "
+        "that is only a strategy if the margin means something"))
     return out
 
 
@@ -417,9 +430,8 @@ def check_site() -> dict:
         ids = sorted({"p0001"} | {q.name for q in A.SITE.iterdir()
                                   if q.is_dir() and _PID.fullmatch(q.name)})
     except FileNotFoundError:
-        out["checks"].append({"name": "site is built", "pass": False,
-                              "got": "no docs/", "want": "tools.build_site has run",
-                              "note": "AGENTS rule 7"})
+        out["checks"].append(C.gate("site is built", False, "no docs/",
+                                    "tools.build_site has run", "AGENTS rule 7"))
         return out
     for pid in ids:
         for c in A.audit(pid):
@@ -439,33 +451,33 @@ def main(argv: list[str] | None = None) -> int:
     reports.append(check_site())
     reports.append(check_disc(works))
 
-    failed = 0
     open_by: dict[int, int] = {}
     for r in reports:
         print(f"\n=== {r['possession']}")
         for c in r["checks"]:
-            mark = "PASS" if c["pass"] else "FAIL"
-            if not c["pass"]:
-                failed += 1
-            n = _issue(c["name"]) if not c["pass"] else None
+            # A measurement has no verdict, so it owns no ticket here and shows
+            # no number: a ticket beside a row that cannot fail would be a
+            # definition of done that can never be met (docs/31).
+            failing = C.is_gate(c) and not c["pass"]
+            n = _issue(c["name"]) if failing else None
             if n:
                 open_by[n] = open_by.get(n, 0) + 1
-            print(f"  [{mark}] {c['name']:<30} {str(c['got']):<46} "
-                  f"want {c['want']}" + (f"  #{n}" if n else ""))
-            if c.get("note") and not c["pass"]:
+            print(C.render(c) + (f"  #{n}" if n else ""))
+            if failing and c["note"]:
                 print(f"         {c['note']}")
-    print(f"\n{failed} check(s) failing. docs/30-findings-and-gates.md says which "
-          "of those are known and deliberate.")
+
+    t = C.tally(reports)
+    print(C.totals(t))
     if open_by:
         print("")
         print("by ticket - each closes when its checks all pass:")
         for n in sorted(open_by):
             print(f"  {ISSUE_URL}/{n}   {open_by[n]} failing check(s)")
-    orphan = failed - sum(open_by.values())
+    orphan = t.failed - sum(open_by.values())
     if orphan:
         print(f"  {orphan} failing check(s) with no ticket - open one, or record "
               "in docs/30 why the failure is permanent.")
-    return 1 if failed else 0
+    return t.exit_code
 
 
 if __name__ == "__main__":

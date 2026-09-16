@@ -77,6 +77,15 @@ one.
 when a gate flips to PASS (`docs/31`), so a gate is a definition of done, not a
 diagnostic.
 
+**Measurement** — a row in the same run that reports a number and holds it to no
+threshold. It prints `[measured]` rather than `[PASS]`, carries the reason it has
+no threshold where a gate carries its `want`, and is totalled separately. The
+distinction matters because a row that cannot fail must not be counted as one
+that passed, and because a ticket pointed at one would have a definition of done
+it could never fail to meet. `docs/30` § 3 names the measurements and what each
+is waiting for before it can become a gate; `tools/checks.py` is where a new
+check picks its kind.
+
 ## Geometry
 
 **Attacking direction** — which end a team is attacking, `+x` or `-x` in the

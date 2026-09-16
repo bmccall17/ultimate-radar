@@ -29,6 +29,8 @@ import re
 import sys
 from pathlib import Path
 
+from tools import checks as C
+
 SITE = Path("docs")
 WORK = Path("work")
 
@@ -92,8 +94,12 @@ def audit(pid: str) -> list[dict]:
     out: list[dict] = []
 
     def add(name, ok, got, want, note=""):
-        out.append({"name": name, "pass": bool(ok), "got": got, "want": want,
-                    "note": note})
+        """A gate: it can fail, and it counts in the failable total."""
+        out.append(C.gate(name, ok, got, want, note))
+
+    def report(name, got, why):
+        """A measurement: a number with no threshold to hold it to."""
+        out.append(C.measurement(name, got, why))
 
     doc = published(pid)
     if doc is None:
@@ -264,9 +270,8 @@ def audit(pid: str) -> list[dict]:
                 and sources[i] == "solved")
             run = 0 if drawn else run + 1
             blind = max(blind, run)
-        add("...longest blind stretch", True, f"{blind / fps:.1f} s",
-            "reported, not gated - issue #8",
-            "")
+        report("...longest blind stretch", f"{blind / fps:.1f} s",
+               "no principled threshold - one picked to fail p0003 is tuning, #8")
 
     return out
 
@@ -278,17 +283,18 @@ def main(argv: list[str] | None = None) -> int:
     ids = a.possession or sorted(
         {"p0001"} | {q.name for q in SITE.iterdir()
                      if q.is_dir() and re.fullmatch(r"p\d{4}", q.name)})
-    failed = 0
+    reports = []
     for pid in ids:
         print(f"\n=== {pid} (as published)")
-        for c in audit(pid):
-            mark = "PASS" if c["pass"] else "FAIL"
-            failed += not c["pass"]
-            print(f"  [{mark}] {c['name']:<34} {str(c['got']):<52} want {c['want']}")
-            if c["note"] and not c["pass"]:
+        rows = audit(pid)
+        reports.append({"checks": rows})
+        for c in rows:
+            print(C.render(c))
+            if C.is_gate(c) and not c["pass"] and c["note"]:
                 print(f"         {c['note']}")
-    print(f"\n{failed} site check(s) failing.")
-    return 1 if failed else 0
+    t = C.tally(reports)
+    print(C.totals(t))
+    return t.exit_code
 
 
 if __name__ == "__main__":

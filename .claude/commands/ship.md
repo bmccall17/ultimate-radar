@@ -25,7 +25,8 @@ a stale site has already cost this project a review round.
   from both first: what the world serves is what the repo holds. The working tree is
   CRLF and Pages serves LF, so a raw byte compare reports a difference of exactly one
   byte per line and means nothing.
-- `python -m tools.gates`: record the failable total and which ticket owns each failure.
+- `python -m tools.gates`: record both totals - failable and informational - and
+  which ticket owns each failure. Only the failable total moves.
 
 Done when all five carry a verdict and any drift between HEAD, `origin/main` and the
 live site is named with the commit it is stuck on. Unpushed commits touching `docs/`
