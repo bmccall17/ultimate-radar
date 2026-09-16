@@ -20,7 +20,8 @@ a stale site has already cost this project a review round.
 - `git fetch && git status -sb`: local `main` and `origin/main` sit on the same commit.
 - `gh run list --limit 5 --json name,status,conclusion,headSha`: the newest
   `pages build and deployment` run concluded `success`, on HEAD's sha.
-- Fetch the live root page and compare it against `docs/index.html`, stripping ``
+- Fetch the live root page and compare it against `docs/index.html`, stripping `
+`
   from both first: what the world serves is what the repo holds. The working tree is
   CRLF and Pages serves LF, so a raw byte compare reports a difference of exactly one
   byte per line and means nothing.
@@ -63,11 +64,32 @@ sprint stands. Rewrite it from what steps 1 and 2 found, holding, in this order:
 - The failable gate total from step 1.
 
 `gh api repos/:owner/:repo/issues/<n> --jq .issue_dependencies_summary.blocked_by`
-gives the live blocker count; an open ticket reading `0` is on the frontier. Leave the
-parent issue the tickets were cut from as it stands.
+gives the live blocker count; an open ticket reading `0` is on the frontier.
 
-Done when the description names every open ticket in the milestone exactly once, and a
-reader who saw none of this session can tell what to pick up.
+### A triage label names a call that has not been made yet
+
+`docs/agents/triage-labels.md`: each of the five names the next thing to type. So a
+label whose call has already been made is a standing instruction to redo work that is
+already done, which is worse than no label — `ready-for-tickets` on a plan whose
+tickets exist sends the next reader to cut them a second time.
+
+Clear those, and say what the call produced:
+
+- `ready-for-tickets`, once the tickets exist → comment listing them by number,
+  then remove the label.
+- `ready-for-triage`, once the issue has been triaged → the triage verdict is already
+  a comment; remove the label.
+- `ready-for-questionnaire`, once the questions have been put → comment saying who was
+  asked and when, then remove the label. Waiting on a reply is waiting, not ready.
+- `ready-for-implement` and `ready-for-human` stay until the work lands, because the
+  call they name is the work itself.
+
+Leave the **body** of a parent plan issue as it stands: its labels describe what to do
+next, and only those are this step's business.
+
+Done when the description names every open ticket in the milestone exactly once, every
+triage label in the milestone names a call still waiting to be made, and a reader who
+saw none of this session can tell what to pick up.
 
 ## 4. The next immediate steps
 
