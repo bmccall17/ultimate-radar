@@ -82,9 +82,9 @@ threshold. It prints `[measured]` rather than `[PASS]`, carries the reason it ha
 no threshold where a gate carries its `want`, and is totalled separately. The
 distinction matters because a row that cannot fail must not be counted as one
 that passed, and because a ticket pointed at one would have a definition of done
-it could never fail to meet. `docs/30` § 3 names the measurements and what each
-is waiting for before it can become a gate; `tools/checks.py` is where a new
-check picks its kind.
+it could never fail to meet (AD-11). `docs/30` § 3 names the measurements and
+what each is waiting for before it can become a gate; `tools/checks.py` is where
+a new check picks its kind.
 
 ## Geometry
 
