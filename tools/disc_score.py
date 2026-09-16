@@ -69,7 +69,7 @@ def solve(doc: dict, cost: np.ndarray, ids: list[str],
           given: list[dict]) -> tuple[list[int], np.ndarray, list[int | None]]:
     """Re-run the inference with `given` as hard constraints, and nothing else."""
     none = len(ids)
-    tagged = disc.from_events(doc, {"events": given}, ids)
+    tagged, _ = disc.from_events(doc, {"events": given}, ids)
     forced = cost.copy()
     for f, who in enumerate(tagged):
         if who is None:
@@ -90,7 +90,7 @@ def score(work: Path, *, every: int = 3) -> dict:
     label[none] = "in flight"
 
     tags = human_events(ev)
-    truth = disc.from_events(doc, {"events": tags}, ids)
+    truth, _ = disc.from_events(doc, {"events": tags}, ids)
     n_truth = sum(1 for t in truth if t is not None)
     out: dict = {
         "possession_id": doc["possession"]["id"],

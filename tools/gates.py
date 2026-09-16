@@ -92,6 +92,10 @@ ISSUE = {
     # A measurement today, so it never fails and never shows a number here -
     # the mapping is so the ticket is findable the day it gets a threshold.
     "...longest blind stretch": 8,
+    # A name settled by elimination rendering at the strongest state the format
+    # has is the disc stage's own doing, not the tracker's: the flag is in the
+    # tag and the stage dropped it.
+    "no confirmed disc from an inferred name": 15,
     # The two site checks that read the rendered sentence. docs/30 § 2.7.
     "no unmeasured percentage printed": 11,
     "an unmeasured page says so": 11,

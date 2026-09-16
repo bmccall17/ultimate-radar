@@ -52,6 +52,13 @@ unnamed span between two named ones is a hole, not a long flight.
 or a catch at a moment, optionally naming who. **Timing-only tag** — the common
 case, naming the moment and nobody; the moment is the half a person can see.
 
+**Inferred name** — a tag whose `player` the tagger did not read, reached by
+elimination instead. It carries `player_inferred`. Still a human's statement, and
+a weaker kind of one. Nothing saw the jersey, and the argument usually rests
+partly on the tracking, so the claim is no stronger than the solver's own. It
+closes a hole in the display; it does not grade the solver, and it never renders
+`confirmed`.
+
 **Correction** — a human statement about the *tracking*, written to
 `corrections.json` as an append-only log (AD-6). Four operations: **anchor**
 (place a slot at a position), **swap** (exchange two slots' trajectories),

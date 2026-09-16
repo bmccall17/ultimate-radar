@@ -469,6 +469,23 @@ second trap, never feed the solver's own output back. It stays in the file, wher
 it closes a real hole in what a reader sees; it does not count in
 `span identity accuracy`, which reads **8 / 18 = 44 %** with it excluded.
 
+**And the display it closes is the weaker one.** The flag used to stop at span
+resolution. `ur/disc.py` read the named slot's coordinates, found them observed,
+and emitted `confirmed`, so the Mark card at 26.20 s said MEASURED about a holder
+nobody had read. Evidence about *who* and evidence about *where* are different
+claims and the weaker one governs, which is the rule that already sends a tag on
+a dead-reckoned slot to `predicted`. The span is `predicted` throughout now, and
+`disc_meta.name_inferred` carries the reason.
+
+The viewer still draws it, on the frames where it drew before. Suppressing the
+span outright would reopen the 7.8 s hole that naming it closed, and every card
+built on it now says the name was settled by elimination. It draws on those
+frames and no others: `predicted` here means either the identity is weak or the
+position is, and on three frames of this very span it means the second, because
+the slot is the re-acquisition onto the match official. A name nobody read does
+not improve a position nothing saw. The site check
+`no confirmed disc from an inferred name` fails if any frame goes back. #15.
+
 Worth noticing which way that moved. Naming the span *lowered* the headline
 number — 47 % to 44 % — because it added spans the solver gets wrong. That is the
 direction more truth should move a score that is not yet good.

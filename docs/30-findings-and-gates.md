@@ -255,11 +255,11 @@ arithmetic on its way to a reader, the number that lands is a claim nobody made.
 
 ## 3. The gates, and which of them fail on purpose
 
-`python -m tools.gates` prints **143 rows, and only 119 of them can fail.** It
+`python -m tools.gates` prints **149 rows, and only 125 of them can fail.** It
 ends on two totals, and they are not the same kind of number:
 
 ```
-105 of 119 failable check(s) pass, 14 failing.
+111 of 125 failable check(s) pass, 14 failing.
 24 informational row(s) report a measurement and no verdict.
 ```
 
@@ -315,7 +315,7 @@ counted as a passing check.
 and on camera motion — they have not been through the impossible-motion check and
 are not published.
 
-### The published site — 56 rows, 53 of them failable, all passing
+### The published site — 62 rows, 59 of them failable, all passing
 
 `tools/audit_site.py`, folded into `python -m tools.gates`. Every other gate in
 this document reads `work/`; these read `docs/`, which is the only thing anybody
@@ -331,6 +331,7 @@ defects that the whole suite was green through.
 | an unmeasured page says so | the word `unmeasured` appears in the sentence, on a page with no measurement of its own | § 2.7, the other half. Printing no number is not the same as saying there is none: a gap where a figure would go reads as "fine". Only the five pages with nothing measured carry this row; p0001 has numbers and says so. #11 |
 | no disc drawn from the failed inference | every drawn frame rests on a human tag | already true, now locked in — the viewer correctly suppressed all 385 `predicted` frames on p0009 |
 | no disc drawn on a guessed position | the holder's own position is `observed`/`confirmed` on every drawn frame | the check above asks WHO, this asks WHERE, and they are two facts about one frame. p0003 published the disc on a match official at `confirmed`: the tracker lost O2, re-acquired 26.9 yd away over the sideline, and a correct tag about the catch carried the disc there. 3 frames → 0. The tracker's own error is #4; this is the stage that was publishing it |
+| no confirmed disc from an inferred name | no frame renders a `confirmed` disc state from a tag carrying `player_inferred` | the third way a tag is weaker than it looks, after WHO and WHERE: **how the person arrived at the name**. p0003's 21.27–26.33 s holder was settled by elimination, not read off a jersey (§ 2.5 and `docs/27`), and part of that argument is which slots the tracker loses, so `span identity accuracy` already refuses to grade against it. The flag stopped at span resolution. The disc stage saw a human tag and observed coordinates and emitted `confirmed`, so the Mark card said MEASURED about a holder nobody named. 6 frames → 0. The span still draws, at `predicted`, on exactly the frames it drew on before, and every card built on it says the name was inferred. Suppressing it would reopen the display hole that naming it closed. #15 |
 
 Two things that audit taught about writing the audit itself. **Match behaviour,
 not source text**: the first version grepped the rendered HTML for "the huck is

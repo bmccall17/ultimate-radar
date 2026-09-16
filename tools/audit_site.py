@@ -62,6 +62,33 @@ OFF_FIELD_LIMIT_YD = 5.0
 MAX_DRAWN_FLIGHT_S = 5.0
 
 
+def inferred_name_frames(doc: dict) -> tuple[set[int], bool, int]:
+    """Which published frames rest on a holder name nobody read, and how sure.
+
+    Returns the frame indices, whether the flag reached the disc stage at all,
+    and how many tags carry it.
+
+    Two derivations, deliberately. `disc_meta.name_inferred` is what `ur.disc`
+    recorded, and reading only that would make the check a mirror of the fix -
+    revert the fix and the array disappears along with every frame it flagged,
+    leaving a row that passes by having nothing to look at. So the tags are read
+    too: a `throw` or `catch` tag holds the disc on its own frame, whatever the
+    disc stage then did with the flag, and `holders` says whether that frame
+    still names the tagged player. That half survives a revert and fails.
+    """
+    meta = doc.get("disc_meta") or {}
+    holders = meta.get("holder") or []
+    flags = meta.get("name_inferred")
+    fps = float((doc.get("possession") or {}).get("fps") or 15.0)
+    out = {i for i, v in enumerate(flags or []) if v}
+    marked = [e for e in doc.get("events", []) if e.get("player_inferred")]
+    for e in marked:
+        i = int(round(float(e["t"]) * fps))
+        if 0 <= i < len(holders) and holders[i] == e.get("player"):
+            out.add(i)
+    return out, bool(marked) and flags is None, len(marked)
+
+
 def site_path(pid: str, name: str) -> Path:
     """Where a published file for `pid` lives. p0001 is the landing page, so its
     folder is `docs/` itself and every other possession gets a subdirectory -
@@ -275,6 +302,32 @@ def audit(pid: str) -> list[dict]:
         "the holder's own position is observed or confirmed on every drawn frame",
         "a tag vouches for WHO held it, not for where that slot's marker is")
 
+    # ---- E2. ...nor from a name nobody read ---------------------------------
+    # D asks whether a human spoke for the frame and E asks whether the tracker
+    # saw the slot. Neither asks how the human arrived at the name. A tag may
+    # carry `player_inferred`: the moment is a person's and so is the reasoning,
+    # but the name was settled by elimination rather than read off a jersey.
+    # p0003's 21.27-26.33 s span is the case, docs/27 sets out the elimination,
+    # and `tools/gates.py` already refuses to grade the solver against it - yet
+    # it reached the site at `confirmed`, because the disc stage asked only
+    # whether a human had spoken and whether the coordinates were seen, and both
+    # were true. The card then read MEASURED about a holder nobody named.
+    # Evidence about WHO and evidence about WHERE are different claims and the
+    # weaker one governs. #15.
+    flagged, dropped, marked = inferred_name_frames(doc)
+    guessed = sorted(i for i in flagged if i < len(states)
+                     and states[i] == "confirmed")
+    add("no confirmed disc from an inferred name", not guessed and not dropped,
+        (f"{marked} tag(s) carry `player_inferred` and the published disc "
+         "stage records none of it" if dropped else
+         f"{len(flagged)} frame(s) rest on an inferred name, {len(guessed)} of "
+         "them confirmed"
+         + ("" if not guessed else
+            " - " + ", ".join(f"f{i} {holders[i]}" for i in guessed[:4]))),
+        "an inferred name never renders a confirmed disc state",
+        "a name settled by elimination is no stronger evidence than the solver's "
+        "own; it may not render at the strongest state the format has (docs/27)")
+
     # ---- E. nobody is observed somewhere there is no field --------------------
     # Ultimate is played with people standing just out of bounds, so being outside
     # the lines is not by itself wrong, and the measurement says so: across all six
@@ -332,10 +385,21 @@ def audit(pid: str) -> list[dict]:
         a = int(round(min(e["t"] for e in tagged) * fps))
         b = min(int(round(max(e["t"] for e in tagged) * fps)), len(states))
         run = blind = 0
+        names = meta.get("name_inferred") or []
         for i in range(a, b):
+            # Mirrors the viewer's `discTrusted`: a `predicted` frame draws when
+            # the identity is weak but the moment is a human's - solved from the
+            # timing, or named by elimination and on a slot the tracker actually
+            # saw. Reading only `confirmed` here would report p0003's
+            # 21.27-26.33 s span as blank the moment #15 stopped it being
+            # `confirmed`, which would be this measurement disagreeing with the
+            # page it measures.
+            seen = (i < len(holders) and holders[i] in by
+                    and by[holders[i]]["state"][i] in DRAWN_DISC_STATES)
             drawn = states[i] in ("confirmed", "interpolated") or (
-                states[i] == "predicted" and i < len(sources)
-                and sources[i] == "solved")
+                states[i] == "predicted"
+                and ((i < len(sources) and sources[i] == "solved")
+                     or (i < len(names) and names[i] and seen)))
             run = 0 if drawn else run + 1
             blind = max(blind, run)
         report("...longest blind stretch", f"{blind / fps:.1f} s",

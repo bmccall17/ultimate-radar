@@ -626,7 +626,14 @@ function lastThrow(f){
   // whoever caught it, which is exactly what a target is; asking a tagger to fill
   // a `target` field as well would be asking twice for the same fact.
   const c=all.find(e=>e.type==="catch" && e.t>th.t);
-  if(c && c.player) return Object.assign({}, th, {target:c.player, catch_t:c.t});
+  // `inferred` when that catch tag names somebody nobody read - the name was
+  // settled by elimination (docs/27). A receiver arrived at that way is no more
+  // certain than one the solver picked, so it is flagged the same way and the
+  // cards built on it say so. Read through `disc_meta` rather than off the tag,
+  // so there is one path from `player_inferred` to the page and it runs through
+  // the stage that decides what the flag means.
+  if(c && c.player) return Object.assign({}, th, {target:c.player, catch_t:c.t,
+    inferred:discNameInferred(clamp(Math.round(c.t*FPS),0,NF-1))});
   // A timing-only tag names nobody. `ur/spans.py` works out who from the
   // tracking and `ur.disc` writes the answer into disc_meta.holder, so the
   // receiver is whoever is holding it once the flight ends. Flagged `solved`,
@@ -679,11 +686,45 @@ function discTrusted(f){
   // are observed rather than guessed. It draws, and every card built on it says
   // the holder was solved.
   const solved = st==="predicted" && m.source && m.source[f]==="solved";
-  return !!(D.disc&&D.disc[f]) && (st==="confirmed"||st==="interpolated"||solved);
+  // The other weak-identity case. A tag can carry `player_inferred`: a human
+  // settled the holder by elimination rather than by reading a jersey (docs/27
+  // closes p0003's 21.27-26.33 s span that way). The disc stage refuses to
+  // `confirm` off it, so the state is `predicted` - but the moment and the
+  // reasoning are still a person's, and suppressing the span outright would
+  // reopen the display hole that naming it closed. It draws, and every card
+  // built on it says the name was inferred.
+  //
+  // **Only where the slot itself was seen.** `predicted` here means one of two
+  // different things - the identity is weak, or the position is - and drawing
+  // on the second is the match-official bug all over again: on this very span
+  // the tracker lost O2, dead-reckoned it, and re-acquired 26.9 yd away on
+  // somebody standing over the sideline. A name nobody read does not make that
+  // position better. Three frames of p0003 are exactly this, and without the
+  // second test carrying the flag through would have drawn them.
+  const guessed = st==="predicted" && discNameInferred(f) && discHolderSeen(f);
+  return !!(D.disc&&D.disc[f]) && (st==="confirmed"||st==="interpolated"
+                                   ||solved||guessed);
 }
 function discHolderSolved(f){
   const m=D.disc_meta;
   return !!(m && m.source && m.source[f]==="solved");
+}
+function discNameInferred(f){
+  const m=D.disc_meta;
+  return !!(m && m.name_inferred && m.name_inferred[f]);
+}
+// Was the slot holding it actually seen on this frame - the WHERE half, which a
+// tag never vouches for however well it names the WHO.
+function discHolderSeen(f){
+  const m=D.disc_meta, h=m&&m.holder&&m.holder[f];
+  return !!(h && BY[h] && MEASURABLE.has(BY[h].state[f]));
+}
+// Whether the holder's name is weaker than a jersey somebody read - solved from
+// the tracking, or settled by a human's elimination. Everything that dashes a
+// ring or caps an evidence badge asks this rather than which of the two it was;
+// only the sentences distinguish them, because only the sentences can explain.
+function discHolderGuessed(f){
+  return discHolderSolved(f) || discNameInferred(f);
 }
 function discHolder(f){
   const m=D.disc_meta;
@@ -802,7 +843,7 @@ function drawSyntheticScene(P,s){
   // disagree you are looking at the tracker being wrong, which is the point.
   const at_=p=>(p.truth&&p.truth[f])||p.est[f];
   const camHolder = discHolder(f);
-  const camHolderSure = camHolder && !discHolderSolved(f);
+  const camHolderSure = camHolder && !discHolderGuessed(f);
   const order=[];
   for(const p of PL){ const xy=at_(p); if(!xy) continue;
     const c=gp(xy[0],xy[1],0); if(c) order.push({p,xy,c}); }
@@ -914,7 +955,7 @@ function drawCamera(){
     // holder was solved rather than named - docs/27 puts that at 31 % held out.
     if(p.id===holder){
       octx.save();
-      if(discHolderSolved(S.f)) octx.setLineDash([5*k,4*k]);
+      if(discHolderGuessed(S.f)) octx.setLineDash([5*k,4*k]);
       if(ringPath(octx,P,xy[0],xy[1],1.55,s)){
         octx.strokeStyle=HALO; octx.lineWidth=5*k; octx.stroke();
         octx.strokeStyle=DISC_ONVID; octx.lineWidth=2.6*k; octx.stroke();
@@ -1183,7 +1224,7 @@ function drawFormation(f, ghost){
   // flight the holder is null by construction, which is what makes the disc
   // visibly leave one player and arrive at another.
   const holder = ghost ? null : discHolder(f);
-  const holderSure = holder && !discHolderSolved(f);
+  const holderSure = holder && !discHolderGuessed(f);
   for(const p of PL){
     const xy=at(p,f); if(!xy) continue;
     const st=p.state[f], col=teamColour(p.team);
@@ -1325,15 +1366,24 @@ function renderCards(){
     if(m){ const q=at(m,f);
       const side = q[1]<h[1] ? "near sideline" : "far sideline";
       markV=`${md.toFixed(1)} yd, ${side} side`;
-      const sv = discHolderSolved(f);
+      const sv = discHolderSolved(f), ni = discNameInferred(f);
       markC=`${m.id} marking ${holder}; disc pushed toward the ${q[1]<h[1]?"far":"near"} sideline`
-            + (sv ? " · holder worked out from the tracking, not tagged" : "");
+            + (sv ? " · holder worked out from the tracking, not tagged"
+               : ni ? " · holder settled by elimination, not read off a jersey" : "");
+      // Both players may be observed and the *holder* still be a guess, whether
+      // the guess was the solver's or a person's. A mark around the wrong player
+      // is not this player's mark, so either caps the badge however well the two
+      // positions were seen.
       markE=evidence(f,[holder,m.id]);
-      if(sv && markE==="measured") markE="partial";
+      if((sv||ni) && markE==="measured") markE="partial";
       markX="The geometry only — not a force name, which depends on the thrower's handedness and broadcast video does not show it."
         + (sv ? " Which player is holding it was solved from the timing you tagged;"
            + " if it names the wrong one, this is the right geometry around the"
-           + " wrong person." : "");
+           + " wrong person."
+           : ni ? " Nobody read this holder's jersey. The name was reached by"
+           + " ruling the others out, which is an argument rather than a"
+           + " reading — if it names the wrong one, this is the right geometry"
+           + " around the wrong person." : "");
     }
   }
   out.push(card("Mark", markV, markC, markE, markX));
@@ -1349,18 +1399,23 @@ function renderCards(){
         const v=dist(recP,q); if(v<bd){bd=v;bs=d.id} }
       sepV=`${bd.toFixed(1)} yd`;
       sepC=`${rec} from ${bs} at the release, ${th.t.toFixed(1)}s`
-           + (th.solved ? " · receiver worked out from the tracking, not tagged" : "");
+           + (th.solved ? " · receiver worked out from the tracking, not tagged"
+              : th.inferred ? " · receiver settled by elimination, not read off a jersey"
+              : "");
       // The positions may be measured and the *identity* still be a guess. A
       // separation between the right two players and a separation between the
       // wrong two are not the same number, so a solved receiver caps this at
       // `partial` however well the players themselves were seen.
       sepE=evidence(tf,[rec,bs]);
-      if(th.solved && sepE==="measured") sepE="partial";
+      if((th.solved||th.inferred) && sepE==="measured") sepE="partial";
       sepX="How much room the receiver actually had when the disc left the hand."
         + (th.solved ? " Who caught it was solved from the timing you tagged and"
            + " the players' geometry — if it names the wrong player this is the"
            + " right distance to the wrong person. Select the receiver and press"
-           + " `c` again to pin it." : "");
+           + " `c` again to pin it."
+           : th.inferred ? " Nobody read this receiver's jersey; the name was"
+           + " reached by ruling the others out — if it names the wrong player"
+           + " this is the right distance to the wrong person." : "");
     } else { sepC=`throw at ${th.t.toFixed(1)}s has no tagged target`; }
   }
   out.push(card("Separation at release", sepV, sepC, sepE, sepX));

@@ -126,6 +126,13 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             "holder": [r["holder"] for r in smp],
             "sigma": [r["sigma"] for r in smp],
             "source": [r["source"] for r in smp],
+            # `source` says a human spoke for the frame; this says how well they
+            # could see what they were naming. A tag settled by elimination
+            # rather than read off a jersey carries `player_inferred`, and the
+            # disc stage refuses to `confirm` off it - the viewer needs the same
+            # fact to say so on the card rather than only to draw a weaker
+            # state. docs/27, #15.
+            "name_inferred": [bool(r.get("name_inferred")) for r in smp],
             "trustworthy": dd["diagnostics"]["inference_trustworthy"],
             "plausibility": dd["diagnostics"]["plausibility"],
             "note": dd["method"]["nothing_has_seen_the_disc"],

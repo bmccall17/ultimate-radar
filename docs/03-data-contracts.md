@@ -237,6 +237,15 @@ authoritative). An event written to demonstrate the schema carried `source: "hum
 until `ur/disc.py` read it as truth and forced a holder for one frame in the middle of
 another player's possession. If it is not a real observation, it is not `human`.
 
+`player_inferred: true` is the fourth thing a tag can say, and it qualifies `player`, not
+`source`. The tag is still a human's. The **name** on it was reached by elimination, from
+the chain, from coverage, from what the play obviously was, rather than read off a jersey.
+Everything downstream treats it as the weaker claim it is: `tools/gates.py` will not grade
+the span solver against it, `ur/disc.py` will not emit a `confirmed` disc from it however
+well the slot was seen, and the viewer's cards say the name was inferred. `docs/27` works
+the one case in the corpus, p0003's 21.27–26.33 s span, and says why it is still worth
+having in the file.
+
 ### `observed` — statements about the possession, not about a moment
 
 ```json
@@ -277,9 +286,9 @@ of them.
 ```json
 {"schema":"ultimate-radar/disc@1",
  "samples":[{"f":0,"xy":[70.3,28.0],"z":1.2,"state":"predicted","basis":"held",
-             "holder":"O1","sigma":0.9,"source":"inferred"},
+             "holder":"O1","sigma":0.9,"source":"inferred","name_inferred":false},
             {"f":59,"xy":[72.1,29.4],"z":2.0,"state":"interpolated","basis":"flight",
-             "holder":null,"sigma":3.3,"source":"human"}]}
+             "holder":null,"sigma":3.3,"source":"human","name_inferred":false}]}
 ```
 
 One sample per frame with a position in every one, for the same reason `tracks.json` has no
@@ -292,10 +301,17 @@ gaps. Two orthogonal fields, and conflating them is the mistake to avoid:
   believed.
 - **`basis`** is *what kind of thing* the disc is doing — `held`, `flight`, `loose`,
   `unknown` — and says nothing about how well it is known.
+- **`name_inferred`** carries `player_inferred` down from the tag that fixed this frame's
+  holder. The moment is a person's and so is the reasoning, but the name was reached by
+  elimination rather than read off a jersey. It is why `state` can be `predicted` on a
+  frame `source` calls `human`. A tag vouches for the holder only as well as the tagger
+  could see them, and a name nobody read is no stronger evidence than the solver's own.
+  `docs/27` works the one case in the corpus.
 
 `ur/possess.py` re-exports these as `disc` (the `[x, y, z]` triple the viewer draws) and
-`disc_meta` (the provenance beside it), plus `disc_meta.trustworthy`, which is the module's
-verdict on its own holder sequence. See `docs/27-disc.md`.
+`disc_meta` (the provenance beside it, `name_inferred` included), plus
+`disc_meta.trustworthy`, which is the module's verdict on its own holder sequence. See
+`docs/27-disc.md`.
 
 ## corrections.json — append-only
 

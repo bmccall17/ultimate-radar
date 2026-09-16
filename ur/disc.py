@@ -340,19 +340,29 @@ def _widen_flights(path: list[int], none: int, min_frames: int,
         f = hi + 1
 
 
-def from_events(doc: dict, events: dict, ids: list[str]) -> list[int | None]:
+def from_events(doc: dict, events: dict,
+                ids: list[str]) -> tuple[list[int | None], list[bool]]:
     """The holder each frame according to the human tags, where they exist.
 
     A `throw` by A at t fixes A as the holder up to that frame; a `catch` by B
     fixes B from that frame. Between a throw and the next catch the disc is in
     flight and belongs to nobody. Frames outside any tagged span are left None for
     the inference to fill.
+
+    Returns the holders and, beside them, **which of those frames rest on a name
+    nobody read**. A tag may carry `player_inferred`: the moment is a person's
+    and so is the reasoning, but the name was arrived at by elimination rather
+    than read off a jersey - p0003's 21.27-26.33 s span, whose argument docs/27
+    sets out in full. That is a different strength of evidence and it has to
+    travel with the holder, because every stage downstream would otherwise read
+    a tag as a reading.
     """
     nf = int(doc["possession"]["frames"])
     fps = float(doc["possession"]["fps"])
     idx = {k: i for i, k in enumerate(ids)}
     none = len(ids)
     out: list[int | None] = [None] * nf
+    guessed: list[bool] = [False] * nf
 
     marks = []
     for e in events.get("events", []):
@@ -361,24 +371,35 @@ def from_events(doc: dict, events: dict, ids: list[str]) -> list[int | None]:
             continue
         f = int(round(float(e["t"]) * fps))
         if 0 <= f < nf and e.get("player") in idx:
-            marks.append((f, e["type"], idx[e["player"]]))
+            marks.append((f, e["type"], idx[e["player"]],
+                          bool(e.get("player_inferred"))))
     marks.sort()
 
-    for n, (f, kind, who) in enumerate(marks):
+    for n, (f, kind, who, guess) in enumerate(marks):
         if kind in ("catch", "possession_start"):
             # Held from here until the next throw by this player, or the end.
-            end = next((g for g, k, w in marks[n + 1:] if k == "throw" and w == who),
-                       nf - 1)
+            release = next(((g, gs) for g, k, w, gs in marks[n + 1:]
+                            if k == "throw" and w == who), None)
+            end, release_guess = release if release else (nf - 1, False)
+            # A span bounded by a catch and a throw is one holder, named twice,
+            # and the two names are two statements about the same fact. If
+            # either was a guess the span was: a read catch does not become
+            # weaker because the release was inferred, but nobody then read the
+            # hand the disc left, so the span's identity rests on the weaker of
+            # the two. `ur/spans.py` takes the same view at span granularity.
             for g in range(f, min(end, nf - 1) + 1):
                 out[g] = who
+                guessed[g] = guess or release_guess
         elif kind == "throw":
             # In flight from here to the next catch.
-            end = next((g for g, k, _ in marks[n + 1:] if k == "catch"), None)
+            end = next((g for g, k, _, _ in marks[n + 1:] if k == "catch"), None)
             if end is not None:
                 for g in range(f + 1, end):
                     out[g] = none
+                    guessed[g] = False
             out[f] = who
-    return out
+            guessed[f] = guessed[f] or guess
+    return out, guessed
 
 
 def build(work: Path, *, verbose: bool = True) -> dict:
@@ -397,7 +418,7 @@ def build(work: Path, *, verbose: bool = True) -> dict:
     # Human tags are hard constraints: everything else is forced to infinity on a
     # frame a human has spoken for, so the Viterbi path has to go through them and
     # the spans between them are still solved rather than guessed at.
-    tagged = from_events(doc, events, ids)
+    tagged, guessed_name = from_events(doc, events, ids)
     # **Timing-only tags.** A human who pressed `t` and `c` without naming anybody
     # has given the two facts this module could not get for itself - when the disc
     # is in flight, and for how long - and `ur/spans.py` turns those into an
@@ -478,7 +499,8 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             if xy is None:
                 samples.append({"f": f, "xy": None, "z": None, "state": "unknown",
                                 "basis": "unknown", "holder": hid,
-                                "sigma": 16.0, "source": "inferred"})
+                                "sigma": 16.0, "source": "inferred",
+                                "name_inferred": bool(guessed_name[f])})
                 continue
             # The disc is exactly as well located as the player holding it, plus
             # an arm, and no better known than the claim that this is the holder.
@@ -502,22 +524,45 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             # declines to draw - it disappears for the stretch instead of
             # asserting a place nothing saw. `source` stays `human`, because a
             # person really did name this holder.
-            named = human and solved[f] is None
+            #
+            # The third way a tag can be weaker than it looks, and the one that
+            # took longest to see. A tag can carry `player_inferred`: the moment
+            # is a person's and so is the reasoning, but the name was settled by
+            # elimination rather than read off a jersey. p0003's 21.27-26.33 s
+            # span is the case and docs/27 sets out the argument - which rests
+            # partly on which slots the TRACKER loses, so it is no stronger
+            # evidence than the solver's own. That flag used to stop at span
+            # resolution: this stage read the named slot's coordinates, saw they
+            # were observed, and emitted `confirmed`, so the Mark card said
+            # MEASURED about a holder nobody named. Evidence about WHO and
+            # evidence about WHERE are different claims, and the weaker governs -
+            # the same rule the paragraph above applies the other way round.
+            # `source` stays `human`, because a person really did settle this
+            # holder; `name_inferred` is how they settled it. That is why the
+            # two are separate variables: `by_name` is who put the name there
+            # and drives `source`, `named` is how well they could see it and
+            # drives `state`. Collapsing them sent every solver-chosen frame
+            # out as `source: "human"`, because the solver's answers are folded
+            # into `tagged` above. #15.
+            by_name = human and solved[f] is None
+            named = by_name and not guessed_name[f]
             state = ("confirmed" if named and st in POSITION_SEEN else
                      "predicted" if st in ANCHORED else "unknown")
             samples.append({"f": f, "xy": [round(v, 3) for v in xy],
                             "z": HELD_HEIGHT_YD,
                             "state": state, "basis": "held", "holder": hid,
                             "sigma": round(sigma, 3),
-                            "source": ("human" if named else
+                            "source": ("human" if by_name else
                                        "solved" if solved[f] is not None
                                        else "inferred"),
+                            "name_inferred": bool(guessed_name[f]),
                             "holder_cost": detail[f].get(hid, {}).get("cost"),
                             "mark": detail[f].get(hid, {}).get("mark")})
         else:
             samples.append({"f": f, "xy": None, "z": None, "state": "unknown",
                             "basis": "flight", "holder": None, "sigma": 16.0,
-                            "source": "human" if human else "inferred"})
+                            "source": "human" if human else "inferred",
+                            "name_inferred": False})
 
     _fill_flight(samples, by, fps, tagged)
     _fill_unknown(samples)
