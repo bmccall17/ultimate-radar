@@ -20,14 +20,18 @@ a stale site has already cost this project a review round.
 - `git fetch && git status -sb`: local `main` and `origin/main` sit on the same commit.
 - `gh run list --limit 5 --json name,status,conclusion,headSha`: the newest
   `pages build and deployment` run concluded `success`, on HEAD's sha.
-- Fetch the live root page and compare it against `docs/index.html`: what the world
-  serves is what the repo holds.
+- Fetch the live root page and compare it against `docs/index.html`, stripping ``
+  from both first: what the world serves is what the repo holds. The working tree is
+  CRLF and Pages serves LF, so a raw byte compare reports a difference of exactly one
+  byte per line and means nothing.
 - `python -m tools.gates`: record the failable total and which ticket owns each failure.
 
 Done when all five carry a verdict and any drift between HEAD, `origin/main` and the
-live site is named with the commit it is stuck on. When the site is behind, run
-`python -m tools.build_site`, commit and push before going on - every step below
-describes a site that is live.
+live site is named with the commit it is stuck on. Unpushed commits touching `docs/`
+are a stale site even when the root page matches, because `docs/` is the Pages root and
+carries the documentation too. Push them, and run `python -m tools.build_site` first
+when the pipeline output moved, before going on - every step below describes a site
+that is live.
 
 ## 2. Every ADR still says something true
 
