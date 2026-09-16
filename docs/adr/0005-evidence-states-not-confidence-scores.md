@@ -1,8 +1,22 @@
 # AD-5 — Evidence states, not confidence scores
 
 Every position sample carries a discrete provenance state (`observed`, `provisional`,
-`interpolated`, `predicted`, `unknown`, `confirmed`) plus a positional sigma in yards. See
-`docs/05-uncertainty.md` for the full state machine.
+`weak`, `interpolated`, `predicted`, `unknown`, `confirmed`) plus a positional sigma in
+yards. See `docs/05-uncertainty.md` for the full state machine.
+
+> **`weak` added 2026-09-14, written into this decision 2026-09-16.** A seventh state,
+> for a player who was plainly seen on a frame the calibration could not solve on its own
+> — the mosaic registered it against frames that could, so the sigma is the mosaic's
+> measured error rather than a detection's. `docs/05` § the state table and
+> `docs/29-scouting-possessions.md` carry it, `CONTEXT.md` lists it, and
+> `tools/gates.py` has counted it toward roster coverage since the day it appeared. This
+> decision did not, for two days, which is the glossary and the decision disagreeing
+> about the same word.
+>
+> It earns its own state on AD-5's own argument, and for the same reason `provisional`
+> does: both are "we are sure of one half of this and not the other", and they are
+> different halves. For `provisional` the open question is **who**; for `weak` it is
+> **where the camera was**.
 
 > **`provisional` added 2026-09-14.** A sixth state, for a match that re-acquires a slot
 > after a long gap. It is an observation of *somebody*; whether it is the same somebody is

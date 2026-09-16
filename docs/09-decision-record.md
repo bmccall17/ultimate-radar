@@ -66,7 +66,7 @@ appearance model on players in identical jerseys, not a bug to engineer away. Th
 detects its own swaps and repairs them in one click, and corrections live in an append-only
 layer that never touches the raw tracking output.
 
-## The ten architectural decisions
+## The twelve architectural decisions
 
 Reasoning for each is in `docs/adr/`, one file per decision; this is the index. The
 names are the stable handle: AD-7 is `docs/adr/0007-*.md`, never `ADR-0007`.
@@ -85,10 +85,13 @@ names are the stable handle: AD-7 is `docs/adr/0007-*.md`, never `ADR-0007`.
    majority officials it was assumed to be.
 4. **Register each frame to a per-shot background mosaic**, not to its neighbour. Bounded
    drift, and one set of human clicks per shot rather than per keyframe.
-5. **Evidence states, not confidence floats** — observed / provisional / interpolated /
-   predicted / unknown / confirmed, each with a sigma in yards. *`provisional` added
-   2026-09-14:* a detection was matched but the slot had been estimating long enough that
-   which player it is has not been established.
+5. **Evidence states, not confidence floats** — observed / provisional / weak /
+   interpolated / predicted / unknown / confirmed, each with a sigma in yards.
+   *`provisional` added 2026-09-14:* a detection was matched but the slot had been
+   estimating long enough that which player it is has not been established. *`weak` added
+   2026-09-14, written into AD-5 on 2026-09-16:* the player was plainly seen, but the
+   frame he was seen on is weakly placed. For `provisional` the open question is who; for
+   `weak` it is where the camera was.
 6. **Corrections are an append-only layer** over immutable tracking output.
 7. **Events are human-tagged**; disc detection is a stretch goal.
 8. **The possession is the unit of work.**
@@ -97,6 +100,18 @@ names are the stable handle: AD-7 is `docs/adr/0007-*.md`, never `ADR-0007`.
     **WITHDRAWN 2026-09-16:** ends change every point, so a quarter-wide direction is
     wrong about the sport, and the finding behind it (`docs/30` § 2.0) is void. Kept in
     `docs/adr/0010-*.md` for the record. See issue #5.
+11. **A row that cannot fail is not a check.** Added 2026-09-16. `tools.gates` carries
+    gates, which hold a measurement to a threshold and return a verdict, and
+    measurements, which report a number and claim nothing. They are totalled apart, only
+    a gate moves the exit code, and only a gate can close an issue. Twenty-four of the
+    run's rows were built with an unconditional pass and counted into one green total.
+12. **A gate may read the rendered page, when the data cannot show the defect.** Added
+    2026-09-16. The site audit reads published JSON by default; where a formatter can
+    invent a claim the data never made, a check runs the viewer's own function under node
+    and reads what a reader gets. It runs the page's code rather than a copy of it, and
+    it takes the measurement away rather than predicting the printed value. Five pages
+    printed a rounded `0 %` for recall off a `null`, green through every field-side
+    check. Costs `node` on PATH. See issue #11 and `docs/30` § 2.7.
 
 ## Licence position
 

@@ -52,7 +52,7 @@ See `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
-Single-context: `CONTEXT.md` at the root, decisions in `docs/adr/` named `AD-1` to `AD-11`.
+Single-context: `CONTEXT.md` at the root, decisions in `docs/adr/` named `AD-1` to `AD-12`.
 See `docs/agents/domain.md`.
 
 ## Working style

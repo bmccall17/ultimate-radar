@@ -10,8 +10,13 @@ word in the code disagree, that is a bug in one of them.
 one page. The unit of work (AD-8). Named `pNNNN`.
 
 **Quarter** — a period of the game, read off the broadcast score bug and stored
-as `clip.json:quarter`. Teams attack fixed ends within one, and swap between.
-It is the unit that **attacking direction** belongs to — see below.
+as `clip.json:quarter`. It is a place in the broadcast and nothing more.
+
+> **Corrected 2026-09-16.** This entry used to end "Teams attack fixed ends
+> within one, and swap between. It is the unit that **attacking direction**
+> belongs to." That is the claim AD-10 was withdrawn for: ends change every
+> point, not every quarter. A reader who looked up `Quarter` and never reached
+> `Attacking direction` was told something the project knows is false.
 
 ## The people
 
