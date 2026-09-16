@@ -154,7 +154,7 @@ it to will cost a good calibration clip.
 
 ## Amendments to make
 
-1. **`docs/02-architecture.md` § AD-4** — add: registration operates on a masked region, never
+1. **`docs/adr/0004-register-to-known-world-geometry.md`** — add: registration operates on a masked region, never
    the whole frame; the mask excludes rendered graphics, everything off the ground plane, and
    (from M2) players. Add the centreline-marks enumeration from the footage report.
 2. **`docs/04-milestones.md` § M1** — add an acceptance criterion: *whole-frame and masked

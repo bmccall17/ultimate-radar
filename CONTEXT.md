@@ -1,6 +1,6 @@
 # Context — the project's vocabulary
 
-A glossary, and nothing else. Decisions live in `docs/02-architecture.md` as
+A glossary, and nothing else. Decisions live in `docs/adr/` as
 `AD-n`; findings live in `docs/30-findings-and-gates.md`. If a word here and a
 word in the code disagree, that is a bug in one of them.
 
@@ -82,6 +82,14 @@ diagnostic.
 **Attacking direction** — which end a team is attacking, `+x` or `-x` in the
 ultimate field frame.
 
+> **WITHDRAWN 2026-09-16, and the paragraph below is kept only so the change is
+> legible.** Ends change every point: after a goal the scoring team pulls from the end
+> it just scored in, so it now defends the end it was attacking. Two possessions in
+> consecutive points drift the same way, legitimately. So the same-sign drift was never
+> a contradiction, `docs/30` § 2.0 measured nothing, and direction belongs to a
+> **(point, team)**. Issue #5 carries the replacement; this section is rewritten when
+> it lands.
+>
 > **It is a property of a (quarter, team), not of a possession.** Teams attack
 > fixed ends within a quarter, so every possession in Q1 with Sol on offence has
 > the same direction, and Wind Chill's is the opposite. Holding it per possession

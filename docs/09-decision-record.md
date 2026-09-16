@@ -66,9 +66,10 @@ appearance model on players in identical jerseys, not a bug to engineer away. Th
 detects its own swaps and repairs them in one click, and corrections live in an append-only
 layer that never touches the raw tracking output.
 
-## The nine architectural decisions
+## The ten architectural decisions
 
-Reasoning for each is in `02-architecture.md`; this is the index.
+Reasoning for each is in `docs/adr/`, one file per decision; this is the index. The
+names are the stable handle: AD-7 is `docs/adr/0007-*.md`, never `ADR-0007`.
 
 1. **Track on the field, not the screen.** Project detections to field yards before
    association; filter in yards with physical speed limits. Removes the need for camera
@@ -92,6 +93,10 @@ Reasoning for each is in `02-architecture.md`; this is the index.
 7. **Events are human-tagged**; disc detection is a stretch goal.
 8. **The possession is the unit of work.**
 9. **No server** — a static viewer reading JSON.
+10. **Attacking direction belongs to a quarter, not a possession.** ~~Added 2026-09-15.~~
+    **WITHDRAWN 2026-09-16:** ends change every point, so a quarter-wide direction is
+    wrong about the sport, and the finding behind it (`docs/30` § 2.0) is void. Kept in
+    `docs/adr/0010-*.md` for the record. See issue #5.
 
 ## Licence position
 

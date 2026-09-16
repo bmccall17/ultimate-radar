@@ -34,6 +34,27 @@ pass before you move on.
    published page was still the previous build and its banner still quoted the old gate
    numbers.*
 
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues for `bmccall17/ultimate-radar`, via the `gh` CLI, and an issue
+closes when a named check in `python -m tools.gates` flips to PASS.
+See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical triage roles, renamed so each label names the next thing to type:
+`ready-for-triage`, `ready-for-questionnaire`, `ready-for-implement`, `ready-for-human`,
+`wontfix`. Note that this repo's existing `needs-human` is about the footage, not the triage
+state `ready-for-human`.
+See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `CONTEXT.md` at the root, decisions in `docs/adr/` named `AD-1` to `AD-10`.
+See `docs/agents/domain.md`.
+
 ## Working style
 
 - Prefer a stage you can run alone, on one possession, in under a minute, over an

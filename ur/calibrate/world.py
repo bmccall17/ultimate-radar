@@ -99,7 +99,7 @@ class UltimateField:
 
         Rules 2.2.1 / 2.3.1 / 2.3.2. These are painted, at exactly known
         positions, and are the richest correspondence source the ultimate paint
-        offers — see docs/02-architecture.md, "world geometry available".
+        offers — see docs/`docs/adr/0004-register-to-known-world-geometry.md`, "world geometry available".
         """
         g0, g1 = self.goal_lines
         b = self.brick_yd

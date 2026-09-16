@@ -32,7 +32,7 @@ Confidence ≥ 0.5 on **93.9 %** of frames.
 
 **The model is a fixed camera centre with per-frame pan, tilt, roll and focal length.**
 AD-4 as originally written registers each frame to a shot mosaic. The amendment, agreed
-before the work started and recorded in `docs/02-architecture.md`, keeps AD-4's reason —
+before the work started and recorded in `docs/adr/0004-register-to-known-world-geometry.md`, keeps AD-4's reason —
 never chain frame to frame, because the error accumulates and nothing signals it — and
 changes the means, for two measured reasons:
 

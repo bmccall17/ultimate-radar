@@ -70,7 +70,8 @@ with one, it renders the real possession.
 | `docs/09-decision-record.md` | One page: the commitments, the decisions, the state |
 | `docs/00-footage-report.md` | **What the real footage actually looks like, measured. It corrected several figures in the docs below; its foot lists every change.** |
 | `docs/01-brief.md` | What success means, and what this is not |
-| `docs/02-architecture.md` | The pipeline and the nine decisions that shape it |
+| `docs/02-architecture.md` | The pipeline diagram and the stage notes |
+| [`docs/adr/`](docs/adr/) | The ten decisions, AD-1 to AD-10, one file each |
 | `docs/03-data-contracts.md` | Every file the stages exchange |
 | `docs/04-milestones.md` | **The build order, with acceptance tests. Work from this.** |
 | `docs/05-uncertainty.md` | Evidence states and the correction model — the heart of the product |
