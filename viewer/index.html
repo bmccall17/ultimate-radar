@@ -2771,7 +2771,19 @@ function calibHere(){
   if(!P) return 0;
   return P.conf!==undefined ? P.conf : 1;
 }
+// Two ways to have no projection and the sentence should not claim the wrong
+// one. p0003's dead frames carry an H that will not invert; p0009's carry no H
+// at all, and saying "its homography does not invert" about a frame that has
+// none is right about the refusal and wrong about the reason.
 function projectionCollapsed(){ return !projector(S.f); }
+function noHomography(){
+  const pf = D.camera.per_frame[S.f];
+  return !pf || !pf.H;
+}
+function collapseReason(){
+  return noHomography() ? "this frame has no homography at all"
+                        : "its homography does not invert";
+}
 function canPlaceOnVideo(){ return calibHere() >= PLACE_MIN_CALIB; }
 // `f` is the frame the staged placements were made on, and it is not `S.f`. A
 // person can stage a marker, scrub, and then save; saving to wherever the clock
@@ -3109,8 +3121,7 @@ function renderRepair(){
     </div>
     ${ok ? "" : `<div class="why" style="display:block;margin-top:6px">
       <b style="color:var(--warn)">${projectionCollapsed()
-        ? "This frame has no usable projection at all — its homography does not "
-          + "invert."
+        ? `This frame has no usable projection at all — ${collapseReason()}.`
         : `This frame's calibration is ${calibHere().toFixed(2)}, under `
           + `${PLACE_MIN_CALIB}.`}</b> The projection does
       not stand behind itself here, so a click on the video would land somewhere

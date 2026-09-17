@@ -31,10 +31,18 @@ QA pass reported that as a finding against its own docstring (docs/30 § 2.15).
 
 The one thing `work/` had that the page does not is each detection's own field
 position, used to ask whether a matched slot is resting on somebody inside the
-lines or on the sideline crowd. The slot's **estimate** answers the same question:
-across p0003's 4053 matched slot-frames the two disagree on 5, or 0.12 %, and all
-five are within inches of a line. A fifth of a percent of boundary cases is not
-worth a dependency that stops the tool running at all.
+lines or on the sideline crowd. The slot's **estimate** answers the same
+question. Measured both ways on both possessions: p0003 disagrees on 5 of 4053
+matched slot-frames (0.12 %, worst 0.80 yd) and p0009 on 3 of 3775 (0.079 %,
+worst 1.34 yd). Every disagreement runs one direction - a detection just outside
+a line whose estimate sits on it - so none of them can promote a spectator to a
+player, which is the only error that would matter.
+
+What settles it is not the rate: **the frame this tool picks is the same under
+both rules on both possessions**, f204 and f22, identical in-field counts and
+zero on the crowd. A tenth of a percent of players astride a line, all of them
+far inside the 5 yd the stands gate allows, is not worth a dependency that stops
+the tool running at all.
 """
 
 from __future__ import annotations

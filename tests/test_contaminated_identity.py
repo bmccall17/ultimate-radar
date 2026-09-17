@@ -81,6 +81,23 @@ class Verdicts(unittest.TestCase):
 
     WORK = Path("work/p0003")
 
+    @classmethod
+    def setUpClass(cls):
+        # p0003's tracks and events are in `work/`, which is gitignored because
+        # it holds the footage - so this class cannot run from a clone, and
+        # without this it did not SAY so: it errored four times on a missing
+        # file, which reads as a broken suite rather than an absent input.
+        # docs/30 § 2.16.
+        #
+        # A skip here is honest and a skip is still not a pass: docs/32 § 0 gives
+        # the test and skip counts for both environments, so a skip appearing
+        # where a run was expected is visible rather than quietly green.
+        if not (cls.WORK / "tracks.json").exists():
+            raise unittest.SkipTest(
+                f"{cls.WORK}/tracks.json is not in this clone; these verdicts are "
+                "measured over the real possession and there is nothing to "
+                "measure. docs/30 § 2.16")
+
     def declared(self, carrier):
         ev = GV.read_events(self.WORK)
         return {**ev, "events": [{**e, PV.KEY: carrier} if e.get("player") else e

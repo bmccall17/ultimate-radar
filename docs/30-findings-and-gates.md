@@ -735,6 +735,42 @@ they can run on. `test_contaminated_identity` should skip rather than error
 whichever is chosen — a test that cannot run has not failed, and it has not
 passed either.
 
+**Fixed 2026-09-17, and the two halves take different fixes because they are
+different faults.**
+
+**The skips were mine and they are gone.** `BuildingIsNotWriting` guarded itself
+on `work/p0003` existing, so the test written that morning to stop § 2.13 coming
+back ran on one machine and printed `OK (skipped=2)` everywhere else. It now
+builds its own working directory — fourteen slots, three frames, an identity
+homography, no detections — which is all `ur.possess.build` needs to be asked
+whether it writes to disk. It is not a possession and is not meant to be one. A
+third case joined it while the fixture was there: `build` itself must leave no
+file, which is the property stated directly rather than through `--verify-revert`.
+
+**The four errors were a missing guard, and a guard is the right answer there.**
+`test_contaminated_identity.Verdicts` measures verdicts over p0003's real spans
+and real tags; its own docstring says a hand-built document would be testing the
+fixture, and that is correct. So it skips, with a reason naming this section,
+instead of erroring four times on a missing file — which reads as a broken suite
+rather than an absent input.
+
+**What stops a skip being a green is counting.** `docs/32` § 0 now states both
+numbers: **153 tests and no skips** where `work/` is present, **149 and one skip**
+from a clone. A skip anywhere else, or any skip on the machine that has the
+footage, is a test that has guarded itself into irrelevance. That is the general
+form of this finding and the reason it is worth more than the four errors it came
+in as.
+
+**Two wordings from the same pass, both recorded as niceties and both taken.**
+p0009's collapsed frames carry no `H` at all, and the refusal said *"its
+homography does not invert"* about a frame that has none — right refusal, wrong
+reason. It now distinguishes: *"this frame has no homography at all"* on p0009
+f426, *"its homography does not invert"* on p0003 f0. And `qa_fixture`'s "within
+inches" was p0003's number; p0009's worst disagreement is 1.34 yd. Both are
+players astride a line, both far inside the 5 yd the stands gate allows, and the
+docstring now carries both possessions' figures and the observation that actually
+settles it — the frame the tool picks is identical under either rule.
+
 ## 3. The gates, and which of them fail on purpose
 
 `python -m tools.gates` prints **204 rows, and only 170 of them can fail.** It

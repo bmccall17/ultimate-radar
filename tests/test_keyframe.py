@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import unittest
 
+import shutil
+import tempfile
 from pathlib import Path
 
 from ur import human as H
@@ -122,6 +124,60 @@ class Keyframes(unittest.TestCase):
         self.assertEqual({c["keyframe"] for c in d["corrections_applied"]}, {"k1"})
 
 
+def synthetic_work(root: Path, n: int = 3) -> Path:
+    """The smallest working directory `ur.possess.build` will accept.
+
+    Fourteen slots, three frames, an identity homography, no detections. It is
+    not a possession and is not meant to be one - it exists so that a test about
+    **whether a function writes to disk** can run on a machine with no footage.
+
+    The first version of `BuildingIsNotWriting` skipped when `work/p0003` was
+    absent, which meant the test written to stop docs/30 § 2.13 coming back ran
+    on exactly one machine and printed `OK (skipped=2)` everywhere else - a green
+    that covered nothing, found by the QA re-run and filed as § 2.16.
+    """
+    import json
+    d = root / "p9999"
+    d.mkdir(parents=True, exist_ok=True)
+    H = [[0.05, 0, 0], [0, 0.05, 0], [0, 0, 1]]
+    files = {
+        "clip.json": {
+            "possession_id": "p9999", "frames": n, "fps": 15.0,
+            "duration_s": n / 15.0, "start_s": 0.0, "end_s": n / 15.0,
+            "offense": "sol", "defense": "chill", "quarter": 1,
+            "attacking_direction": "+x",
+            "field": {"length_yd": 120.0, "width_yd": 53.333,
+                      "endzone_yd": 20.0, "brick_yd": 20.0},
+            "source": {"platform": "test", "id": "none", "start_s": 0.0,
+                       "end_s": n / 15.0, "url": "", "video_fps": 15.0,
+                       "clip_frames_sync": {"video_fps": 15.0, "offset_s": 0.0}},
+            "teams": {"sol": {"name": "Sol"}, "chill": {"name": "Chill"}}},
+        "calibration.json": {
+            "camera": {"image_w": 1920, "image_h": 1080,
+                       "position_yd": [58, -21, 13],
+                       "position_yd_soccer": [0, 0, 13]},
+            "venue_transform": {},
+            "frames": [{"f": f, "H": H, "confidence": 0.9,
+                        "camera": {"pan_deg": 0, "tilt_deg": 0, "roll_deg": 0,
+                                   "focal_px": 1200.0}} for f in range(n)]},
+        "tracks.json": {
+            "method": {}, "diagnostics": {},
+            "slots": [{"slot": (f"O{i+1}" if i < 7 else f"D{i-6}"),
+                       "team": "sol" if i < 7 else "chill",
+                       "observed": n, "first_observed_f": 0,
+                       "samples": [{"f": f, "xy": [50.0 + i, 20.0],
+                                    "state": "observed", "sigma": 0.3,
+                                    "det": None, "assoc": None, "reacquire": None,
+                                    "falsified": False, "covered": True}
+                                   for f in range(n)]} for i in range(14)]},
+        "detections.json": {"possession_id": "p9999",
+                            "frames": [{"f": f, "dets": []} for f in range(n)]},
+    }
+    for name, doc in files.items():
+        (d / name).write_text(json.dumps(doc), encoding="utf-8")
+    return d
+
+
 class BuildingIsNotWriting(unittest.TestCase):
     """`ur.possess.build` returns a document and must not put one on disk.
 
@@ -132,30 +188,35 @@ class BuildingIsNotWriting(unittest.TestCase):
     resulting vanished corrections on a parallel process and could not reproduce
     it; docs/32 § 0 told a QA runner to run it first thing.
 
-    Checked against the real p0003 because the failure is about a path on disk,
-    and a fixture in a temp directory would not have caught it.
+    On a synthetic directory rather than p0003, so it runs in a clone. § 2.16.
     """
 
-    WORK = Path("work/p0003")
-
     def setUp(self):
-        if not (self.WORK / "tracks.json").exists():
-            self.skipTest("p0003's tracks are not in this clone")
+        self.tmp = tempfile.mkdtemp()
+        self.work = synthetic_work(Path(self.tmp))
 
-    def test_load_uncorrected_leaves_the_file_alone(self):
-        p = self.WORK / "possession.json"
-        before = p.read_bytes() if p.exists() else None
-        R.load_uncorrected(self.WORK)
-        after = p.read_bytes() if p.exists() else None
-        self.assertEqual(before, after,
-                         "building the uncorrected document rewrote possession.json")
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_build_writes_nothing(self):
+        from ur.possess import build
+        doc = build(self.work, verbose=False)
+        self.assertEqual(len(doc["players"]), 14)
+        self.assertFalse((self.work / "possession.json").exists(),
+                         "building a document put one on disk")
+
+    def test_load_uncorrected_writes_nothing(self):
+        R.load_uncorrected(self.work)
+        self.assertFalse((self.work / "possession.json").exists(),
+                         "load_uncorrected wrote the document it was reading")
 
     def test_verify_revert_leaves_the_file_alone(self):
-        p = self.WORK / "possession.json"
-        if not p.exists():
-            self.skipTest("p0003 has not been through the pipeline")
+        from ur import grading as GV
+        GV.write(self.work, R.resolve(R.load_uncorrected(self.work),
+                                      R.empty_log("p9999"), verbose=False))
+        p = self.work / "possession.json"
         before = p.read_bytes()
-        R.main([str(self.WORK), "--verify-revert"])
+        R.main([str(self.work), "--verify-revert"])
         self.assertEqual(before, p.read_bytes(),
                          "--verify-revert rewrote the document it was checking")
 

@@ -59,12 +59,26 @@ passed.
 | the correction log round-trips | `python -m ur.resolve work/p0003 --verify-revert` says **YES, byte for byte**, and leaves `possession.json` untouched |
 | corrections reach the page | `corrections reached the page` is PASS for every possession |
 | no hand-placed frame reaches a metric | `no human position in a metric` is PASS, and reports at least one grader **excluded** |
-| the suite is green | `python -m unittest discover -s tests -t .` |
+| the suite is green **and ran what you think** | `python -m unittest discover -s tests -t .` — see the counts below |
 | the page renders its own contradiction check | `window.__urSelfCheck.ok` is `true`, never `false` |
 | nothing throws | the console has no errors after a full pass |
 
 **Use the venv**: `.venv/Scripts/python.exe`, not whatever `python` resolves to. `scipy` is
 an M0 dependency and the gate suite needs it.
+
+**A green with skips in it is not the same green.** The suite runs a different number of
+tests depending on whether `work/` is present, because a handful measure verdicts over the
+real possession and `work/` is gitignored. The counts are the check:
+
+| where | expected |
+|---|---|
+| a tree with `work/` | **153 tests, OK, no skips** |
+| a clone without it | **149 tests, OK, 1 skip** — `test_contaminated_identity.Verdicts` |
+
+A skip anywhere else, or a skip on the machine that has `work/`, means a test has guarded
+itself into irrelevance. `docs/30` § 2.16 is what happens when one does: the test written
+to stop § 2.13 coming back skipped in every clone and printed `OK (skipped=2)`, a green
+that covered nothing.
 
 ## 1. The harness, and four things that will waste an hour
 
@@ -118,6 +132,13 @@ async function grab(buttonId) {
 **Run each scenario in one evaluation.** Page state does not reliably survive between
 separate tool calls, and a scenario split across two is a scenario whose setup may have
 evaporated.
+
+**(5) A SCRIPT THAT TIMED OUT IS STILL RUNNING.** The browser tool gives up on an
+evaluation after about 45 seconds; the page does not. The abandoned script keeps going,
+keeps calling `setf`, and moves the frame under whatever scenario starts next — which
+produced one reading in the 2026-09-17 re-run that looked like a § 5 failure and was not.
+Reload the page after any timeout before believing anything you read, and keep scenarios
+short enough not to hit it.
 
 ## 2. The rail
 
