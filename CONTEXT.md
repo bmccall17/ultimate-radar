@@ -78,7 +78,9 @@ ramp also shifts the frames between the bracketing observations, and those still
 read `predicted` while being partly a person's work. Every grader in the project
 is blind to these frames — `ur/human.py` is the mechanism and
 `tools/human_positions.py` is the check — because otherwise the tracker scores
-better the more of a possession somebody fixes.
+better the more of a possession somebody fixes. AD-13 is the decision, and it is
+wider than positions: no score of the machine's work may be computed *over* a
+fact a person supplied, though scoring *against* one is what ground truth is.
 
 **Paint reading** — a human statement about where the *camera* is looking: a
 field point whose position is known exactly, and the image pixels the painted
@@ -103,9 +105,12 @@ viewer draws, and what it refuses to draw, follows from this and nothing else.
 
 **Declared** — written down at cut time and never checked. **Measured** — derived
 from the footage by a stage that reports its own accuracy. **Observed** — stated
-by a human watching. A number is only as good as which of the three it is, and
-`docs/30` § 2.0 is what happens when a declared value is mistaken for a measured
-one.
+by a human watching. **Bounded** — measured, but over a possession somebody has
+hand-placed positions in, which makes it an upper bound rather than a result: the
+frames a person repairs are the frames the tracker got wrong, so removing them
+(AD-13) leaves the easier sample behind. A bounded number always prints its
+denominator. A number is only as good as which of the four it is, and `docs/30`
+§ 2.0 is what happens when a declared value is mistaken for a measured one.
 
 **Gate** — a named pass/fail check in `python -m tools.gates`. An issue closes
 when a gate flips to PASS (`docs/31`), so a gate is a definition of done, not a
