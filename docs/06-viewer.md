@@ -21,8 +21,11 @@ else.
   lines, off-frame arrows.
 - **Overhead view** (right) — the field, the camera frustum, players, trails, disc.
   Toggles: space control, trails, pin moment.
-- **Transport** — scrub bar with event ticks and a coverage strip; play/pause, frame step,
-  speed (1× / 0.6× / 0.35×), jump to previous/next throw.
+- **Transport** — attached under the camera view, not adrift at the foot of the page: scrub
+  bar with event ticks and a coverage strip; play/pause, frame step, speed (1× / 0.6× /
+  0.35×), jump to previous/next throw. Frame number and clock are always up. Coverage and
+  calibration confidence appear only while paused, as a card riding the playhead over the
+  frame they describe — nobody reads two numbers that change 15 times a second.
 - **Readouts** — six cards, each with an evidence label.
 - **Roster** — 14 rows: slot, jersey, evidence now, share of possession seen, speed, who
   they are guarding and at what range.
