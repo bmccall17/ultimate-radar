@@ -100,6 +100,14 @@ main{display:grid;grid-template-columns:1.45fr 1fr;gap:14px;padding:12px 16px}
   grid-template-columns:auto minmax(0,1fr) auto;column-gap:10px;row-gap:5px;
   grid-template-areas:"left track right" "left strip right"}
 .tleft{grid-area:left;display:flex;gap:6px;align-items:center}
+/* Fixed box, so play and pause are the same button and not two sizes of it.
+   The height is the sibling buttons' own box written out - a 1.5 line plus
+   5 px of padding and a 1 px border, top and bottom - so it tracks the font
+   rather than pinning a number that is right in one theme and wrong in the
+   next. */
+#play{width:40px;height:calc(1.5em + 12px);padding:0;
+  display:inline-flex;align-items:center;justify-content:center}
+#play svg{display:block;width:17px;height:17px}
 .tright{grid-area:right;display:flex;flex-direction:column;align-items:flex-end;
   gap:4px}
 .trow{display:flex;gap:6px;align-items:center}
@@ -2409,6 +2417,17 @@ function showStripTip(){
   striptip.style.setProperty("--tip", clamp(at-left+w/2, 8, Math.max(8,w-8))+"px");
 }
 document.getElementById("play").onclick = togglePlay;
+/* Two shapes in one 16x16 box, both 10 units tall and both centred on x=8, so
+   the swap moves nothing. The label is the only thing that changes length, and
+   a label is read by a screen reader rather than laid out. */
+const PLAY_D  = "M5.2 3L12.8 8L5.2 13Z";
+const PAUSE_D = "M4.6 3h2.6v10H4.6zM8.8 3h2.6v10H8.8z";
+function setPlayGlyph(){
+  const b=document.getElementById("play"), on=S.playing;
+  b.querySelector("path").setAttribute("d", on?PAUSE_D:PLAY_D);
+  b.setAttribute("aria-label", on?"Pause":"Play");
+  b.title=(on?"Pause":"Play")+" (space)";
+}
 function togglePlay(){
   S.playing=!S.playing;
   setPlayGlyph();
