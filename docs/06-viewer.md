@@ -109,8 +109,46 @@ what was measured and let the coach supply the name.
 - Drag an estimated marker on the overhead view to place a player. On release, the
   surrounding estimated span re-fits and the correction is logged.
 - Issue cards jump to the moment and pre-select the player involved.
-- Undo reverses the last correction.
+- Undo reverses the last correction, or the whole keyframe if the last one was part of a
+  save — half an applied save is a state nobody chose and nobody can see.
 - The URL carries the timestamp; "copy link to this moment" is the share mechanism.
+
+## Repair mode
+
+`Repair`, or `r`. Entering it pauses the clip, because a moving picture cannot be placed
+on: the difference is between a keyframe about frame 312 and one about whatever frame the
+clock had reached by the time the pointer came up.
+
+It exists because the single drag above cannot reach the case that needs it most. That hit
+test matches a player who already has a position, within 3.5 yd of the click; an `unknown`
+slot draws no marker at all (docs/25 R5), and p0003's O2 at 23.5 s is estimated about
+45 yd off the field. Placing the slot a reader most wants placed meant grabbing an
+invisible marker in the wrong place and dragging it across the field while judging the
+right spot from a different panel.
+
+- **Every slot has a handle**, whether or not the tracker knows where it is. A slot with
+  no position waits at its last bearing, or on a parking rail if nothing ever saw it, drawn
+  hollow and dashed — a handle to grab, not a claim. A position estimated outside the field
+  is pulled to the edge and drawn as unplaced too: it is exactly the case a person is here
+  to overrule, and a handle nobody can reach is the bug this mode is for.
+- **The disc has a handle where it has a position of its own** — in the air, or on the
+  ground. When somebody is holding it the disc's position *is* the holder's, so the panel
+  says to place them instead. A person dragging the disc off a holder is not stating where
+  the disc is, they are stating that the holder is wrong, and that is a tag.
+- **One click on the feet, on the video, is one placement.** The projection is already
+  inverted for drawing, so the selected slot goes where the click lands and nobody has to
+  judge a field position from a different panel.
+- **One save is one keyframe.** Drags stage; the save writes. `Enter` saves.
+- **Field paint is draggable too, and saves somewhere else.** Ten landmarks whose field
+  position is known exactly are drawn through the frame's own homography; dragging one onto
+  the paint states where the camera actually is. It goes to `calibration_truth.json` and
+  never to the correction log — docs/03 says why the split has to be in the storage rather
+  than in anybody's memory.
+
+Every position placed here is human-sourced. The panel says how many frames of the picture
+are hand-placed and that none of them count toward recall, sigma containment or the solver
+grade, because `confirmed` is otherwise indistinguishable from a frame the tracker got
+right. `tools/human_positions.py` is the gate that keeps it true.
 
 ## Copy rules
 

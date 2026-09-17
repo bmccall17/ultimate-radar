@@ -338,11 +338,11 @@ would.
 
 ## 3. The gates, and which of them fail on purpose
 
-`python -m tools.gates` prints **161 rows, and only 137 of them can fail.** It
+`python -m tools.gates` prints **162 rows, and only 138 of them can fail.** It
 ends on two totals, and they are not the same kind of number:
 
 ```
-123 of 137 failable check(s) pass, 14 failing.
+124 of 138 failable check(s) pass, 14 failing.
 24 informational row(s) report a measurement and no verdict.
 ```
 
@@ -374,12 +374,45 @@ things the brief asks not to happen.
 | `...measured on` | 10, one per possession | the fraction of frames the M1 mean was measured on | there is no fraction below which the possession is *wrong*. A thin denominator makes the **mean** weaker evidence; it is not itself a defect, and the mean it qualifies is already gated. § 2.1 | a measured relation between usable fraction and the error on the frames the acceptance never sampled. Nothing has measured that, and § 2.2 suggests the honest quantity is "is the halfway line in shot", which is a different row |
 | `offence drifts` | 10, one per possession | median per-player least-squares drift of the offence along x | § 2.0: this quantity is **not** the attacking direction, so no value of it is right or wrong. It stayed in the run because the movement is real and worth seeing, not because it decides anything | nothing, and that is the point. The thing it was mistaken for is gated across possessions in `Qn: opposite teams disagree`; this row is the diagnostic that was promoted to a fact once already |
 | `...quarters confirmed` | 1 | how many quarters have a human-confirmed attacking direction — today **0 of 4** | an unconfirmed quarter claims nothing, so there is nothing to contradict. Gating it would fail every possession cut before somebody got round to watching it, and a queue is not a defect | confirming becoming part of cutting a possession rather than a backlog. Then `0 of 4` **is** a defect, the threshold is *all of them*, and it moves to the failable total under #5 |
-| `...longest blind stretch` | 3, the published possessions carrying human tags | the longest stretch inside the tagged region where a reader sees no disc at all | no principled threshold exists. `disc not lost for long` bounds a *flight* at 5 s on physics — every human-tagged flight runs 0.27–3.20 s. This one has no physics behind it, and a number picked because it happened to fail p0003 is tuning a constant to produce a verdict, backwards | #8. Naming a holder does not supply a position — p0003's 21.27–26.33 s span is named O2 and still mostly blank, because the tracker observes O2 on 6 of its 77 frames. A threshold needs a distribution measured across more than three tagged possessions |
+| `...longest blind stretch` | 3, the published possessions carrying human tags | the longest stretch inside the tagged region where a reader sees no disc at all | still no principled threshold, and **two candidates were tried and rejected on 2026-09-17** — see below. A number picked because it happened to fail p0003 is tuning a constant to produce a verdict, backwards | a tolerance somebody decides and can defend, or a full repair pass becoming part of publishing a possession. #8 supplied the *remedy* and not the threshold |
 
 The count moves with the work: ten possessions in `work/`, so ten of each
 per-possession row, and a fourth published possession with tags adds a fourth
 `...longest blind stretch`. What does not move is that none of them can be
 counted as a passing check.
+
+#### Why `...longest blind stretch` is still not a gate, after #8
+
+#8 asked for a threshold "set from a measurement rather than from what p0003
+happens to score", and what it actually produced was the **remedy**: repair mode,
+and a measured demonstration that the number now moves. Anchoring the two holders
+the tracker loses on p0003 — O1 across 5.67–8.73 s and O2 across 21.27–26.13 s,
+one keyframe every 8 frames — takes it from **3.1 s to 0.5 s**, through the real
+path: `corrections.json` → `ur.resolve` → `ur.disc` → `ur.resolve` →
+`tools.build_site`. Before that the number had no remedy at all, so gating it
+would have condemned a page nobody could fix. That much has changed.
+
+The threshold has not, and two candidates were put up and knocked down:
+
+- **The median human-tagged flight, 1.23 s.** Rejected, and rightly: a flight
+  duration is not a property of the sport. A five-yard dump and a forty-yard huck
+  share no duration, so the median of the 16 tagged flights measures which throws
+  happen to have been tagged and nothing else. It would have been a tuned
+  constant wearing a measurement's clothes.
+- **The longest tagged flight, 3.20 s.** Sourceable, and useless: every published
+  possession passes it today, p0003 included at 3.1 s, so it is a row that cannot
+  fail — AD-11 — and it would close #8 without the number ever moving.
+
+And the argument both of them rested on is wrong anyway. **A tagged flight is
+already drawn**, interpolated between the throw and the catch, so a blind frame
+inside the tagged region is never the disc legitimately being in the air — it is
+the machinery having failed. The principled target is therefore **zero**, and
+every number above zero is a tolerance somebody chooses, not something the
+footage measures. Zero is honest and not yet reachable: it would mean hand-placing
+the holder on every tagged frame of every possession.
+
+So the row stays a measurement, and the reason is now a decision waiting to be
+made rather than a measurement waiting to be taken.
 
 ### Per possession — all six published ones pass
 
@@ -471,6 +504,39 @@ are withdrawn — not because the possessions are fine, but because the check
 that condemned them does not measure what it claimed to. `p*NNNN*: declared
 direction holds` is where a wrong `--attacking-direction` gets caught now, and it
 stays silent until the quarter has a confirmation to check against.
+
+### Human positions — the one gate repair mode had to bring with it
+
+| gate | threshold | where it comes from |
+|---|---|---|
+| no human position in a metric | every grader answers the same with and without hand-placed positions | #8. `anchor` produces `confirmed`, and CONTEXT.md is blunt that **every** `confirmed` frame is human-sourced — so a metric counting them scores the tracker better the more a person fixes. Same contamination as § 2.5's inferred name and as the withdrawn `identity_switches_caught: "2 of 2"` |
+
+Repair mode invites somebody to hand-place fourteen markers and a disc, which
+makes this the difference between a correction log and a way to cheat. The
+mechanism is `ur/human.py`: every frame a correction created **or moved** is
+written to `possession.json:human`, and `blind()` hands a grader a document those
+frames are missing from. Three graders carry it — per-player recall, the sigma
+containment sample, and the span solver's grade.
+
+**The gate does not read the source for the word `blind`.** A call that had been
+commented out would pass that. It lays down a deterministic **probe keyframe** —
+every slot and the disc moved 12 yd, on a fixed stride, through `ur.resolve` by
+exactly the route a person's save takes — and runs each grader three times: with
+its exclusion switched off, as it normally runs, and over the blinded document.
+The last two must agree, and the first must differ from them. Deleting either
+`HU.blind` that the probe can reach turns the row red, which was checked both
+ways round.
+
+The third run is what stops this being a row that cannot fail. Per-player recall
+reports **`unreachable`**, not a pass: it asks for `observed`, an anchor produces
+`confirmed`, and docs/05's ramp never moves the bracketing observations, so a
+correction cannot enter it whatever `blind` does. It is clean by construction and
+the run says so rather than taking credit. The two that the probe *does* reach —
+sigma containment and the solver grade — are the ones the row is about.
+
+One thing this gate is not: a claim about the artefact. A correction is supposed
+to make the published page better and it does. `blind` is a grading view and
+never a publishing one.
 
 ### The disc — both gates fail, and this is the work
 

@@ -36,15 +36,31 @@ from pathlib import Path
 # with one of them published for a fortnight. A gate that has to be remembered is
 # a gate that will be forgotten. See docs/28-calibration-confidence.md.
 #
-# `ur.possess` appears twice, and that is not a mistake. `ur.disc` reads
+# `ur.resolve` appears twice, and that is not a mistake. `ur.disc` reads
 # possession.json and `ur.possess` reads disc.json, so on a possession that has
 # never been through the chain the first pass writes a possession.json with no
 # disc in it, `ur.disc` then solves the disc, and nothing carries it back. The
 # viewer reads `possession.json`, so the symptom is a page that says "no disc
 # position in this data" on a possession whose disc.json is sitting right there.
+#
+# It is `ur.resolve` on both passes rather than `ur.possess`, and the order
+# matters more than it looks. `resolve` is `possess.build` with AD-6's log
+# replayed over it - byte for byte the same document on a possession with no
+# corrections, which is checked - so it is a free substitution, and it puts the
+# corrections in front of `ur.disc` rather than behind it. That is the whole
+# point: the disc's position IS the holder's position, so a person who places a
+# lost holder has placed the disc, and `ur.disc` has to be the stage that finds
+# out. Running it on the uncorrected positions instead leaves the correction in
+# the file and the disc still missing from the picture - which is exactly what
+# #8's repair mode is for, and what running it the other way round silently
+# undoes. Measured on p0003: repairing the two holders the tracker loses takes
+# the longest stretch a reader sees no disc from 3.1 s to 0.5 s, and only with
+# `ur.disc` downstream of the corrections.
+#
 # The second pass is cheap (it reads files, it does not re-track) and the loop is
-# not circular: `ur.disc` uses only the player positions, which the second pass
-# does not change, so possess -> disc -> possess is a fixed point.
+# not circular: `ur.disc` uses only the player positions, and the second resolve
+# rebuilds them from the same tracks and the same log, so they are identical to
+# what `ur.disc` was given. resolve -> disc -> resolve is a fixed point.
 # `tools.m4_structure` joins them for the same reason as `ur.calibrate.accept`:
 # it costs a second, it needs no ground truth, it is the gate `docs/04` says
 # should never be interesting, and until this it was only ever run by hand on
@@ -66,8 +82,16 @@ STAGES = [
     ("possess", "ur.possess", "possession.json", None),
     ("structure", "tools.m4_structure", "m4_structure_acceptance.json (the roster gate)",
      lambda w: ["--out", f"eval/m4-{w.name}/m4_structure_acceptance.json"]),
-    ("disc", "ur.disc", "disc.json", None),
-    ("repossess", "ur.possess", "possession.json (now carrying the disc)", None),
+    # AD-6's layer, and it belongs in the chain rather than beside it. A person
+    # saves a repair keyframe out of the viewer into `corrections.json` and the
+    # only thing standing between that file and the published page is this
+    # stage; leaving it to be remembered meant a coach's work sat in a file
+    # nobody replayed. It is a no-op on a possession with no corrections - the
+    # document it writes is byte for byte what `ur.possess` wrote, apart from
+    # the empty `human` lists - so it costs nothing to have here always.
+    ("correct", "ur.resolve", "possession.json (corrections applied, AD-6)", None),
+    ("disc", "ur.disc", "disc.json (solved on the CORRECTED positions)", None),
+    ("resolve", "ur.resolve", "possession.json (now carrying the disc)", None),
     ("issues", "ur.issues", "issues.json", None),
 ]
 

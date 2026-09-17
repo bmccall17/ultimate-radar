@@ -61,8 +61,30 @@ closes a hole in the display; it does not grade the solver, and it never renders
 
 **Correction** — a human statement about the *tracking*, written to
 `corrections.json` as an append-only log (AD-6). Four operations: **anchor**
-(place a slot at a position), **swap** (exchange two slots' trajectories),
-**confirm** (affirm an estimate), **revert** (neutralise an earlier entry).
+(place a slot *or the disc* at a position), **swap** (exchange two slots'
+trajectories), **confirm** (affirm an estimate), **revert** (neutralise an
+earlier entry).
+
+**Keyframe** — everything one save of repair mode placed: a person pauses the
+clip, puts every marker and the disc right, and saves once. In the log it is a
+`keyframe` id shared by the `anchor` entries it produced, so the correction panel
+shows one row and one Undo takes the whole save back. One statement about one
+moment, not fifteen unrelated ones.
+
+**Hand-placed** — a frame whose position a correction created *or moved*, carried
+per slot in `possession.json:human`. Not the same as the evidence state, and the
+difference is the point: `confirmed` is what an `anchor` produces, but docs/05's
+ramp also shifts the frames between the bracketing observations, and those still
+read `predicted` while being partly a person's work. Every grader in the project
+is blind to these frames — `ur/human.py` is the mechanism and
+`tools/human_positions.py` is the check — because otherwise the tracker scores
+better the more of a possession somebody fixes.
+
+**Paint reading** — a human statement about where the *camera* is looking: a
+field point whose position is known exactly, and the image pixels the painted
+line actually occupies. It looks like a correction and is gathered with the same
+gesture, and it goes in a different file (`calibration_truth.json`), because the
+subject is the camera and not anybody on the field.
 
 > **`confirm` is overloaded and the two senses are related but distinct.** The
 > *correction operation* `confirm` is a human affirming an estimate. The

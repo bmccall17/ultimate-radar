@@ -26,6 +26,13 @@ poach switch — and when it happens a greedy match lets one observed slot answe
 for both of them. Where the two numbers agree, the threshold is not doing the
 work. Where they diverge, they say how much double-counting there is.
 
+**A position a human placed is not in this measurement at all.** The denominator
+is hand-labelled boxes and never was at risk; the numerator is, because #8's
+repair mode lets somebody put a slot exactly where the label is. `ur.human.blind`
+removes every frame a correction created or moved before anything is counted, so
+a repair pass cannot raise this number. See `ur/human.py` and
+`tools/human_positions.py`.
+
 **The denominator is detected-and-labelled players**, which is the honest limit of
 this measurement: a player the detector never found has no box, so no label, so
 no place in the denominator. M2 measured that miss at 3 players over these same
@@ -43,14 +50,31 @@ from pathlib import Path
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
+from ur import human as HU
+
 THRESHOLDS = (1.0, 1.5, 2.0)
 GATE_THRESHOLD = 1.5
 GATE_RECALL = 0.90          # the review's recorded expectation, not a spec number
 
 
-def measure(work: Path, labels_path: Path, m2_path: Path) -> dict:
+def measure(work: Path, labels_path: Path, m2_path: Path,
+            poss: dict | None = None, blind: bool = True) -> dict:
     det = json.loads((work / "detections.json").read_text(encoding="utf-8"))
-    poss = json.loads((work / "possession.json").read_text(encoding="utf-8"))
+    if poss is None:
+        poss = json.loads((work / "possession.json").read_text(encoding="utf-8"))
+    # A hand-placed position may not answer for a held-out label. `confirmed` is
+    # what an anchor produces and this function already asks for `observed`, so
+    # nothing an anchor placed directly was ever going to match - but docs/05's
+    # ramp also shifts the frames either side, and those keep whatever state the
+    # tracker gave them. `ur.human.blind` takes every frame a person moved out of
+    # the sample, so the number cannot improve because somebody did the fixing.
+    # tools/human_positions.py is the check that this is still true.
+    # `blind=False` exists for one caller: tools/human_positions.py runs this
+    # both ways over a probe keyframe, because "the answer did not move" means
+    # two different things - the exclusion worked, or the probe never reached
+    # this grader - and a check that cannot tell them apart overclaims.
+    if blind:
+        poss = HU.blind(poss)
     lab = json.loads(labels_path.read_text(encoding="utf-8"))
     m2 = json.loads(m2_path.read_text(encoding="utf-8"))
 

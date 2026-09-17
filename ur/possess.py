@@ -71,6 +71,13 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             # from the tracker, which has the homography and the detections.
             "falsified": [bool(r.get("falsified")) for r in smp],
             "covered": [bool(r.get("covered")) for r in smp],
+            # Which frames a human's hand created or moved - empty here, always,
+            # because nothing in this function has met a human. `ur/resolve.py`
+            # fills it when a correction is replayed, and `ur/human.py` says why
+            # a consumer must ask this rather than reading `confirmed` off the
+            # evidence state. The key is emitted even when empty so that a
+            # metric can depend on it existing rather than on remembering.
+            "human": [],
             "observed_frames": s["observed"],
             "state_counts": {k: s.get(k, 0) for k in
                              ("observed", "provisional", "weak", "interpolated",
@@ -133,6 +140,7 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             # fact to say so on the card rather than only to draw a weaker
             # state. docs/27, #15.
             "name_inferred": [bool(r.get("name_inferred")) for r in smp],
+            "human": [],                     # as above; ur/resolve.py fills it
             "trustworthy": dd["diagnostics"]["inference_trustworthy"],
             "plausibility": dd["diagnostics"]["plausibility"],
             "note": dd["method"]["nothing_has_seen_the_disc"],

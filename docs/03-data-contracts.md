@@ -14,6 +14,7 @@ work/p0001/
   identities.json      identify  slot -> jersey number, with evidence
   events.json          human     throws, catches, turns, goal
   corrections.json     human     append-only edits
+  calibration_truth.json human   where the field paint really is, in image pixels
   possession.json      derive    the single file the viewer reads
 ```
 
@@ -322,11 +323,61 @@ gaps. Two orthogonal fields, and conflating them is the mistake to avoid:
     "xy":[82.5,26.0],"note":"visible at the top of frame just before the pan"},
    {"id":"c2","at":"2026-09-13T10:05:12Z","op":"swap","slots":["D5","D7"],"from_f":156},
    {"id":"c3","at":"2026-09-13T10:06:00Z","op":"confirm","slot":"O6","f":210},
-   {"id":"c4","at":"2026-09-13T10:07:30Z","op":"revert","target":"c2"}]}
+   {"id":"c4","at":"2026-09-13T10:07:30Z","op":"revert","target":"c2"},
+   {"id":"c5","at":"2026-09-16T18:02:00Z","keyframe":"k1","op":"anchor",
+    "slot":"O2","f":330,"xy":[64.0,22.0]},
+   {"id":"c6","at":"2026-09-16T18:02:00Z","keyframe":"k1","op":"anchor",
+    "slot":"disc","f":330,"xy":[64.4,22.3]}]}
 ```
 
 Order matters; `resolve.py` replays them in sequence. `revert` neutralises an earlier
 correction rather than deleting it, so the log stays a true history.
+
+**`keyframe`** groups the entries one save produced. The viewer's repair mode pauses the
+clip and lets a person put every marker and the disc right at once (#8), and that is one
+statement about one moment rather than fifteen unrelated ones — so the log carries the
+grouping, the correction panel shows one row per keyframe, and one Undo reverts the whole
+save. It is optional: a single drag writes an entry with no `keyframe` and nothing changes
+for it.
+
+**`slot: "disc"`** anchors the disc rather than a player. AD-2's fourteen slots are
+*people*, never created and never destroyed, so `"disc"` cannot collide with `O1`–`D7` and
+the disc needs no operation and no file of its own. It brackets its ramp against
+`confirmed` frames only — `interpolated` is the straight line drawn *between* two human
+tags, so treating it as an observation would pin the correction to the estimate it is
+there to fix. Its height is left alone unless stated: a person clicking on the grass is
+saying where the disc is over the field, not how high it is.
+
+A correction is only ever applied by `ur/resolve.py`, and it is applied **in front of**
+`ur/disc.py` in the pipeline. The disc's position is the holder's position, so placing a
+holder the tracker lost places the disc, and the disc stage has to be the one that finds
+out. `tools/pipeline.py` carries the order and the measurement behind it.
+
+## calibration_truth.json — where the paint really is
+
+```json
+{"schema":"ultimate-radar/calibration-truth@1",
+ "possession_id":"p0003",
+ "image":{"w":1280,"h":720},
+ "observations":[
+   {"id":"g1","at":"2026-09-16T18:04:00Z","f":71,
+    "landmark":"goal line +x @ yW","field":[100.0,53.333],"image":[499.4,309.7]}]}
+```
+
+A person watching can see where the painted line is; the calibration solve can be wrong
+about it by yards and say nothing. So repair mode draws the field paint on the video
+through the frame's own homography, and dragging a landmark onto the paint states a
+correspondence: this field point, whose position is known exactly, appears at these image
+pixels. `field` is ultimate-frame yards and `image` is pixels in the source frame, not in
+whatever the canvas happened to be scaled to.
+
+**It is a separate file from `corrections.json` on purpose, and the two must never share
+one.** A paint reading is a fact about the *camera*; a correction is a fact about
+somebody on the field. They are gathered in the same session with the same gesture, which
+is exactly why the split has to be in the storage rather than in anybody's memory: a paint
+reading replayed as a player anchor would move a person onto a line they were nowhere
+near, and it would poison the log AD-6 wants to be a training set of human-verified player
+positions. `ur/resolve.py` never reads this file.
 
 ## possession.json — what the viewer reads
 
@@ -352,7 +403,7 @@ stand-in camera view). Its shape:
  "disc":[[x,y,height_yd]],
  "events":[...],
  "players":[{"id":"D6","team":"chill","slot":"D6","jersey":5,"role":"defender",
-             "est":[[x,y]], "state":["observed"], "sigma":[0.3]}],
+             "est":[[x,y]], "state":["observed"], "sigma":[0.3], "human":[]}],
  "derived":{"coverage":[10], "assignment":[{"D6":"O6"}], "metrics":{...}}}
 ```
 
@@ -370,6 +421,16 @@ Two fields added after M4 and M6, both because something downstream was about to
 - **`gates`** — the measured acceptance numbers for the tracker that produced this file, and a
   `note` naming the one that is marginal. A position without the recall beside it is a number
   waiting to be over-trusted; the viewer prints them in its provenance banner.
+- **`human`** — per player, and beside `disc_meta`: the frames whose position a human's
+  hand created or moved, as sorted frame indices. Empty on everything the pipeline
+  produced alone; `ur/resolve.py` fills it. It is not the evidence state wearing a
+  different name. `confirmed` is what an `anchor` *produces*, but `docs/05`'s ramp also
+  shifts the frames between the bracketing observations, and those keep their original
+  state while their position is now partly a person's — so a consumer asks `human`, never
+  `state`. A list of indices rather than a per-frame array because it is empty in the
+  normal case and 555 `false`s would ride onto every published page for nothing.
+  `ur/human.py` holds the vocabulary and the grading view; `tools/human_positions.py` is
+  the gate that no metric has read one.
 - **`camera.position_yd` is ULTIMATE-frame yards**, converted through `venue_transform`. The
   soccer-frame value `calibration.json` solves in is kept beside it as `position_yd_soccer`.
   Before M6 this key carried the soccer value in a file whose every other coordinate was

@@ -42,6 +42,7 @@ from pathlib import Path
 import numpy as np
 
 from tools.m3_foot import render_picks
+from ur import human as HU
 
 SEED = 20260828          # deliberately not M3's seed
 N_SAMPLES = 40
@@ -98,10 +99,23 @@ def cmd_render(a) -> int:
     return 0
 
 
-def cmd_score(a) -> int:
-    work, out = Path(a.work), Path(a.out)
+def score(work: Path, out: Path, poss: dict | None = None,
+          write: bool = True, blind: bool = True) -> dict:
+    """The two gates, as a dict. `poss` overrides the file, for the exclusion
+    check in `tools/human_positions.py`, which needs to run this twice over one
+    possession with a probe keyframe applied to the second."""
     det = json.loads((work / "detections.json").read_text(encoding="utf-8"))
-    poss = json.loads((work / "possession.json").read_text(encoding="utf-8"))
+    if poss is None:
+        poss = json.loads((work / "possession.json").read_text(encoding="utf-8"))
+    # docs/05's ramp collapses sigma toward 0.3 across the frames either side of
+    # an anchor, and moves the estimate toward the hand-placed one. Both push
+    # this gate the same way: the error shrinks and the disc it has to fall
+    # inside shrinks less. So a repair pass would improve sigma containment, and
+    # the tracker would score better the more of it a human fixed. Those frames
+    # are taken out of the sample rather than counted. #8, ur/human.py.
+    # `blind=False` is for tools/human_positions.py only; see the note there.
+    if blind:
+        poss = HU.blind(poss)
     by = {d["f"]: d["dets"] for d in det["frames"]}
     labels = json.loads((out / "foot_labels.json").read_text(encoding="utf-8"))
 
@@ -113,11 +127,20 @@ def cmd_score(a) -> int:
                 owner[(f, di)] = p
 
     rows = []
+    hand_placed = 0
     for lab in labels["labels"]:
         f, i = int(lab["f"]), int(lab["i"])
         d = by[f][i]
         p = owner.get((f, i))
         if p is None:
+            continue
+        # `blind` above leaves the detection index in place and takes the
+        # position away, which is what a slot nothing has seen looks like
+        # everywhere else in the pipeline. Dropping the row here is the
+        # difference between a sample that excludes hand-placed frames and one
+        # that carries a NaN through the median.
+        if p["est"][f] is None:
+            hand_placed += 1
             continue
         # Project the hand-read foot point with H, which docs/03 defines as image
         # pixel -> ULTIMATE field yard. `CFIT.backproject` returns the *soccer*
@@ -176,6 +199,7 @@ def cmd_score(a) -> int:
         "caveats": labels.get("caveats"),
         "disjoint_from": "eval/m3/foot_labels.json (by construction; seed 20260828)",
         "n": len(rows),
+        "excluded_as_hand_placed": hand_placed,
         "population": meta,
         "position_gate": {
             "gate": {"median_yd": 0.8, "p95_yd": 1.8},
@@ -209,11 +233,20 @@ def cmd_score(a) -> int:
         },
         "samples": rows,
     }
-    (out / "m4_foot_acceptance.json").write_text(json.dumps(res, indent=2) + chr(10),
-                                                 encoding="utf-8")
+    if write:
+        (out / "m4_foot_acceptance.json").write_text(
+            json.dumps(res, indent=2) + chr(10), encoding="utf-8")
+    return res
+
+
+def cmd_score(a) -> int:
+    work, out = Path(a.work), Path(a.out)
+    res = score(work, out)
 
     pg, sgate = res["position_gate"], res["sigma_gate"]
-    print(f"  n                  : {len(rows)} hand-checked observed samples")
+    meta = res["population"]
+    n_tot = int(sgate["inside_count"].split("/")[1])
+    print(f"  n                  : {res['n']} hand-checked observed samples")
     print(f"  population         : {meta['observed_samples']} observed, "
           f"{meta['excluded_by_readability_floor']} below the {MIN_BOX_H} px floor "
           f"({meta['excluded_by_readability_floor']/max(meta['observed_samples'],1):.0%})")

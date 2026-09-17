@@ -467,10 +467,17 @@ function addCorrections(list){
 function undo(){
   // A keyframe is undone whole. Reverting one marker of fourteen would leave a
   // save half-applied, which is a state nobody chose and nobody can see.
+  //
+  // `done` is what makes a SECOND undo work. This used to walk back to the last
+  // entry that was not itself a `revert` and revert that - which is the last
+  // entry whether or not it had already been undone, so pressing Undo twice
+  // reverted the same correction twice and never reached the one before it. A
+  // single drag per session hid that; a session of keyframes does not.
+  const done=new Set(LOG.filter(c=>c.op==="revert").map(c=>c.target));
   for(let k=LOG.length-1;k>=0;k--){
-    if(LOG[k].op==="revert") continue;
+    if(LOG[k].op==="revert"||done.has(LOG[k].id)) continue;
     const kf=LOG[k].keyframe;
-    const gone=LOG.filter(c=>c.op!=="revert" &&
+    const gone=LOG.filter(c=>c.op!=="revert" && !done.has(c.id) &&
                              (kf ? c.keyframe===kf : c.id===LOG[k].id));
     const at=new Date().toISOString();
     for(const g of gone)
@@ -2287,7 +2294,12 @@ over.style.cursor="pointer"; radar.style.cursor="crosshair";
 // never has to draw outside itself, and on the near sideline where nothing real
 // is, so a handle there reads as "not placed" rather than as a position.
 const PARK_Y = 1.6;
-const REPAIR = {on:false, put:new Map(), paint:[], kf:0, paintSeq:0};
+// `f` is the frame the staged placements were made on, and it is not `S.f`. A
+// person can stage a marker, scrub, and then save; saving to wherever the clock
+// had got to would write a keyframe of frame 100's positions onto frame 200 and
+// say a human had placed them there. The save writes to `REPAIR.f`, the panel
+// names it, and staging on a different frame is what moves it.
+const REPAIR = {on:false, f:null, put:new Map(), paint:[], kf:0, paintSeq:0};
 
 // The field paint, as points whose position is known exactly. Dragging one on
 // the video says "the projection puts this line here and the paint is actually
@@ -2384,15 +2396,22 @@ function repairHit(ev){
   }
   return {id:best, x:clamp(x,0,FL), y:clamp(y,0,FW)};
 }
-function stage(id,x,y){ REPAIR.put.set(id,[clamp(x,0,FL), clamp(y,0,FW)]);
-  renderRepair(); }
+function stage(id,x,y){
+  // The first placement fixes the frame; a placement on another frame starts a
+  // new keyframe rather than joining the old one, because two frames of
+  // positions saved as one moment is a lie about when anybody was there.
+  if(REPAIR.f!==S.f && REPAIR.put.size) REPAIR.put.clear();
+  REPAIR.f=S.f;
+  REPAIR.put.set(id,[clamp(x,0,FL), clamp(y,0,FW)]);
+  renderRepair();
+}
 function saveKeyframe(){
   if(!REPAIR.put.size) return;
-  const kf = "k"+(++REPAIR.kf), f = S.f;
+  const kf = "k"+(++REPAIR.kf), f = REPAIR.f;
   addCorrections([...REPAIR.put].map(([slot,xy]) => ({
     keyframe:kf, op:"anchor", slot, f,
     xy:[+xy[0].toFixed(3), +xy[1].toFixed(3)]})));
-  REPAIR.put.clear(); renderRepair(); draw();
+  REPAIR.put.clear(); REPAIR.f=null; renderRepair(); draw();
 }
 
 /* ------------------------------------------------- the paint, on the video */
@@ -2452,7 +2471,12 @@ function renderRepair(){
   const n=REPAIR.put.size, g=REPAIR.paint.length;
   const hand=[...HUMAN.values()].reduce((a,b)=>a+b.size,0);
   el.innerHTML =
-    `<div class="issue"><b>Repair — frame ${S.f}, ${(S.f/FPS).toFixed(2)} s.</b>
+    `<div class="issue"><b>Repair — frame ${REPAIR.f??S.f}, ` +
+    `${((REPAIR.f??S.f)/FPS).toFixed(2)} s.</b>`+
+    `${REPAIR.f!==null&&REPAIR.f!==S.f
+       ? ` <b>${n} placement(s) are staged on that frame, not on the ${S.f}`
+         + ` you are looking at</b> — saving writes them where they were made.`
+       : ""}`+`
      Drag any marker on the overhead view, or select a slot and click its feet on
      the video. One save writes one keyframe.
      ${discIsSeparate()
@@ -2494,8 +2518,14 @@ radar.onpointerdown = ev => {
     const h=repairHit(ev);
     if(!h.id) return;
     S.sel = h.id===DISC_ID ? null : h.id;
-    drag={id:h.id}; radar.setPointerCapture(ev.pointerId);
-    stage(h.id,h.x,h.y); draw(); return;
+    // Grab, do not place. The hit test reaches 4 yd, so staging on the press
+    // would move a marker four yards every time somebody clicked it to see who
+    // it was - a placement nobody made, saved as one a human did. The offset is
+    // kept so the marker follows the pointer from where it was actually held.
+    const g=handleAt(h.id);
+    drag={id:h.id, dx:g.xy[0]-h.x, dy:g.xy[1]-h.y};
+    radar.setPointerCapture(ev.pointerId);
+    draw(); return;
   }
   const h=radarHit(ev);
   if(!h.p) { S.sel=null; draw(); return; }
@@ -2505,7 +2535,8 @@ radar.onpointerdown = ev => {
 };
 radar.onpointermove = ev => {
   if(!drag) return;
-  if(REPAIR.on){ const h=repairHit(ev); stage(drag.id,h.x,h.y); draw(); return; }
+  if(REPAIR.on){ const h=repairHit(ev);
+    stage(drag.id, h.x+(drag.dx||0), h.y+(drag.dy||0)); draw(); return; }
   const h=radarHit(ev);
   BY[drag.id].est[S.f]=[clamp(h.x,0,FL), clamp(h.y,0,FW)];
   draw();

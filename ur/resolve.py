@@ -13,7 +13,9 @@ So corrections are an **append-only log** replayed in order over a fresh read of
 the tracks. Three operations, and `docs/05-uncertainty.md` says to resist adding
 more:
 
-- **anchor** — a human places a slot at a position on a frame.
+- **anchor** — a human places a slot, or the disc, at a position on a frame.
+  `slot: "disc"` is the disc; AD-2's fourteen are players and cannot collide
+  with it, so the disc needs no operation and no file of its own.
 - **swap** — exchange two slots' trajectories from a frame onward.
 - **confirm** — affirm an estimate is right; collapses sigma.
 
@@ -52,8 +54,33 @@ from pathlib import Path
 
 import numpy as np
 
+from . import human as HU
+
 CONFIRMED_SIGMA = 0.3          # docs/05
+# What brackets an anchor's ramp: a real observation of the slot, which docs/05
+# says is `observed` or `confirmed` and nothing else.
 ANCHORED = {"observed", "confirmed"}
+# What counts as a slot being in shot, and a different question. `ur/possess.py`
+# answers it with `observed`, `provisional` and `weak` - a re-acquisition is an
+# observation of somebody and a weak sample is a player seen on a weakly placed
+# frame; both were seen. This module used to recompute `derived.coverage` over
+# ANCHORED instead, so running the resolver over a possession with no
+# corrections in it at all dropped p0003's coverage to 0 on 67 frames the
+# pipeline had counted. The viewer's own `coverage()` agrees with possess, so
+# the page and the file it was built from disagreed the moment anybody resolved.
+COVERAGE_STATES = {"observed", "provisional", "weak", "confirmed"}
+
+# The disc is a fourth thing a person can place, and it is not a slot. AD-2's
+# fourteen are *players*, never created and never destroyed; `"disc"` cannot be
+# mistaken for one of `O1`-`D7`, so it rides the same `anchor` operation and the
+# same file rather than earning a schema of its own. #8 asked for no new
+# decision, no new file and no schema change, and this is what that costs.
+DISC = "disc"
+# What brackets a disc anchor. The disc's only real observations are the frames a
+# human tagged a catch or a throw on - `interpolated` is the straight line drawn
+# BETWEEN two of those, so treating it as an observation would pin the ramp to
+# the estimate it is meant to correct.
+DISC_ANCHORED = {"confirmed"}
 
 
 # --------------------------------------------------------------------------- #
@@ -96,6 +123,40 @@ def _bracket(player: dict, f: int) -> tuple[int | None, int | None]:
     return lo, hi
 
 
+def _flags(obj: dict, n: int) -> list[bool]:
+    """`obj`'s human-touched marks as a per-frame array, created if absent.
+
+    `resolve()` normalises these on the way in and serialises them back to frame
+    indices on the way out, so everything between here and there can just index
+    them. A stage that calls an operation directly still gets the marks.
+    """
+    cur = obj.get(HU.KEY)
+    if not isinstance(cur, list) or len(cur) != n or not all(
+            isinstance(v, bool) for v in cur):
+        cur = HU.as_flags(obj, n)
+        obj[HU.KEY] = cur
+    return cur
+
+
+def _ramp(f: int, lo: int | None, hi: int | None, n: int):
+    """docs/05's weights, yielded `(frame, weight)` over the whole bracket.
+
+    Pulled out of `apply_anchor` when the disc grew the same operation. The two
+    differ only in what counts as a bracketing observation and in what they carry
+    per frame; a second copy of the ramp would have been a second place for the
+    arithmetic to drift.
+    """
+    for k in range(0 if lo is None else lo, (n - 1 if hi is None else hi) + 1):
+        if k == f:
+            w = 1.0
+        elif k < f:
+            w = 1.0 if lo is None or f == lo else (k - lo) / (f - lo)
+        else:
+            w = 1.0 if hi is None or hi == f else (hi - k) / (hi - f)
+        if w > 0.0:
+            yield k, w
+
+
 def apply_anchor(player: dict, f: int, xy) -> dict:
     """docs/05's ramped re-fit. Returns what changed, for the dry run."""
     est = player["est"]
@@ -111,17 +172,8 @@ def apply_anchor(player: dict, f: int, xy) -> dict:
     lo, hi = _bracket(player, f)
 
     touched = []
-    span_lo = 0 if lo is None else lo
-    span_hi = len(est) - 1 if hi is None else hi
-    for k in range(span_lo, span_hi + 1):
-        if k == f:
-            w = 1.0
-        elif k < f:
-            w = 1.0 if lo is None or f == lo else (k - lo) / (f - lo)
-        else:
-            w = 1.0 if hi is None or hi == f else (hi - k) / (hi - f)
-        if w <= 0.0:
-            continue
+    mark = _flags(player, len(est))
+    for k, w in _ramp(f, lo, hi, len(est)):
         if est[k] is None:
             if k != f:
                 continue                      # nothing to shift
@@ -132,6 +184,11 @@ def apply_anchor(player: dict, f: int, xy) -> dict:
         # A human's knowledge shrinks the doubt in proportion to how near it is.
         player["sigma"][k] = round(float(player["sigma"][k] * (1.0 - w)
                                          + CONFIRMED_SIGMA * w), 3)
+        # Every frame this moved is now partly a person's, whatever its evidence
+        # state still says. ur/human.py is why that has to be written down: the
+        # ramp's output keeps reading `predicted` and would otherwise be counted
+        # as the tracker's own work one frame away from the anchor.
+        mark[k] = True
         if k != f and player["state"][k] not in ANCHORED:
             touched.append(k)
     player["state"][f] = "confirmed"
@@ -154,12 +211,70 @@ def apply_swap(players: dict, a: str, b: str, from_f: int) -> dict:
                          "association across teams, so a cross-team swap is never "
                          "the right fix")
     n = 0
-    for key in ("est", "state", "sigma", "det", "assoc"):
+    # `human` goes across with the rest. A mark left behind would say the
+    # tracker's own output had been hand-placed, which is the accusation running
+    # backwards - and would then exclude it from the very metrics it belongs in.
+    _flags(A, len(A["est"]))
+    _flags(B, len(B["est"]))
+    for key in ("est", "state", "sigma", "det", "assoc", HU.KEY):
         if key not in A or key not in B:
             continue
         A[key][from_f:], B[key][from_f:] = B[key][from_f:], A[key][from_f:]
         n = len(A[key]) - from_f
     return {"frames": n}
+
+
+def apply_disc_anchor(doc: dict, f: int, xy, z=None) -> dict:
+    """Place the disc itself, with the same ramp and the same marks.
+
+    A person watching can see where the disc is on a frame the solver only
+    interpolated through, and `docs/27` is clear that nothing in this pipeline
+    has ever detected one - so this is the only way a disc position can become
+    anything better than a straight line between two tags.
+
+    Two differences from a slot, both of them about what the disc has instead of
+    an observation. It brackets against `confirmed` only (`DISC_ANCHORED`), and
+    its height is left alone unless stated: a person clicking on the grass is
+    saying where the disc is over the field, not how high it is, and inventing a
+    `z` from that click would be a measurement nobody took.
+    """
+    disc, meta = doc.get("disc"), doc.get("disc_meta")
+    if not disc or not meta:
+        raise ValueError(
+            f"cannot place the disc on frame {f}: this possession has no disc. "
+            "Run `python -m ur.disc` first - there is nothing to correct.")
+    n = len(disc)
+    st = meta["state"]
+    lo = next((k for k in range(f, -1, -1) if st[k] in DISC_ANCHORED), None)
+    hi = next((k for k in range(f, n) if st[k] in DISC_ANCHORED), None)
+    target = np.asarray(xy, float)
+    cur = np.asarray(disc[f][:2], float) if disc[f] else target
+    delta = target - cur
+    height = float(z) if z is not None else (
+        disc[f][2] if disc[f] and len(disc[f]) > 2 else 1.0)
+
+    mark = _flags(meta, n)
+    reshaped = 0
+    for k, w in _ramp(f, lo, hi, n):
+        if disc[k] is None:
+            if k != f:
+                continue
+            disc[k] = [0.0, 0.0, height]
+        q = np.asarray(disc[k][:2], float) + delta * w
+        disc[k] = [round(float(q[0]), 3), round(float(q[1]), 3), disc[k][2]]
+        meta["sigma"][k] = round(float(meta["sigma"][k] * (1.0 - w)
+                                       + CONFIRMED_SIGMA * w), 3)
+        mark[k] = True
+        reshaped += k != f
+    disc[f] = [round(float(target[0]), 3), round(float(target[1]), 3), height]
+    meta["state"][f] = "confirmed"
+    meta["sigma"][f] = CONFIRMED_SIGMA
+    # `source` is what the disc stage calls provenance, and a placed disc is a
+    # human's however the frame was reached. docs/03 already has `human` there
+    # for a tagged frame; this is the same claim about the position instead of
+    # about the holder.
+    meta["source"][f] = "human"
+    return {"lo": lo, "hi": hi, "reshaped": reshaped}
 
 
 def apply_confirm(player: dict, f: int) -> dict:
@@ -180,7 +295,9 @@ def resolve(doc: dict, log: dict, *, verbose: bool = True) -> dict:
     applied = []
     for c in active(log):
         op = c["op"]
-        if op == "anchor":
+        if op == "anchor" and c.get("slot") == DISC:
+            r = apply_disc_anchor(doc, int(c["f"]), c["xy"], c.get("z"))
+        elif op == "anchor":
             r = apply_anchor(players[c["slot"]], int(c["f"]), c["xy"])
         elif op == "swap":
             r = apply_swap(players, c["slots"][0], c["slots"][1], int(c["from_f"]))
@@ -192,7 +309,15 @@ def resolve(doc: dict, log: dict, *, verbose: bool = True) -> dict:
         if verbose:
             print(f"    {c['id']:>4} {op:<8} {r}")
 
-    obs = np.array([[x in ANCHORED for x in p["state"]] for p in doc["players"]])
+    # Back to the stored shape. Frame indices rather than a per-frame array,
+    # because the list is empty on everything the pipeline produced alone and a
+    # 555-long run of `false` would ride onto every published page for nothing.
+    for obj in [*doc["players"]] + ([doc["disc_meta"]] if doc.get("disc_meta")
+                                    else []):
+        obj[HU.KEY] = HU.from_flags(_flags(obj, len(doc["players"][0]["est"])))
+
+    obs = np.array([[x in COVERAGE_STATES for x in p["state"]]
+                    for p in doc["players"]])
     doc["derived"]["coverage"] = obs.sum(axis=0).tolist()
     doc["corrections_applied"] = [
         {k: v for k, v in c.items() if k != "effect"} for c in applied]

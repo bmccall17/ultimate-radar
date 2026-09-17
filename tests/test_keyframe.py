@@ -1,0 +1,158 @@
+"""A keyframe of anchors, and the mark it has to leave behind.
+
+Run them:
+
+    python -m unittest discover -s tests -t .
+
+These are about `ur/resolve.py` and `ur/human.py` over an invented possession,
+not about the footage. The property under test is the one #8 calls the trap this
+project keeps hitting: a hand-placed position becomes `confirmed` with a tight
+sigma and is then indistinguishable from a frame the tracker got right. So every
+frame a correction created **or moved** has to come back out of `human`, and the
+ramped frames either side count - they keep their evidence state and their
+position is now partly a person's.
+"""
+
+from __future__ import annotations
+
+import unittest
+
+from ur import human as H
+from ur import resolve as R
+
+
+def doc(n=11, ids=("O1", "O2"), team="sol"):
+    """A possession where every slot is `predicted` on a straight line."""
+    return {
+        "possession": {"frames": n, "fps": 10.0, "offense": team,
+                       "defense": "chill", "id": "p9999"},
+        "players": [{"id": i, "team": team, "slot": i,
+                     "est": [[float(f), 10.0] for f in range(n)],
+                     "state": ["predicted"] * n,
+                     "sigma": [4.0] * n,
+                     "human": []} for i in ids],
+        "derived": {},
+    }
+
+
+def log(*corrections):
+    d = R.empty_log("p9999")
+    d["corrections"] = list(corrections)
+    return d
+
+
+class AnchorMarksWhatItMoved(unittest.TestCase):
+    def test_the_anchored_frame_is_marked(self):
+        d = R.resolve(doc(), log({"id": "c1", "op": "anchor", "slot": "O1",
+                                  "f": 5, "xy": [5.0, 30.0]}), verbose=False)
+        self.assertIn(5, H.touched(d["players"][0]))
+
+    def test_the_ramp_is_marked_too(self):
+        """Nothing brackets the anchor, so the ramp is flat and the whole
+        trajectory moves. Every frame it moved is a person's, whatever its
+        evidence state still says."""
+        d = R.resolve(doc(), log({"id": "c1", "op": "anchor", "slot": "O1",
+                                  "f": 5, "xy": [5.0, 30.0]}), verbose=False)
+        p = d["players"][0]
+        self.assertEqual(H.touched(p), set(range(11)))
+        # ...and the mark is not the evidence state wearing a different hat.
+        self.assertEqual(p["state"][0], "predicted")
+        self.assertEqual(p["state"][5], "confirmed")
+
+    def test_a_bracketed_ramp_stops_at_the_observations(self):
+        d0 = doc()
+        d0["players"][0]["state"][2] = "observed"
+        d0["players"][0]["state"][8] = "observed"
+        d = R.resolve(d0, log({"id": "c1", "op": "anchor", "slot": "O1",
+                               "f": 5, "xy": [5.0, 30.0]}), verbose=False)
+        # The bracketing observations carry weight 0, so they are untouched and
+        # stay the tracker's own. That is the whole point of the ramp.
+        self.assertEqual(H.touched(d["players"][0]), set(range(3, 8)))
+
+    def test_the_other_slot_is_untouched(self):
+        d = R.resolve(doc(), log({"id": "c1", "op": "anchor", "slot": "O1",
+                                  "f": 5, "xy": [5.0, 30.0]}), verbose=False)
+        self.assertEqual(H.touched(d["players"][1]), set())
+
+    def test_a_reverted_anchor_leaves_no_mark(self):
+        d = R.resolve(doc(), log({"id": "c1", "op": "anchor", "slot": "O1",
+                                  "f": 5, "xy": [5.0, 30.0]},
+                                 {"id": "r1", "op": "revert", "target": "c1"}),
+                      verbose=False)
+        self.assertEqual(H.touched(d["players"][0]), set())
+
+    def test_confirm_marks_nothing(self):
+        """`confirm` affirms an estimate the tracker made; it supplies no
+        position. The frame becomes `confirmed` and stays the tracker's."""
+        d = R.resolve(doc(), log({"id": "c1", "op": "confirm", "slot": "O1",
+                                  "f": 5}), verbose=False)
+        self.assertEqual(H.touched(d["players"][0]), set())
+        self.assertEqual(d["players"][0]["state"][5], "confirmed")
+
+
+class SwapCarriesTheMark(unittest.TestCase):
+    def test_marks_travel_with_the_trajectory(self):
+        d0 = doc()
+        for p in d0["players"]:
+            p["state"][0] = p["state"][10] = "observed"
+        d = R.resolve(d0, log({"id": "c1", "op": "anchor", "slot": "O1",
+                               "f": 3, "xy": [3.0, 30.0]},
+                              {"id": "c2", "op": "swap", "slots": ["O1", "O2"],
+                               "from_f": 2}), verbose=False)
+        by = {p["id"]: p for p in d["players"]}
+        # Everything from frame 2 on went across, so the anchored frames are
+        # O2's now. A mark left behind on O1 would say the tracker's own output
+        # was hand-placed, which is the accusation running backwards.
+        self.assertEqual(H.touched(by["O1"]), {1})
+        self.assertIn(3, H.touched(by["O2"]))
+
+
+class Keyframes(unittest.TestCase):
+    def test_one_keyframe_is_many_anchors_on_one_frame(self):
+        d = R.resolve(doc(ids=("O1", "O2")),
+                      log({"id": "c1", "keyframe": "k1", "op": "anchor",
+                           "slot": "O1", "f": 4, "xy": [1.0, 1.0]},
+                          {"id": "c2", "keyframe": "k1", "op": "anchor",
+                           "slot": "O2", "f": 4, "xy": [2.0, 2.0]}),
+                      verbose=False)
+        for p in d["players"]:
+            self.assertEqual(p["state"][4], "confirmed")
+        self.assertEqual({c["keyframe"] for c in d["corrections_applied"]}, {"k1"})
+
+
+class DiscAnchor(unittest.TestCase):
+    def disc_doc(self, n=11):
+        d = doc(n)
+        d["disc"] = [[float(f), 10.0, 1.0] for f in range(n)]
+        d["disc_meta"] = {"state": ["interpolated"] * n,
+                          "basis": ["flight"] * n,
+                          "holder": [None] * n,
+                          "sigma": [8.0] * n,
+                          "source": ["inferred"] * n,
+                          "name_inferred": [False] * n,
+                          "human": []}
+        return d
+
+    def test_places_the_disc_and_marks_it(self):
+        d = R.resolve(self.disc_doc(),
+                      log({"id": "c1", "op": "anchor", "slot": R.DISC,
+                           "f": 5, "xy": [5.0, 40.0]}), verbose=False)
+        self.assertEqual(d["disc"][5][:2], [5.0, 40.0])
+        self.assertEqual(d["disc_meta"]["state"][5], "confirmed")
+        self.assertEqual(d["disc_meta"]["source"][5], "human")
+        self.assertIn(5, H.touched(d["disc_meta"]))
+
+    def test_height_is_kept_when_not_stated(self):
+        d = R.resolve(self.disc_doc(),
+                      log({"id": "c1", "op": "anchor", "slot": R.DISC,
+                           "f": 5, "xy": [5.0, 40.0]}), verbose=False)
+        self.assertEqual(d["disc"][5][2], 1.0)
+
+    def test_refuses_where_there_is_no_disc(self):
+        with self.assertRaises(ValueError):
+            R.resolve(doc(), log({"id": "c1", "op": "anchor", "slot": R.DISC,
+                                  "f": 5, "xy": [5.0, 40.0]}), verbose=False)
+
+
+if __name__ == "__main__":
+    unittest.main()
