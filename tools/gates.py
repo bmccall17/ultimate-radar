@@ -40,6 +40,7 @@ from tools import grading_view as GVG
 from tools import human_positions as HP
 from ur import grading as GV
 from ur import human as HU
+from ur import provenance as PV
 
 _PID = __import__("re").compile(r"p\d{4}")
 
@@ -131,6 +132,7 @@ ISSUE = {
     # read off the viewer is the tracker's name, so it cannot grade the tracker.
     "no contaminated identity in a metric": 4,
     "every possession read goes through the view": 4,
+    "every named tag says what carried it": 4,
     # ...and the one that says their work actually arrived.
     "corrections reached the page": 8,
     # A name settled by elimination rendering at the strongest state the format
@@ -568,6 +570,43 @@ def grade_spans(work: Path, doc: dict, ev: dict, blind: bool = True
     return (ok, n, pairs, f"{work.name} {ok}/{n}")
 
 
+def check_declared(works: list[Path]) -> dict:
+    """Does every named tag say what carried its name? #4.
+
+    Not a percentage. A tag that stays silent reads as `tracker` and drops out
+    of the graded sample, so partial declaration shrinks the denominator without
+    telling anybody what left it - which is the same silence AD-11 is about, one
+    file over.
+
+    It counts **declarations, not truth**. Nothing can check that `footage` is
+    honest and a check claiming to would be worth less than none;
+    `provenance_stated` is what lets a reader see which were stated while
+    looking and which were worked out afterwards.
+    """
+    named = declared = 0
+    per = []
+    for work in works:
+        if not GV.has_events(work):
+            continue
+        n = d = 0
+        for e in GV.read_events(work).get("events") or ():
+            if e.get("player"):
+                n += 1
+                d += PV.KEY in e
+        if n:
+            named += n
+            declared += d
+            per.append(f"{work.name} {d}/{n}")
+    return {"possession": "tagged identity provenance", "checks": [C.gate(
+        "every named tag says what carried it",
+        named > 0 and declared == named,
+        f"{declared}/{named}" + (f"  [{', '.join(per)}]" if per else ""),
+        "every tag naming a slot declares footage or tracker",
+        "run `python -m ur.provenance <work>` to declare from the jersey "
+        "numbers already read, then read a number during any span you want "
+        "graded - a reading only settles the span it falls inside")]}
+
+
 def check_disc(works: list[Path]) -> dict:
     """Grade the span solver wherever a human has named who held the disc."""
     out: dict = {"possession": "disc / holder inference", "checks": []}
@@ -608,9 +647,13 @@ def check_disc(works: list[Path]) -> dict:
         # statement of what carried each name, and until a tag says `footage`
         # it cannot be scored against. 0/0 is the honest reading, and it fails
         # on sample size rather than on the solver. #4.
-        "every named tag needs `provenance` in events.json: `footage` where a "
-        "person followed them in the picture, `tracker` where the viewer's "
-        "label supplied the name. A tracker name cannot grade the tracker - #4"))
+        # Every tag is declared now (#4). What is scarce is independent truth:
+        # only a jersey read INSIDE a span settles that span's name, because
+        # anything else is the tracker carrying the identity between the two
+        # moments. So the denominator grows by reading numbers, not by tagging.
+        "read a jersey number during each span you want graded - a reading only "
+        "settles the span it falls inside, and everything else is the tracker "
+        "carrying the name there. #4 declares them; this needs more of them"))
 
     corr = None
     if len(pairs) >= MIN_GRADED_SPANS and len({p[1] for p in pairs}) > 1:
@@ -660,6 +703,7 @@ def main(argv: list[str] | None = None) -> int:
     reports.append(check_directions(works))
     reports.append(HP.check(works))
     reports.append(GVG.check())
+    reports.append(check_declared(works))
     reports.append(check_site())
     reports.append(check_disc(works))
 

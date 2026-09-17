@@ -7,37 +7,49 @@
    "t": 7.6,
    "type": "throw",
    "player": "O7",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   },
   {
    "t": 8.467,
    "type": "catch",
    "player": "O4",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   },
   {
    "t": 9.933,
    "type": "throw",
    "player": "O4",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   },
   {
    "t": 11.8,
    "type": "catch",
    "player": "O5",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   },
   {
    "t": 15.867,
    "type": "throw",
    "player": "O5",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   },
   {
    "t": 16.533,
    "type": "catch",
    "player": "O4",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   }
  ]
 }

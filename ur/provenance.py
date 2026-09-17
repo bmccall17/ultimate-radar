@@ -24,12 +24,19 @@ inferences and only the second is contaminated. So `player_inferred` keeps its
 display job - such a frame never renders `confirmed` - and stops being the
 grading filter.
 
-## Why a jersey read is not provenance
+## When a jersey read is provenance, and when it is not
 
 CONTEXT.md is blunt: a jersey number cannot be turned into a slot without
-tracking continuity to carry it. p0003 proves it, where the tagger read #28 off
-the kit and still could not name the slot. Provenance is about the chain, not the
-number.
+tracking continuity to carry it. So a number read at f212 and a tag at f319 are
+joined by the *tracker*, and trusting that join is this module's own subject one
+step further back. p0003 showed it the hard way, where the tagger read #28 off
+the kit and still could not name the slot.
+
+A reading **inside the span the tag bounds** is different, and it is the one case
+that settles a name. There is nothing to carry: the person holding the disc and
+the person whose shirt was read are one person at one moment. `derive` is that
+rule, and it is why a declaration pass is a matter of reading numbers during the
+spans you want graded rather than remembering a tagging session.
 
 ## Blinding strips the name, not the tag
 
@@ -116,6 +123,64 @@ def grades(tag: dict) -> bool:
     return tag.get("player") is not None and carried(tag) == FOOTAGE
 
 
+def derive(events: dict, identities: dict, fps: float) -> dict:
+    """Declare provenance from the jersey numbers somebody read off shirts.
+
+    **A reading only settles the tag whose span it falls inside.** `CONTEXT.md`
+    says a jersey cannot become a slot without tracking continuity to carry it,
+    so a number read at f212 and a tag at f319 are joined by the tracker, and
+    trusting that is this ticket's own defect one step further back. Inside the
+    span there is nothing to carry: the person holding the disc and the person
+    whose shirt was read are one person at one moment.
+
+    Everything else comes back `tracker` and drops out of the graded sample.
+    That is not a defeat, it is an instruction: read a number *during* the span
+    you want graded.
+
+    The result is marked `reconstructed`, because it was worked out afterwards
+    from a file rather than stated by somebody looking at the picture. A
+    declaration already in the file is left alone - a person who said it at the
+    time outranks anything derived here.
+    """
+    from ur import spans as SP
+
+    marks = [e for e in events.get("events") or ()
+             if e.get("source") == "human" and e.get("type") in ("throw", "catch")]
+    if not marks:
+        return events
+    nf = int(max(float(e["t"]) for e in marks) * fps) + 2
+    ids = sorted({e["player"] for e in marks if e.get("player")})
+    read = {}
+    for r in identities.get("readings") or ():
+        read.setdefault(r["slot"], set()).add(int(r["f"]))
+
+    # Which frames each slot's spans cover, from the timings alone. The timings
+    # are the half a person can see and are not in doubt, so building spans from
+    # them borrows nothing from the tracker.
+    covered: dict[str, list[tuple[int, int]]] = {}
+    for sp in SP.spans_from_events({"events": marks}, nf, fps, ids):
+        if sp.fixed is not None:
+            covered.setdefault(ids[sp.fixed], []).append((sp.a, sp.b))
+
+    def carried_by_a_reading(slot: str) -> bool:
+        return any(a <= f <= b
+                   for a, b in covered.get(slot, ())
+                   for f in read.get(slot, ()))
+
+    out = dict(events)
+    out["events"] = []
+    for e in events.get("events") or ():
+        slot = e.get("player")
+        if slot is None or KEY in e:
+            out["events"].append(e)
+            continue
+        out["events"].append({
+            **e,
+            KEY: FOOTAGE if carried_by_a_reading(slot) else TRACKER,
+            WHEN_KEY: RECONSTRUCTED})
+    return out
+
+
 def check(events: dict) -> dict:
     """Read every provenance word in the file, refusing one nothing understands.
 
@@ -146,3 +211,54 @@ def blind(events: dict) -> dict:
                      else {**e, "player": None}
                      for e in events.get("events") or ()]
     return out
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Declare provenance across a working directory from its jersey readings.
+
+        python -m ur.provenance work/p0003
+        python -m ur.provenance work/p0003 --dry-run
+
+    Re-runnable. A tag that already carries a declaration is never overwritten,
+    so reading more numbers and running this again only ever adds.
+    """
+    import argparse
+    import json
+    from pathlib import Path
+
+    from ur import grading as GV
+
+    ap = argparse.ArgumentParser(prog="ur.provenance", description=main.__doc__)
+    ap.add_argument("work", nargs="+", type=Path)
+    ap.add_argument("--dry-run", action="store_true",
+                    help="say what would change and write nothing")
+    a = ap.parse_args(argv)
+
+    for work in a.work:
+        if not GV.has_events(work):
+            print(f"[provenance] {work.name}: no tags")
+            continue
+        ev = GV.read_events(work)
+        idp = work / "identities.json"
+        idn = (json.loads(idp.read_text(encoding="utf-8")) if idp.exists()
+               else {"readings": []})
+        fps = float(GV.read_for_publishing(work)["possession"]["fps"])
+        out = derive(ev, idn, fps)
+        named = [e for e in out["events"] if e.get("player")]
+        foot = sum(1 for e in named if e.get(KEY) == FOOTAGE)
+        print(f"[provenance] {work.name}: {len(named)} named tag(s), "
+              f"{foot} carried by a jersey read inside its own span, "
+              f"{len(named) - foot} by the tracker"
+              + (" (dry run)" if a.dry_run else ""))
+        if not idn.get("readings"):
+            print(f"             no identities.json - nothing has been read "
+                  f"off a shirt here, so every name is the tracker's")
+        if not a.dry_run:
+            (work / GV.EVENTS).write_text(
+                json.dumps(out, indent=1) + chr(10), encoding="utf-8")
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(main())

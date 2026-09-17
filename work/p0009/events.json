@@ -7,73 +7,97 @@
    "t": 3.0,
    "type": "throw",
    "player": "O3",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   },
   {
    "t": 4.667,
    "type": "catch",
    "player": "O7",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   },
   {
    "t": 9.133,
    "type": "throw",
    "player": "O7",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   },
   {
    "t": 10.267,
    "type": "catch",
    "player": "O4",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   },
   {
    "t": 16.267,
    "type": "throw",
    "player": "O4",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   },
   {
    "t": 17.2,
    "type": "catch",
    "player": "O1",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   },
   {
    "t": 19.467,
    "type": "throw",
    "player": "O1",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   },
   {
    "t": 19.733,
    "type": "catch",
    "player": "O4",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   },
   {
    "t": 22.667,
    "type": "throw",
    "player": "O4",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   },
   {
    "t": 24.133,
    "type": "catch",
    "player": "O2",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   },
   {
    "t": 25.867,
    "type": "throw",
    "player": "O2",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   },
   {
    "t": 29.067,
    "type": "catch",
    "player": "O6",
-   "source": "human"
+   "source": "human",
+   "provenance": "tracker",
+   "provenance_stated": "reconstructed"
   }
  ]
 }
