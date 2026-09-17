@@ -25,7 +25,10 @@ else.
   bar with event ticks and a coverage strip; play/pause, frame step, speed (1× / 0.6× /
   0.35×), jump to previous/next throw. Frame number and clock are always up. Coverage and
   calibration confidence appear only while paused, as a card riding the playhead over the
-  frame they describe — nobody reads two numbers that change 15 times a second.
+  frame they describe — nobody reads two numbers that change 15 times a second. The strip
+  seeks on click, and on 0.7 s of dwell says what it is drawing at that point: the frame,
+  how much of the roster is on it, and the mark under the pointer if there is one. Only one
+  card is ever up, because the two are about different frames.
 - **Readouts** — six cards, each with an evidence label.
 - **Roster** — 14 rows: slot, jersey, evidence now, share of possession seen, speed, who
   they are guarding and at what range.
