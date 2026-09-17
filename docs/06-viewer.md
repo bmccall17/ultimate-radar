@@ -13,10 +13,19 @@ else.
 
 ## Layout
 
-- **Header** — possession label, the two teams and which is on offence, theme control,
-  "copy link to this moment".
-- **Provenance banner** — while data is synthetic, say so at the top, plainly. When real,
-  replace with the source video, timestamp, and how much of the possession was human-corrected.
+- **Header** — possession label, the two teams and which is on offence, and on the published
+  site the possession switcher. Nothing else: the theme control (three states, one corner,
+  kept in `localStorage` a browser may refuse) and "copy link to this moment" are both gone.
+  The page is dark, declared on `<html>`, and `seek()` writes `#t=` into the address bar on
+  every scrub, so the link to this moment is already where people copy links from.
+- **Banner** — empty, and reserved for the orientation self-check: the one message that says
+  do not read this page at all. Provenance used to stand here on every page in amber, which
+  is the wrong weight for a fact that never changes.
+- **Provenance** — in the footer: what the page is made of (source video, timestamp,
+  frames, fps, or that the data is synthetic or stand-in), how much of it a person corrected,
+  and how far it can be trusted. `docs/05` forbids a page from stating a measurement nobody
+  took, and the sentence that says the accuracy is unmeasured is gated (#11) — it moved down
+  the page, it did not go.
 - **Camera view** (larger, left) — video with overlay. Toggles: overlay on/off, matchup
   lines, off-frame arrows.
 - **Overhead view** (right) — the field, the camera frustum, players, trails, disc.
@@ -120,7 +129,8 @@ what was measured and let the coach supply the name.
 - Issue cards jump to the moment and pre-select the player involved.
 - Undo reverses the last correction, or the whole keyframe if the last one was part of a
   save — half an applied save is a state nobody chose and nobody can see.
-- The URL carries the timestamp; "copy link to this moment" is the share mechanism.
+- The URL carries the timestamp, written on every scrub; copying the address bar is the
+  share mechanism, and there is no button duplicating it.
 
 ## The roster rail
 
