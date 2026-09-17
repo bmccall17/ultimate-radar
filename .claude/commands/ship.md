@@ -54,43 +54,55 @@ contradict it?
 Done when every ADR is accounted for: current, withdrawn with its replacement named, or
 newly written.
 
-## 3. The plan issue carries the orchestrator view
+## 3. The milestone description carries the board
 
-The **board** is the glance surface: who is done, what can be picked up now, what is
-waiting and on what. It lives in the parent plan issue the tickets were cut from, under
-its **`## Orchestrator View`** heading, between the `ship:board` markers. Rewrite
-everything between those markers from what steps 1 and 2 found, and touch nothing else
-in the issue: the heading, the note under it, and every outcome below the rule are the
-author's, not this step's.
+The **board** is the glance surface: what is done, what can be picked up now, what is
+waiting and on what. It lives in the **open milestone's description**, because that is
+the page somebody lands on when they want to know where the sprint stands. It was tried
+inside the parent plan issue and failed for a plain reason worth not repeating: eighty
+lines into a 280-line issue is somewhere nobody scrolls to, and the milestone page then
+showed nothing at all.
 
-**Find the markers; never guess the position.** `<!-- ship:board -->` and
-`<!-- /ship:board -->` are the only anchors. If they are missing, put them under the
-`## Orchestrator View` heading and create it if it does not exist — directly under the
-issue's opening paragraph, above the rule that starts the outcomes. Do not write a
-second board anywhere else in the issue, and if you find one, delete it: two views of
-one sprint means one of them is wrong and no way to tell which. That has happened
-once already, a board at the very top and an empty `Orchestrator View` placeholder
-eight lines below it, each looking like the real one.
+Rewrite the description from what steps 1 and 2 found. It holds, in this order:
 
-The board holds, in this order:
-
-- A heading counting done against total, and one line: the gate totals from step 1, and
-  whether the site is live and current.
-- **Done**, each with the outcome it served.
+- The sprint's purpose in one sentence, and the ticket it is measured by.
+- A count of done against open, and the gate totals from step 1. Say plainly whether any
+  failing check is owned by a ticket in **this** milestone; failures owned elsewhere are
+  not this sprint's problem and saying so stops them reading as one.
 - **Ready now**: every open ticket with no open blocker. Mark the one on the critical
   path and the ones that block the sprint outcome.
 - **Blocked**, each with the tickets it waits on, the sprint outcome last.
-- The chains, in one short paragraph: which is the critical path, and which is merely
-  long.
+- **Done**, compactly. Numbers and a few words each, not a table.
+- The one path through, in a line: which chain ends at the sprint outcome.
+- Anything cut from the milestone since the last run, and where it went.
 
-`gh api repos/:owner/:repo/issues/<n> --jq .issue_dependencies_summary.blocked_by`
-gives the live blocker count; an open ticket reading `0` is ready now. Query every
-ticket rather than reasoning from the last run's board — tickets close between runs,
-and a blocker count is the only thing that knows it.
+`gh api repos/:owner/:repo/issues/<n> --jq .issue_dependencies_summary.blocked_by` gives
+the live blocker count; an open ticket reading `0` is ready now. Query every ticket
+rather than reasoning from the last run's board, because tickets close and move between
+runs and only the query knows it.
 
-The milestone description **points at the board and does not copy it**. One sentence on
-what the sprint is for, one on the outcome it is measured by, and a link. Two copies of
-a board means one of them is wrong and no way to tell which.
+**GitHub renders a milestone description as plain text.** Markdown tables and links do
+not render there. Write it as indented plain text with bare `#N` references, and check
+the rendered milestone page rather than trusting the source.
+
+The parent plan issue keeps a pointer to the milestone between its `ship:board` markers
+and nothing else. Do not write a second board into it, and if a second board appears
+anywhere, delete it: two views of one sprint means one is wrong with no way to tell
+which.
+
+### A ticket that cannot move the sprint outcome does not belong in the sprint
+
+Check this every run, because it is how a board silts up. For each open ticket, ask
+whether the sprint's measured outcome waits on it, directly or through a chain. A ticket
+that serves a different goal is not cancelled, it is in the wrong milestone, and leaving
+it there makes the board show work that cannot move the thing the board is about.
+
+On 2026-09-17 that was nine of eighteen open tickets: a four-deep chain and its five
+dependents, none of which the sprint outcome waited on. They moved to a milestone of
+their own in one pass.
+
+Say what you would move and why, and let the author decide. Moving a ticket between
+milestones is theirs, not this step's.
 
 ### A triage label names a call that has not been made yet
 
