@@ -51,6 +51,28 @@ CALIB_FLOOR = 0.01174      # exp(-2 yd / 0.45): below this a pose says less than
                            # dead reckoning does. ur/detect/run.py
 SECOND_DIFF_YD = 1.0       # p0001, the possession with no visible glitch, never
                            # exceeds 0.35 yd. ur/calibrate/mosaic.py
+# What a person can physically do, and the allowance for the fact that we are
+# measuring them with a camera. #28.
+#
+# 12 yd/s is roughly a world-class sprinter's top speed on a track; nobody in
+# cleats on turf, changing direction, exceeds it. It is a property of people
+# rather than of this footage, which is what makes it a threshold and not a
+# tuned constant.
+#
+# The 2.5 yd is measured: tools/m4_foot puts the tracker's p95 position error at
+# 1.14 yd, so two independent frames differ by about 1.6 yd at p95 before
+# anybody has moved. Without it this fires on jitter - 1 yd of foot-point noise
+# over one frame at 15 fps reads as 15 yd/s, and a plain speed bound flags 178
+# transitions across the corpus, almost all of them sub-yard wobble. With it the
+# corpus contains three violations and they are all on p0003.
+SPRINT_YD_S = 12.0
+FOOT_NOISE_YD = 2.5
+# Both ends had a detection matched and neither frame was flagged `weak`. A
+# `weak` sample is a real player on a frame the CAMERA is badly placed on, so a
+# jump into or out of one is a calibration failure and this check would be
+# blaming the tracker for it. docs/05.
+MATCHED_STATES = {"observed", "provisional", "confirmed"}
+
 PUBLISH_MEDIAN_COVERAGE = 6    # below this the median frame is mostly empty
 PUBLISH_MAX_BLANK = 0.35       # and this much of the scrub bar is nothing at all
 
@@ -119,6 +141,9 @@ ISSUE = {
     "median roster in shot": 6,
     "frames with nothing at all": 6,
     "camera motion is possible": 6,
+    # Found on the live page by somebody watching a slot jump between two
+    # players. The camera has been asked this since M1; the players never were.
+    "player motion is possible": 28,
 }
 ISSUE_URL = "https://github.com/bmccall17/ultimate-radar/issues"
 
@@ -213,6 +238,37 @@ def check_possession(work: Path) -> dict:
         "publishing gate, not a pipeline gate")
     add("frames with nothing at all", blank <= PUBLISH_MAX_BLANK, f"{blank:.0%}",
         f"<= {PUBLISH_MAX_BLANK:.0%}", "publishing gate")
+
+    # Could a person have moved like that?
+    #
+    # The counterpart to `camera motion is possible` above, which has gated the
+    # camera since M1. Until 2026-09-17 this project asked whether the CAMERA
+    # could physically have moved that way and never once asked it of a PERSON -
+    # so p0003's O2 slot crossing 55 yd in a single frame, `observed` at both
+    # ends, went through every gate green. A person watching the live page found
+    # it in about a minute. #28.
+    fps = float(doc["possession"]["fps"])
+    impossible, worst, worst_at = [], 0.0, ""
+    for pl in pl:
+        prev = None
+        for f, (e, st) in enumerate(zip(pl["est"], pl["state"])):
+            if not e or st not in MATCHED_STATES:
+                continue
+            if prev is not None:
+                dt = (f - prev[0]) / fps
+                gap = float(np.hypot(e[0] - prev[1][0], e[1] - prev[1][1]))
+                over = gap - (SPRINT_YD_S * dt + FOOT_NOISE_YD)
+                if over > worst:
+                    worst, worst_at = over, (f"{pl['id']} f{prev[0]}->f{f}, "
+                                             f"{gap:.1f} yd in {dt:.2f}s")
+                if over > 0:
+                    impossible.append(f"{pl['id']} f{prev[0]}->f{f}")
+            prev = (f, e)
+    add("player motion is possible", not impossible,
+        f"{len(impossible)} impossible" + (f", worst {worst_at}" if impossible else ""),
+        f"0 moves over {SPRINT_YD_S} yd/s + {FOOT_NOISE_YD} yd of noise",
+        "both ends had a detection matched, so this is the slot changing person "
+        "rather than the estimate drifting - the label is on two people")
 
     # Did the corrections in the log actually reach the file the viewer reads?
     #

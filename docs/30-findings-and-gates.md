@@ -473,11 +473,15 @@ made rather than a measurement waiting to be taken.
 | …measured on | *measurement* — see below | § 2.1. A mean without its denominator is not a result |
 | roster structure | zero problems | `docs/04` M4, AD-2 |
 | camera motion is possible | 0 frames over 1 yd | § 2.3 |
+| player motion is possible | 0 moves over 12 yd/s + 2.5 yd | #28, and the counterpart to the row above. Until 2026-09-17 this project asked whether the **camera** could physically have moved that way and never once asked it of a **person**. p0003's O2 crosses 55 yd in a single frame, `observed` at both ends, and went through every gate green. 12 yd/s is a sprinter's top speed — a property of people, not of this footage. The 2.5 yd is `tools/m4_foot`'s p95 position error doubled: without it, 1 yd of foot-point jitter over one frame reads as 15 yd/s and the check fires on 178 transitions of sub-yard wobble. With it the corpus has **three**, all on p0003, two of them the slot #8's repair pass is placing |
+| corrections reached the page | every active correction is replayed | #8. Seen once and not reproduced: a pipeline run left `disc_meta` confirmed from twelve hand-placed positions while `corrections_applied` was empty — the disc stage got the corrections and the pass after it rebuilt the players without them. A correction sitting in a file nobody replayed is silent; only the two counts disagreeing says otherwise |
 | median roster in shot | ≥ 6 of 14 | publishing gate. Below this the median frame is mostly empty |
 | frames with nothing at all | ≤ 35 % | publishing gate |
 | offence drifts | *measurement* — see below | § 2.0. The drift is real; it is not the attacking direction |
 
-**Currently failing and expected to:** p0006, p0007, p0008 and p0010 on coverage
+**Currently failing and expected to:** p0003 on `player motion is possible` (#28,
+and it is what a person watching the live page found in about a minute), and
+p0006, p0007, p0008 and p0010 on coverage
 and on camera motion — they have not been through the impossible-motion check and
 are not published.
 
