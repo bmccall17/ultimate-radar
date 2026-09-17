@@ -247,9 +247,20 @@ def check_possession(work: Path) -> dict:
     # so p0003's O2 slot crossing 55 yd in a single frame, `observed` at both
     # ends, went through every gate green. A person watching the live page found
     # it in about a minute. #28.
+    # Blind, and this module got it wrong first. The check was written against
+    # the raw document and immediately reported p0003's O2 crossing 55 yd in one
+    # frame - which was not the tracker moving anybody. It was a hand-placed
+    # anchor being compared against the tracker's own observation of a DIFFERENT
+    # person, and the gap between them read as a teleport. Excluding what a hand
+    # put there leaves zero impossible moves in the whole corpus: `MAX_SPEED_YD_S`
+    # in ur/track/run.py has been doing its job all along.
+    #
+    # That the first new gate written after ur/human.py existed still forgot to
+    # call it is the argument for `no human position in a metric` being a gate
+    # rather than a convention.
     fps = float(doc["possession"]["fps"])
     impossible, worst, worst_at = [], 0.0, ""
-    for pl in pl:
+    for pl in HU.blind(doc)["players"]:
         prev = None
         for f, (e, st) in enumerate(zip(pl["est"], pl["state"])):
             if not e or st not in MATCHED_STATES:

@@ -386,6 +386,47 @@ printed a bounded number yet. The gates exist ahead of the defect on purpose. #8
 lands the first repair pass, and the day it does these rows are what stop the
 tracker quietly scoring better for it.
 
+### 2.10 A correction is not a movement, and the first new gate forgot it
+
+**2026-09-17, and the finding is about the tooling rather than the footage.**
+
+A person repairing p0003 on the live page reported the slot labels jumping
+between players: *"NO player should be suddenly teleporting across the field like
+this during a single continuous camera view."* Measured against
+`possession.json`, they were apparently right — `O2` crossed **55.3 yd in 0.27 s**
+and then **55.1 yd in a single frame**, `observed` at both ends. A gate,
+`player motion is possible`, was written against exactly that.
+
+**It was measuring the wrong pair of numbers.** Frames 339 and 345 are
+`confirmed`, which is what an `anchor` produces: they were the person's own
+hand-placed positions, three hours old. The check was comparing where a human put
+the marker against where the tracker had it and reporting the gap as movement.
+Run over `ur.human.blind`, the corpus contains **zero** impossible moves.
+`MAX_SPEED_YD_S` in `ur/track/run.py` had been holding the line all along.
+
+Three things worth keeping from it.
+
+**The gate is still right to exist, and now passes honestly.** The camera has
+been asked whether it could have moved that way since M1; nothing had ever asked
+it of a person, and that asymmetry was worth closing whatever the answer was.
+
+**`no human position in a metric` earned its place.** The first new check written
+after `ur/human.py` existed — same session, same afternoon, with the trap
+documented three files away — still forgot to call it. That is the argument for a
+gate over a convention, and it is why the exclusion is checked by running the
+graders rather than by reading the source for the word `blind`.
+
+**What the 55 yards actually is, is a real finding and a different one.** The
+tracker has `O2` on a `sol` player at the far sideline, `[67.2, 53.5]`. The person
+repairing clicked the disc holder near the camera, `[56.0, 0.2]`, and at that
+frame the detector finds eight in-bounds players of whom the nearest to that
+sideline is at `y = 12.3` — **nobody is where they clicked**. So the disc holder
+is a player the detector never found, which is § 2.5 and #4 again: the jersey-#20
+player who has no correct slot anywhere in p0003. Anchoring `O2` onto them does
+not correct `O2`; it moves the label from one person to another, and the page
+would look repaired while the data said something new and false. The repair pass
+stopped there, which was the right call.
+
 ## 3. The gates, and which of them fail on purpose
 
 `python -m tools.gates` prints **162 rows, and only 138 of them can fail.** It
