@@ -530,6 +530,16 @@ This also closes the two earlier sightings. Both were recorded as unreproducible
 and blamed on a parallel session; both had `--verify-revert` run immediately
 before, which nobody thought to look at because it is a verification command.
 
+
+**Re-run 2026-09-17, confirmed.** `--verify-revert` leaves `possession.json`
+byte-identical: same md5 over three consecutive runs on p0003 and on p0009, with
+`corrections_applied` steady at 15. Driven through `docs/32` § 9 in its own
+order, step 4 no longer strips what step 3 applied — after the pipeline the file
+carries 17, after `--verify-revert` it still carries 17 (md5 unchanged), and the
+page step 5 builds carries `c16` and `c17`. `corrections reached the page`
+reports **17 applied, 17 active**, with no new failures against the run before
+the append. Last time this sequence published an uncorrected page.
+
 ### 2.14 The calibration refusal is skipped exactly where the camera model is worst
 
 **2026-09-17, same pass, and it is a § 5 red on p0003 and a green on p0009 for a
@@ -594,6 +604,22 @@ one is visibly a run that only exercised one. That is the general shape of this
 finding: the case that slipped through did so because it looked like the absence
 of a problem rather than the worst instance of one.
 
+
+**Re-run 2026-09-17, confirmed on both kinds and both possessions.** p0003 f0 and
+p0009 f426 give the collapsed wording and no number; p0003 f42 (0.01) and p0009
+f67 (0.00) give the number and no mention of the homography. All four offer the
+jump, stage nothing on a video click, leave the overhead drag working, and throw
+nothing. Sampling wider — 16 frames on p0003 and 11 on p0009, drawn from the
+collapsed, the merely low-confidence and the healthy — the refusal fires on
+exactly the frames below the floor, with the wording that matches the kind, and
+on none of the others. p0003 has 70 collapsed and 87 low-confidence frames of
+555; p0009 has 24 and 38 of 450.
+
+One nicety, recorded rather than filed: p0009's collapsed frames carry no `H` at
+all, and the page still says *"its homography does not invert"*. It is the right
+category and the right refusal, and `qa_fixture` classifies the no-`H` case the
+same way, so the script and the page agree. Only the sentence is loose.
+
 ### 2.15 The QA script's first instruction cannot be followed from a clone
 
 **2026-09-17, and this one is about `docs/32` itself.**
@@ -648,6 +674,67 @@ field position — puts a second copy of a coordinate on every page to answer a
 question the first copy already answers. `qa_fixture` now reads `docs/` and
 nothing else, which is what its docstring always claimed.
 
+**Re-run 2026-09-17: the tool runs from a clone, and the substitution holds —
+including where this note did not look.** `tools.qa_fixture` was run against a
+clone with `work/` deleted outright, for p0003 and for p0009, and printed every
+frame including both dead kinds.
+
+The reasoning above was re-derived against the real `detections.json` rather than
+taken. p0003: 5 disagreements in 4053 matched slot-frames, 0.12 %, exactly as
+stated, and f430 reads 10 of 14 either way. p0009, which this note does not
+cover: 3 in 3775, 0.079 %. **The check the note stops short of is the one that
+settles it** — the frame the fixture actually picks is identical under both
+rules, f204 on p0003 and f22 on p0009, at the same 13 and 14 in-field with 0 on
+the crowd. Every disagreement runs the same direction, a detection just outside
+the line whose estimate sits on it, so none of them can promote a spectator.
+
+One correction to the wording: *"within inches"* is right for p0003, whose worst
+is 0.80 yd, and generous for p0009, whose worst is 1.34 yd. Both are a player
+astride a line, and both are far inside the 5 yd that `nobody observed in the
+stands` allows, so the conclusion is untouched.
+
+### 2.16 The suite § 0 calls green is not green from a clone
+
+**2026-09-17, found while confirming § 2.13's fix, and it is § 2.15 again one
+file over.**
+
+`docs/32` § 0 lists four invariants, and the fourth is *"the suite is green:
+`python -m unittest discover -s tests -t .`"*. From a clone it is not:
+
+```
+FAILED (errors=4, skipped=2)
+```
+
+The four are `tests/test_contaminated_identity.py::Verdicts`, which sets
+`WORK = Path("work/p0003")` and has no guard, so with no footage it errors rather
+than saying it cannot run. They fail the same way at `d436819` and `ef89b08`, so
+this is not something the fixes introduced — it is what § 2.15 found, sitting in
+the next file along, and the QA pass that reported the fixture missed it because
+the fixture died first and the suite was only ever run where the footage is.
+
+**The two skips are the sharper half.** They are `BuildingIsNotWriting`, the
+regression test written this morning to stop § 2.13 coming back. It *does* guard,
+which is the right instinct, and the consequence is that it does not run in a
+clone or anywhere else without the footage. Run on its own there it prints:
+
+```
+OK (skipped=2)
+```
+
+A green that covered nothing. So the check standing between this project and the
+bug that silently deleted a repair runs on exactly one machine, and the two files
+handle the identical missing dependency in opposite ways — one errors, one
+reports OK — while neither tells the runner the one thing that is true, which is
+that the test did not run.
+
+**What would close it.** Whichever way it goes, § 0 has to be satisfiable by
+somebody with a clone and a URL, since that is who `docs/32` is written for.
+Either the footage-dependent tests are split into a suite § 0 names separately,
+so that "the suite is green" means a suite that ran; or they are given a fixture
+they can run on. `test_contaminated_identity` should skip rather than error
+whichever is chosen — a test that cannot run has not failed, and it has not
+passed either.
+
 ## 3. The gates, and which of them fail on purpose
 
 `python -m tools.gates` prints **204 rows, and only 170 of them can fail.** It
@@ -672,6 +759,7 @@ PASS, so a row that can never flip is a definition of done that can never be met
 They now print `[measured]`, carry the reason there is no threshold instead of a
 `want`, and are totalled apart. `tools/checks.py` holds the distinction and is
 where a new check picks its kind.
+
 
 ### The rows that cannot fail, and what each is waiting for
 
