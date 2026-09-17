@@ -122,6 +122,24 @@ what was measured and let the coach supply the name.
   save — half an applied save is a state nobody chose and nobody can see.
 - The URL carries the timestamp; "copy link to this moment" is the share mechanism.
 
+## The roster rail
+
+Fourteen slots in a column beside the frame, `O1`–`D7`. Three jobs at once, and they are
+all things that used to need a different panel:
+
+- **See** what the tracker has hold of on this frame. A solid pip means a detection is
+  matched to that slot right now; hollow means it is dead reckoning; nothing means the slot
+  states no position at all. Form, not shade, per `docs/05`.
+- **Ask.** Hover gives the state, whether a detection is matched, the position and sigma or
+  how long since anything saw it, whether the frame was hand-placed, and whether it is an
+  unreviewed re-acquisition.
+- **Choose.** In repair mode a click selects that slot to place, next to the picture you
+  are about to click into.
+
+It exists for the roster verification pass in `#4`. Deciding whether a slot is on the right
+person means looking at a person, and the viewer used to make that a fourteen-times
+repeated hunt: select somewhere, read a panel somewhere else, look back at the video.
+
 ## Repair mode
 
 `Repair`, or `r`. Entering it pauses the clip, because a moving picture cannot be placed
