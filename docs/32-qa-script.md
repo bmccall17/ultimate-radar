@@ -311,6 +311,47 @@ longest stretch a reader sees no disc goes 3.1 s → 0.5 s only in this order.
 nothing in the artefact shows it. That is what `corrections reached the page` is for, and it
 has caught it twice.
 
+## 11. What only a person can check
+
+Everything above an agent can run. **None of it looks at the footage**, and the footage is
+the only thing that says whether the answers are right rather than merely consistent. These
+six need eyes on video, and they are the ones that decide whether the repair surface is
+usable rather than whether it works.
+
+Run them on the fixture's **clean frame**. Nothing here needs a number written down unless
+it fails.
+
+**1. Can you read a jersey at all?** `pick` a slot, look at the shirt. If you cannot read a
+number at the frame the fixture calls cleanest, `#4`'s whole method rests on something that
+is not there, and that is the most important negative result available. Try p0009 too — its
+clean frame carries all fourteen.
+
+**2. Is the marker on the person it says?** Select a slot, find its dashed ring on the
+video. Not "is there a player near it" — is it *that* player, the one the ring is drawn on.
+This is the roster pass, and every other question is downstream of it.
+
+**3. Does the collision warning name the right one?** At the fixture's collision, the panel
+says one slot has a detection and the other is dead reckoning. Look: is the one it vouches
+for actually on a person, and is the other on nobody? If it has them the wrong way round,
+`detach` would be pointed at the wrong slot.
+
+**4. Does a placement land where you clicked?** Select a slot, click a player's feet, and
+look at the overhead. The marker should be on that player's position, not near it. A
+systematic offset would be a projection error, and no gate in this project would catch it —
+they all compare the page to itself.
+
+**5. Does the disc appear where it should?** After placing a holder, does the disc draw on
+them, and is it the person actually holding it? `no disc drawn on a guessed position` checks
+the evidence state, not the photograph.
+
+**6. Do the paint landmarks sit on the paint?** Turn on `Field paint`. On a well-calibrated
+frame the crosses should be on the lines they name. If a named cross is yards off on a frame
+the page calls 0.75, the calibration is wrong in a way the confidence number does not say.
+
+**Five and six are the two that no automated check can ever replace.** Everything else in
+this script asks whether the page agrees with its own data; these ask whether the data
+agrees with the world.
+
 ## 10. Reporting a defect
 
 Into `docs/30-findings-and-gates.md`, not into a ticket — findings outlive the work and a
