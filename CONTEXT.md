@@ -58,12 +58,46 @@ moment and nobody; the moment is the half a person can see.
 > looking at the viewer is the tracker's name, so naming every tag is what turned
 > one identity error into a contaminated ground truth.
 
+**Provenance** — what carried a tag's identity from a moment it was unambiguous
+to the tagged moment. Two values, `footage` and `tracker`, in `events.json` as
+`provenance`. A name the tracker supplied does not grade the tracker, which is
+the whole of #4, and `ur/grading.py` is where it is enforced. **Silence means
+`tracker`**: the whole corpus predates the field, so reading an absent value as
+clean would grade the solver against exactly the tags this exists to hold out.
+A separate `provenance_stated` says whether the statement was made at tagging
+time or reconstructed later, because provenance recalled from memory is not
+provenance.
+
+> A jersey read is not provenance. See `Jersey`: a number cannot become a slot
+> without tracking continuity to carry it, and p0003 is the proof — the tagger
+> read #28 off the kit and still could not name the slot. Provenance is about the
+> chain, not the number.
+
+**Fault** — which of three things went wrong with a tag somebody has since
+corrected, carried in its `superseded` block and named for the **source**:
+**tagger** (a person picked the wrong body), **tracker** (the slot's label was on
+the wrong person), **roster** (no slot names this person at all, which is #26).
+`tagger` is carried at zero occurrences on purpose: a vocabulary with no word for
+tagger error blames the tracker by default, which is the mirror of the defect.
+
+**Superseded** — a tag corrected in place, keeping what it used to say. The old
+name, the new one, the date, the reason and the fault. The wrong tag is not noise
+to be cleaned up, it *is* the finding, so it is annotated and never deleted.
+
 **Inferred name** — a tag whose `player` the tagger did not read, reached by
 elimination instead. It carries `player_inferred`. Still a human's statement, and
 a weaker kind of one. Nothing saw the jersey, and the argument usually rests
 partly on the tracking, so the claim is no stronger than the solver's own. It
 closes a hole in the display; it does not grade the solver, and it never renders
 `confirmed`.
+
+> **It is not `Provenance`, and the two were confused until 2026-09-17.**
+> `player_inferred` says *nobody read the jersey*; provenance says *what the
+> reasoning ran over*. p0001's names were reached by elimination over the throws
+> the tagger watched, and p0003's O2 by elimination over the tracker's coverage
+> counts. Both are inferences and only the second is contaminated. So
+> `player_inferred` keeps the display job above and is no longer the grading
+> filter; AD-13's amendment is the decision.
 
 **Correction** — a human statement about the *tracking*, written to
 `corrections.json` as an append-only log (AD-6). Five operations: **anchor**

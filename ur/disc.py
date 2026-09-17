@@ -58,6 +58,7 @@ from pathlib import Path
 
 import numpy as np
 
+from ur import grading as GV
 SEED = 20260827
 
 ANCHORED = ("observed", "provisional", "confirmed")
@@ -403,7 +404,7 @@ def from_events(doc: dict, events: dict,
 
 
 def build(work: Path, *, verbose: bool = True) -> dict:
-    doc = json.loads((work / "possession.json").read_text(encoding="utf-8"))
+    doc = GV.read_for_publishing(work)
     ev_path = work / "events.json"
     events = (json.loads(ev_path.read_text(encoding="utf-8"))
               if ev_path.exists() else {"events": []})

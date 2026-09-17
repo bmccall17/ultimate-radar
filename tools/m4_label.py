@@ -38,6 +38,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+from ur import grading as GV
 
 LABEL_HZ = 1.0
 ZOOM = 6
@@ -231,10 +232,9 @@ def cmd_score(a) -> int:
     # Reported alongside rather than folded in: the gate asks about the detectors
     # docs/05 specifies, and the answer to that is 0 of 2. What M5 added closes it.
     m5 = []
-    poss_path = work / "possession.json"
-    if poss_path.exists():
+    if GV.has(work):
         from ur.issues import contested_reacquisition
-        poss = json.loads(poss_path.read_text(encoding="utf-8"))
+        poss = GV.read_for_publishing(work)
         m5 = contested_reacquisition(poss["players"], float(poss["possession"]["fps"]))
     # Would M5's specified detectors have caught the switches that happened?
     caught = []

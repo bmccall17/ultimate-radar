@@ -428,6 +428,39 @@ not correct `O2`; it moves the label from one person to another, and the page
 would look repaired while the data said something new and false. The repair pass
 stopped there, which was the right call.
 
+### 2.12 The tracker loses a slot and dead reckoning hands it to somebody else
+
+**This finding has no ticket, and that is the finding.** It is the shared
+mechanism under three of them and no check closes it short of rewriting the
+tracker, so a ticket pointed at it would be a permanent red row that teaches
+people to stop reading red rows.
+
+The shape is always the same. The tracker stops observing a slot, dead reckoning
+walks the marker for a few seconds, and the re-acquisition adopts whatever is
+nearest. What is nearest decides which ticket you are looking at:
+
+- **another player on the same team** — the label moves and the tag made against
+  it is wrong. p0003 at 8.73 s: the tracker lost O1 and put the same body under
+  O5, so the tagger clicked one human twice and produced "O1 caught, O5 threw".
+  That is § 2.5, and #4 is the grading answer to it.
+- **a player on the other team** — p0003 at 31.40 s, a Sol player carrying `D5`,
+  read downstream as a turnover in a possession that has none. AD-3 makes team
+  colour a hard gate and it did not fire, because the kit classifier never sees a
+  prediction.
+- **somebody who is not playing** — a match official at 21.27–26.33 s, or the
+  bench inside `BOUNDS_MARGIN_YD`. #26 gives a person the `detach` operation to
+  say so; #29 is the coverage number counting them.
+
+**Why no gate.** Every candidate measures the consequence rather than the cause,
+and each already belongs to one of those three tickets. A distance check cannot
+help: a sideline official stands exactly where a sideline player stands, and
+p0003's worst `observed` position is 2.04 yd against a 5 yd threshold. What would
+close this is the tracker not losing the slot, which is not a threshold.
+
+So it is written here, where it outlives the work, and #4, #26 and #29 each own
+the part of it that has a definition of done. The sentence that used to assign it
+to #4 was struck from #26 on 2026-09-17.
+
 ## 3. The gates, and which of them fail on purpose
 
 `python -m tools.gates` prints **204 rows, and only 170 of them can fail.** It
@@ -639,12 +672,17 @@ never a publishing one.
 
 | gate | threshold | why that number |
 |---|---|---|
-| span identity accuracy | ≥ 75 % over ≥ 8 graded spans | currently **8 / 18 = 44 %** — p0001 4 / 4, p0003 1 / 7, p0009 3 / 7. p0001 is the training set, so the number to read is **held out on p0003 + p0009: 4 / 14 = 29 %**, against about 14 % for a guess among seven offence slots. **p0003 alone is 1 / 7, which is chance exactly.** It was 8 / 16 = 50 % — see below for why more truth lowered it |
+| span identity accuracy | ≥ 75 % over ≥ 8 graded spans | currently **0 / 0**, and failing on **sample size** rather than on the solver. Every tag in the corpus was named by clicking somebody in the viewer, so every name is the tracker's, and none of them may be scored against until a tagger declares `provenance` (#4, AD-13's amendment). It read 8 / 18 = 44 % until 2026-09-17 — p0001 4 / 4, p0003 1 / 7, p0009 3 / 7 — and that number was the solver graded partly against its own upstream. The two new rows below are what replaced the old `player_inferred` filter |
 | margin predicts correctness | r ≥ 0.5 | currently **r = −0.17**. Not a confidence, and briefly measured at −0.47, so `docs/27` step 4's plan to ask where the margin is thinnest is withdrawn either way |
 
 **These are the two numbers that decide whether Goal 2 works.** Neither can move
-without more identity tags, and both must be measured on a possession the solver
-was not built against.
+until the corpus carries provenance, and then only with more identity tags, and
+both must be measured on a possession the solver was not built against.
+
+| gate | threshold | why that number |
+|---|---|---|
+| no contaminated identity in a metric | every grader answers the same with and without a name the tracker supplied | AD-13's probe argument applied to the other half of what a person supplies, and it took two goes to aim. It puts a wrong name on every tag that is **already excluded** — mangling one that *grades* takes it out of the sample, so the number moves for a good reason and the probe reads its own damage as a leak. Four runs: the mangled names must leave the blinded grade untouched and must move the unblinded one, or the probe reached nothing and the agreement says nothing (AD-11). The first version compared "names in" against "names out", which differ for a reason unrelated to the probe, so every possession came back `excluded` and the row was green while not one tag had been changed. #4 |
+| every possession read goes through the view | only `ur/grading.py` may build a path to `possession.json` | the registry was the hole. `tools/human_positions.py` probes the graders `graders()` names, a hand-written list of three, and `tools/disc_score.py` was in none of them — so the probe reported `1 of 1 grader run(s)` and passed while a scorer it never saw applied neither exclusion. An `unreachable` row admits it could not reach something; an absence prints nothing. Matched on the syntax tree so prose stays legal, and it **fails open** on a file that will not parse. #4 |
 
 > **Why 50 % became 44 %, and why that is the right direction.** The 8 / 16 this
 > table used to carry was measured before three commits changed what counts as

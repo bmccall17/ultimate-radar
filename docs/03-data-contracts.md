@@ -248,11 +248,43 @@ another player's possession. If it is not a real observation, it is not `human`.
 `player_inferred: true` is the fourth thing a tag can say, and it qualifies `player`, not
 `source`. The tag is still a human's. The **name** on it was reached by elimination, from
 the chain, from coverage, from what the play obviously was, rather than read off a jersey.
-Everything downstream treats it as the weaker claim it is: `tools/gates.py` will not grade
-the span solver against it, `ur/disc.py` will not emit a `confirmed` disc from it however
-well the slot was seen, and the viewer's cards say the name was inferred. `docs/27` works
-the one case in the corpus, p0003's 21.27–26.33 s span, and says why it is still worth
-having in the file.
+Everything downstream treats it as the weaker claim it is: `ur/disc.py` will not emit a
+`confirmed` disc from it however well the slot was seen, and the viewer's cards say the
+name was inferred. `docs/27` works the one case in the corpus, p0003's 21.27–26.33 s span,
+and says why it is still worth having in the file.
+
+> **It stopped being the grading filter on 2026-09-17.** `tools/gates.py` used to skip an
+> inferred span, which asked whether anybody read a jersey when the question is what the
+> reasoning ran over. `provenance` below is the filter now; AD-13's amendment is the
+> decision and `CONTEXT.md` keeps the two apart.
+
+`provenance` is the fifth thing a tag can say, and it is the one that decides whether the
+tag may be **scored against**:
+
+```json
+{"t":8.733,"type":"throw","player":"O1","source":"human",
+ "provenance":"footage","provenance_stated":"reconstructed",
+ "superseded":{"was":"O5","now":"O1","at":"2026-09-15","fault":"tracker",
+               "why":"the tracker lost O1 and put the same body under O5"}}
+```
+
+- **`provenance`** is `footage` or `tracker`: what carried the identity from a moment it
+  was unambiguous to this one. A tagger clicks somebody in the viewer and the name that
+  comes back is the **tracker's** name for that person, so a name the tracker supplied
+  cannot grade the tracker (#4). **An absent value reads as `tracker`.** The whole corpus
+  predates the field, and treating silence as clean would score the solver against exactly
+  the tags this holds out.
+- **`provenance_stated`** is `at_tagging` or `reconstructed`. Provenance recalled from
+  memory is not provenance, and a declaration pass over an old corpus must not read as if
+  somebody had been watching at the time.
+- **`superseded`** annotates a tag corrected in place. `was`, `now`, `at`, `why`, and
+  `fault`, which is `tagger`, `tracker` or `roster` — named for the source of the error.
+  The tag is **never deleted**: a wrong tag is not noise to be cleaned up, it is the
+  finding, and p0003 currently records two of these in a 225-word prose note that no check
+  can read.
+
+`ur/grading.py` is the only thing that applies any of this. `ur/provenance.py` is the
+vocabulary.
 
 ### `observed` — statements about the possession, not about a moment
 

@@ -36,7 +36,9 @@ from pathlib import Path
 import numpy as np
 
 from tools import checks as C
+from tools import grading_view as GVG
 from tools import human_positions as HP
+from ur import grading as GV
 from ur import human as HU
 
 _PID = __import__("re").compile(r"p\d{4}")
@@ -125,6 +127,10 @@ ISSUE = {
     # Repair mode's own gate: the one thing that has to be true before a person
     # is invited to hand-place fourteen markers and a disc.
     "no human position in a metric": 8,
+    # The same argument about the other half of what a person supplies: a name
+    # read off the viewer is the tracker's name, so it cannot grade the tracker.
+    "no contaminated identity in a metric": 4,
+    "every possession read goes through the view": 4,
     # ...and the one that says their work actually arrived.
     "corrections reached the page": 8,
     # A name settled by elimination rendering at the strongest state the format
@@ -175,12 +181,16 @@ def check_possession(work: Path) -> dict:
         tools/checks.py, and docs/30 § 3 for why each one is not a gate."""
         out["checks"].append(C.measurement(name, got, why))
 
-    cal_p, poss_p = work / "calibration.json", work / "possession.json"
-    if not poss_p.exists():
+    cal_p = work / "calibration.json"
+    if not GV.has(work):
         add("pipeline has run", False, "no possession.json", "the pipeline run")
         return out
     cal = json.loads(cal_p.read_text(encoding="utf-8"))
-    doc = json.loads(poss_p.read_text(encoding="utf-8"))
+    # The publishing read on purpose: every row below is about the document a
+    # reader is shown, not a score of the tracker against ground truth. An
+    # anchor produces `confirmed` and these ask for `observed`, so a repair pass
+    # cannot walk into them.
+    doc = GV.read_for_publishing(work)
 
     acc_p = Path(f"eval/m1-{work.name}/m1_acceptance.json")
     if acc_p.exists():
@@ -411,7 +421,7 @@ def check_directions(works: list[Path]) -> dict:
     clips: dict[str, dict] = {}
     for w in works:
         cp = w / "clip.json"
-        if cp.exists() and (w / "possession.json").exists():
+        if cp.exists() and GV.has(w):
             clips[w.name] = json.loads(cp.read_text(encoding="utf-8"))
 
     try:
@@ -506,9 +516,12 @@ def grade_spans(work: Path, doc: dict, ev: dict, blind: bool = True
     """
     from ur import spans as SP
 
-    # `blind=False` is for tools/human_positions.py only; see the note there.
+    # `blind=False` means the caller has already been through ur.grading -
+    # check_disc has, and tools/human_positions passes it to run each grader
+    # with its exclusions off. Blinding is idempotent, so a second pass here
+    # would be harmless; skipping it keeps one obvious owner per call.
     if blind:
-        doc = HU.blind(doc)
+        doc, ev = GV.blind(doc, ev)
     nf = int(doc["possession"]["frames"])
     fps = float(doc["possession"]["fps"])
     off = doc["possession"]["offense"]
@@ -539,16 +552,14 @@ def grade_spans(work: Path, doc: dict, ev: dict, blind: bool = True
     pairs: list[tuple[float, float]] = []
     n = ok = 0
     for g, t, m, sp_i in zip(path, truth, margins, tspans):
+        # A name the tracker supplied is not ground truth: grading the solver
+        # against it grades the solver against its own upstream, which is the
+        # brief's second trap. That exclusion used to sit here as a `continue` on
+        # `player_inferred`, which asked the wrong question - it says nobody read
+        # the jersey, not what the reasoning ran over. `ur.provenance` strips the
+        # name instead, upstream of the span, so such a span arrives here unnamed
+        # and falls out on the line above with every other unnamed span. #4.
         if t is None:
-            continue
-        # An identity nobody saw is not ground truth. p0003's 21.27-26.33 s
-        # holder was worked out by elimination - and part of that argument was
-        # which slots the TRACKER loses, so grading the solver against it grades
-        # the solver partly against its own upstream. The brief's second trap:
-        # never feed the solver's own output back as a constraint. It stays in
-        # the file, where it closes a real hole in the display; it does not
-        # count here.
-        if sp_i.inferred:
             continue
         n += 1
         ok += (g == t)
@@ -564,11 +575,13 @@ def check_disc(works: list[Path]) -> dict:
     per = []
     for work in works:
         ev_p = work / "events.json"
-        if not (work / "possession.json").exists() or not ev_p.exists():
+        if not GV.has(work) or not ev_p.exists():
             continue
-        ev = json.loads(ev_p.read_text(encoding="utf-8"))
-        doc = json.loads((work / "possession.json").read_text(encoding="utf-8"))
-        r = grade_spans(work, doc, ev)
+        # Through the view, and graded with `blind=False` because it arrives
+        # blinded. `ur.grading.blind` is idempotent, so this is the same answer
+        # by a route the registration gate can see.
+        doc, ev = GV.load(work)
+        r = grade_spans(work, doc, ev, blind=False)
         if r is None:
             continue
         ok, n, prs, note = r
@@ -582,9 +595,22 @@ def check_disc(works: list[Path]) -> dict:
         "span identity accuracy",
         graded >= MIN_GRADED_SPANS and acc is not None and acc >= SPAN_ACCURACY,
         (f"{correct}/{graded}" + (f" = {acc:.0%}" if acc is not None else "")
+         # Say which half of the threshold failed. A reader seeing `0/0` beside
+         # `>= 75%` reads it as the solver scoring nothing, when what happened is
+         # that nothing was gradeable. Two different failures and only one of
+         # them is about the solver.
+         + (f" - under the {MIN_GRADED_SPANS}-span minimum, so this fails on "
+            f"sample size and says nothing about the solver"
+            if graded < MIN_GRADED_SPANS else "")
          + (f"  [{', '.join(per)}]" if per else "")),
         f">= {SPAN_ACCURACY:.0%} over at least {MIN_GRADED_SPANS} spans",
-        "needs identity tags: select the player, then press `c`"))
+        # The tags exist - 32 of 32 name somebody. What is missing is the
+        # statement of what carried each name, and until a tag says `footage`
+        # it cannot be scored against. 0/0 is the honest reading, and it fails
+        # on sample size rather than on the solver. #4.
+        "every named tag needs `provenance` in events.json: `footage` where a "
+        "person followed them in the picture, `tracker` where the viewer's "
+        "label supplied the name. A tracker name cannot grade the tracker - #4"))
 
     corr = None
     if len(pairs) >= MIN_GRADED_SPANS and len({p[1] for p in pairs}) > 1:
@@ -629,10 +655,11 @@ def main(argv: list[str] | None = None) -> int:
     a = p.parse_args(argv)
     works = ([Path(w) for w in a.work] if a.work
              else sorted(q for q in Path("work").iterdir()
-                         if (q / "possession.json").exists()))
+                         if GV.has(q)))
     reports = [check_possession(w) for w in works]
     reports.append(check_directions(works))
     reports.append(HP.check(works))
+    reports.append(GVG.check())
     reports.append(check_site())
     reports.append(check_disc(works))
 

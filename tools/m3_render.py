@@ -34,6 +34,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+from ur import grading as GV
 SOL = (245, 245, 240)      # BGR: light kit
 CHILL = (214, 127, 63)     # BGR: drawn blue so it reads against a dark shirt
 LINE = (120, 230, 140)
@@ -130,7 +131,7 @@ def main(argv: list[str] | None = None) -> int:
     a = p.parse_args(argv)
 
     work = Path(a.work)
-    P = json.loads((work / "possession.json").read_text(encoding="utf-8"))
+    P = GV.read_for_publishing(work)
     paths = sorted((work / "frames").glob("*.jpg"))
 
     if a.stills is not None:

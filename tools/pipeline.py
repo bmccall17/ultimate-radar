@@ -21,6 +21,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from ur import grading as GV
 
 # (key, module, what it writes, how to name its per-possession evidence)
 #
@@ -79,7 +80,7 @@ STAGES = [
     ("detect", "ur.detect.run", "detections.json", None),
     ("team", "ur.team", "detections.json (team fields)", None),
     ("track", "ur.track.run", "tracks.json", None),
-    ("possess", "ur.possess", "possession.json", None),
+    ("possess", "ur.possess", GV.POSSESSION, None),
     ("structure", "tools.m4_structure", "m4_structure_acceptance.json (the roster gate)",
      lambda w: ["--out", f"eval/m4-{w.name}/m4_structure_acceptance.json"]),
     # AD-6's layer, and it belongs in the chain rather than beside it. A person

@@ -38,6 +38,7 @@ import json
 from pathlib import Path
 
 import numpy as np
+from ur import grading as GV
 
 # docs/05, "Identity exchange"
 EXCHANGE_NEAR_YD = 1.6
@@ -392,11 +393,13 @@ def main(argv: list[str] | None = None) -> int:
     a = p.parse_args(argv)
 
     t = Path(a.target)
-    src = t / "possession.json" if t.is_dir() else t
-    doc = json.loads(src.read_text(encoding="utf-8"))
+    # A working directory or the document itself. The view owns the first
+    # spelling; a path typed on the command line is the operator's own.
+    doc = (GV.read_for_publishing(t) if t.is_dir()
+           else json.loads(t.read_text(encoding="utf-8")))
     res = find(doc, include_speed=a.speed)
     out = Path(a.out) if a.out else (t / "issues.json" if t.is_dir()
-                                     else src.with_name("issues.json"))
+                                     else t.with_name("issues.json"))
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(res, indent=1) + chr(10), encoding="utf-8")
 

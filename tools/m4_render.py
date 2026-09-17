@@ -44,6 +44,7 @@ ever lands.
 """
 
 from __future__ import annotations
+from ur import grading as GV
 
 import argparse
 import json
@@ -447,7 +448,7 @@ def main(argv: list[str] | None = None) -> int:
     a = p.parse_args(argv)
 
     work = Path(a.work)
-    P = json.loads((work / "possession.json").read_text(encoding="utf-8"))
+    P = GV.read_for_publishing(work)
     paths = sorted((work / "frames").glob("*.jpg"))
     print("[m4_render] building the draw clip from static graphic regions...")
     safe = build_clip_mask(work, P["camera"]["image_w"], P["camera"]["image_h"])

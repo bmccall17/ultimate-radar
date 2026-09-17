@@ -28,6 +28,7 @@ import json
 from pathlib import Path
 
 import numpy as np
+from ur import grading as GV
 
 
 def _to_ultimate(C, vt):
@@ -299,8 +300,7 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             "tracker_diagnostics": trk["diagnostics"],
         },
     }
-    (work / "possession.json").write_text(json.dumps(doc, indent=1) + chr(10),
-                                          encoding="utf-8")
+    GV.write(work, doc)
     if verbose:
         import collections
         st = collections.Counter(x for p in players for x in p["state"])

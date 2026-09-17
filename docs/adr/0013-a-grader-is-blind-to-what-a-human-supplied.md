@@ -70,8 +70,10 @@ bracketing observations. The probe cannot reach it at all, so the run reports
 `unreachable` and does not count it (AD-11). That is structure rather than
 evidence — worth more, but only while the structure holds.
 
-**So no correction operation may produce `observed`.** The four ops are `anchor`,
-`swap`, `confirm` and `revert`; anchor and confirm both produce `confirmed`. Adding
+**So no correction operation may produce `observed`.** The ops are `anchor`,
+`swap`, `detach`, `confirm` and `revert`; anchor and confirm both produce
+`confirmed`, and `detach` produces `unknown` (`#26`, landed after this was
+written). Adding
 one that produced `observed` would void recall's guarantee silently, and it would
 be the worse bug on its own terms: `observed` means the detector saw somebody, and
 a person saying where they are is not the detector seeing them.
@@ -126,3 +128,69 @@ cannot occur — it is absent rather than solved. `calibration_truth.json` has a
 contract in `docs/03` and the viewer writes one from a paint drag, and no Python
 reads it. Whoever consumes it inherits this: a painted point may be the truth M1 is
 scored against, and may never be folded into the fit M1 then scores.
+
+
+---
+
+## Amended 2026-09-17 — the subject is everything a person supplied, not positions
+
+This decision already said it: *no score of the machine's work may be computed
+over a fact a person supplied*. The mechanism only ever covered one such fact.
+`ur/human.py` blinds **positions**, and identity walked straight past it.
+
+A tagger selects somebody in the viewer and the name that comes back is the
+tracker's name for that person, so a tag on a mislabelled slot is a wrong tag and
+the tagger made no mistake. 32 of 32 tags in the corpus are named that way.
+Grading the span solver against them is grading it against its own upstream, which
+is the brief's second trap and exactly the shape this ADR was written to stop.
+
+**`ur/grading.py` is now the whole of the mechanism.** One call returns the
+possession with hand-placed frames blinded *and* the tags with tracker-supplied
+names stripped. A grader takes that and nothing else; a renderer says
+`read_for_publishing` and means it. Blinding a name strips the name and keeps the
+moment, because the moment is the half a person can see and is not in doubt.
+
+### The registry was the real hole, and this ADR could not see it
+
+`tools/human_positions.py` probes the graders its `graders()` registry names. That
+registry is a hand-written list of three. `tools/disc_score.py` read both files
+raw, applied neither exclusion, and is in no registry — so the probe reported
+`1 of 1 grader run(s)` and passed, which was true and said nothing. An
+`unreachable` row at least admits the probe could not reach something. An absence
+prints nothing at all.
+
+So `tools/grading_view.py` is a second check beside the probe:
+
+> Only `ur/grading.py` may build a path to `possession.json`.
+
+No allowlist, nothing to register. It **fails open**: a file that will not parse
+is a finding, not a skip.
+
+### It reads source, and this ADR says not to
+
+The paragraph above says reading the source for the word `blind` would pass on a
+call that had been commented out. That is right, and it is about whether an
+exclusion **ran** — which the probe still answers, and still is the only thing
+that can.
+
+This asks a different question: does a bypass **exist**. Source is the only place
+that can be answered from, precisely because a module no gate run calls is the one
+the probe cannot reach. The two are complements. Delete an exclusion from the view
+and the probe goes red; add a grader that never asks the view and the scan goes
+red. Neither substitutes for the other, and the exemption is this narrow: a
+structural question about what exists, never a behavioural one about what ran.
+
+### What it cost, and why that is the right cost
+
+`span identity accuracy` went from `8/18 = 44 %` to `0/0`. No tag carries
+provenance yet, so no span may be scored against, so the gate fails on **sample
+size** rather than on the solver. That is the honest reading: the 44 % was a
+number about the solver computed over names the solver's own upstream supplied.
+The old exclusion filtered on `player_inferred`, which asks whether anybody read
+the jersey — a different question, and the wrong one. p0001's names were reached
+by elimination over the throws the tagger watched and p0003's O2 by elimination
+over the tracker's coverage counts; both are inferences and only the second is
+contaminated.
+
+The number comes back when a tagger declares what carried each name, and `#22`'s
+slot-to-jersey mapping is what would let it grow rather than shrink. `#4`.

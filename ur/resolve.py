@@ -57,6 +57,7 @@ from pathlib import Path
 import numpy as np
 
 from . import human as HU
+from ur import grading as GV
 
 CONFIRMED_SIGMA = 0.3          # docs/05
 # What brackets an anchor's ramp: a real observation of the slot, which docs/05
@@ -436,9 +437,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.dry_run:
         print("[resolve] dry run; nothing written")
         return 0
-    (work / "possession.json").write_text(json.dumps(doc, indent=1) + chr(10),
-                                          encoding="utf-8")
-    print(f"[resolve] wrote {work / 'possession.json'}")
+    print(f"[resolve] wrote {GV.write(work, doc)}")
     return 0
 
 

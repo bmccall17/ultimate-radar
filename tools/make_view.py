@@ -35,6 +35,8 @@ import json
 import os
 from pathlib import Path
 
+from ur import grading as GV
+
 
 def _maybe(work: Path, name: str) -> dict | None:
     p = work / name
@@ -108,12 +110,12 @@ def _bounded(work: Path, doc: dict) -> None:
     on = g.get("measured_on")
     if not on:
         return
-    src = work.parent / on / "possession.json"
-    if not src.exists():
+    src = work.parent / on
+    if not GV.has(src):
         print(f"[make_view] - gates were measured on {on}, which is not in "
               "work/; the page cannot say whether they are bounded")
         return
-    n = HU.count(json.loads(src.read_text(encoding="utf-8")))
+    n = HU.count(GV.read_for_publishing(src))
     g["bounded"], g["bounded_frames"] = n > 0, n
     doc["gates"] = g
     if n:
@@ -124,7 +126,7 @@ def _bounded(work: Path, doc: dict) -> None:
 
 
 def build(work: Path, out: Path, video: str | None = None) -> Path:
-    doc = json.loads((work / "possession.json").read_text(encoding="utf-8"))
+    doc = GV.read_for_publishing(work)
     clip = work / "clip.mp4"
     if video is None:
         video = os.path.relpath(clip, out.parent).replace("\\", "/")

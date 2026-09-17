@@ -66,6 +66,7 @@ from pathlib import Path
 
 import numpy as np
 
+from ur import grading as GV
 from .disc import ANCHORED, MARKER_MAX_YD, STILL_WINDOW_S, _at, _path_length
 
 # A disc in flight. The slow end is a dump at walking pace, the fast end is a
@@ -133,7 +134,6 @@ class Span:
     catch_f: int | None = None  # the catch that starts it, if tagged
     fixed: int | None = None    # slot index, when a human named one
     conflict: tuple | None = None   # two human tags named different holders
-    inferred: bool = False      # the holder was worked out, not seen
     cost: np.ndarray = field(default_factory=lambda: np.zeros(0))
 
 
@@ -151,15 +151,14 @@ def spans_from_events(events: dict, nf: int, fps: float,
             continue
         f = int(round(float(e["t"]) * fps))
         if 0 <= f < nf:
-            marks.append((f, e["type"], idx.get(e.get("player")),
-                          bool(e.get("player_inferred"))))
+            marks.append((f, e["type"], idx.get(e.get("player"))))
     marks.sort()
     if not marks:
         return []
 
     spans: list[Span] = []
     cur = Span(a=0, b=nf - 1)
-    for f, kind, who, inf in marks:
+    for f, kind, who in marks:
         if kind == "throw":
             cur.b = f
             cur.throw_f = f
@@ -179,7 +178,6 @@ def spans_from_events(events: dict, nf: int, fps: float,
                     cur.fixed = None
                 else:
                     cur.fixed = who
-                    cur.inferred = cur.inferred or inf
             spans.append(cur)
             cur = Span(a=f + 1, b=nf - 1)      # flight, closed by the next catch
             cur.a = None                        # marks this as the flight gap
@@ -187,7 +185,6 @@ def spans_from_events(events: dict, nf: int, fps: float,
             cur = Span(a=f, b=nf - 1, catch_f=f)
             if who is not None:
                 cur.fixed = who
-                cur.inferred = inf
     if cur.a is not None:
         spans.append(cur)
     # Close each span at the next one's start.
@@ -372,7 +369,7 @@ def _solve_total(doc: dict, spans: list[Span], ids: list[str]
 
 def build(work: Path, *, events_path: Path | None = None,
           verbose: bool = True) -> dict:
-    doc = json.loads((work / "possession.json").read_text(encoding="utf-8"))
+    doc = GV.read_for_publishing(work)
     ev_path = events_path or (work / "events.json")
     events = (json.loads(ev_path.read_text(encoding="utf-8"))
               if ev_path.exists() else {"events": []})

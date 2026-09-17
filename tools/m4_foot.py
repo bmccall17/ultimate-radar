@@ -42,6 +42,7 @@ from pathlib import Path
 import numpy as np
 
 from tools.m3_foot import render_picks
+from ur import grading as GV
 from ur import human as HU
 
 SEED = 20260828          # deliberately not M3's seed
@@ -53,7 +54,7 @@ def sample(work: Path, n: int = N_SAMPLES, seed: int = SEED,
            exclude: set[tuple[int, int]] | None = None) -> tuple[list, dict]:
     """Observed slot-samples, seeded, disjoint from `exclude`."""
     det = json.loads((work / "detections.json").read_text(encoding="utf-8"))
-    poss = json.loads((work / "possession.json").read_text(encoding="utf-8"))
+    poss = GV.load(work, blinded=False)[0]
     by = {d["f"]: d["dets"] for d in det["frames"]}
     exclude = exclude or set()
 
@@ -106,7 +107,8 @@ def score(work: Path, out: Path, poss: dict | None = None,
     possession with a probe keyframe applied to the second."""
     det = json.loads((work / "detections.json").read_text(encoding="utf-8"))
     if poss is None:
-        poss = json.loads((work / "possession.json").read_text(encoding="utf-8"))
+        # See m4_recall: the `blind` argument below decides, not the read.
+        poss = GV.load(work, blinded=False)[0]
     # docs/05's ramp collapses sigma toward 0.3 across the frames either side of
     # an anchor, and moves the estimate toward the hand-placed one. Both push
     # this gate the same way: the error shrinks and the disc it has to fall

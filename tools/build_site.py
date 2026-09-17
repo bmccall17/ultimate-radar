@@ -27,6 +27,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC, OUT = ROOT / "viewer", ROOT / "docs"
 sys.path.insert(0, str(ROOT))
 from tools.make_view import build as build_data
+from ur import grading as GV
 
 # (sub-path under docs/, work dir or None for the fixture, label, nav name)
 #
@@ -140,7 +141,7 @@ def main():
             shutil.copy2(SRC / "data.js", d / "possession.js")
         else:
             w = ROOT / work
-            if not (w / "possession.json").exists():
+            if not GV.has(w):
                 sys.exit(f"{work}/possession.json missing - run the pipeline first")
             build_data(w, d / "possession.js", video="clip.mp4")
             shutil.copy2(w / "clip.mp4", d / "clip.mp4")

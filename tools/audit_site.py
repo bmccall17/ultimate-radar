@@ -43,6 +43,8 @@ from tools import tag_guard as TG
 from tools import tag_list as TL
 
 SITE = Path("docs")
+from ur import grading as GV
+
 WORK = Path("work")
 
 # States the viewer will draw a disc for. Anything else it suppresses, which is
@@ -161,9 +163,8 @@ def audit(pid: str) -> list[dict]:
     ev = (json.loads(ev_p.read_text(encoding="utf-8")) if ev_p.exists()
           else {"events": []})
     live_n = len(ev.get("events", []))
-    src = WORK / pid / "possession.json"
-    if src.exists():
-        live = json.loads(src.read_text(encoding="utf-8"))
+    if GV.has(WORK / pid):
+        live = GV.read_for_publishing(WORK / pid)
         # The attacking direction goes stale in a way tags cannot, and checking
         # this possession's own `observed` block would miss it. `make_view`
         # RESOLVES the direction across every possession at build time (AD-10),

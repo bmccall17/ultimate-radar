@@ -50,6 +50,7 @@ from pathlib import Path
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
+from ur import grading as GV
 from ur import human as HU
 
 THRESHOLDS = (1.0, 1.5, 2.0)
@@ -61,7 +62,10 @@ def measure(work: Path, labels_path: Path, m2_path: Path,
             poss: dict | None = None, blind: bool = True) -> dict:
     det = json.loads((work / "detections.json").read_text(encoding="utf-8"))
     if poss is None:
-        poss = json.loads((work / "possession.json").read_text(encoding="utf-8"))
+        # Unblinded on purpose: the `blind` argument below decides, because
+        # tools/human_positions has to run this both ways for its agreement to
+        # mean anything. Through the view either way.
+        poss = GV.load(work, blinded=False)[0]
     # A hand-placed position may not answer for a held-out label. `confirmed` is
     # what an anchor produces and this function already asks for `observed`, so
     # nothing an anchor placed directly was ever going to match - but docs/05's

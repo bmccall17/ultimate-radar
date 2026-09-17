@@ -30,6 +30,7 @@ import argparse
 import json
 from pathlib import Path
 
+from ur import grading as GV
 TYPES = ("possession_start", "throw", "catch", "drop", "block", "turnover",
          "stall", "goal")
 
@@ -57,7 +58,7 @@ def save(work: Path, doc: dict) -> None:
 
 
 def suggest(work: Path) -> list[dict]:
-    poss = json.loads((work / "possession.json").read_text(encoding="utf-8"))
+    poss = GV.read_for_publishing(work)
     fps = float(poss["possession"]["fps"])
     cov = poss["derived"]["coverage"]
     first = next((f for f, c in enumerate(cov) if c > 0), None)

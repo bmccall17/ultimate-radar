@@ -59,7 +59,9 @@ import json
 from pathlib import Path
 
 from tools import checks as C
+from ur import grading as GV
 from ur import human as HU
+from ur import provenance as PV
 from ur import resolve as R
 
 # Far enough that nothing could mistake it for noise: the recall gate matches at
@@ -152,6 +154,47 @@ def graders(work: Path, doc: dict) -> dict:
     return out
 
 
+def contaminated(events: dict, ids: list[str]) -> dict:
+    """The tags with a **wrong** name on every one that currently grades.
+
+    The identity half of the probe, and the same argument as `probe_log` makes
+    about positions: put something in that the grader must not be reading, and
+    require the number not to follow. Here the something is the defect itself -
+    a name the tracker supplied - so a grader that skips `ur.provenance` sees a
+    holder it was never meant to be scored against and separates.
+
+    **It mangles the names that are already excluded, not the ones that grade**,
+    and getting that backwards is the whole reason this needed a second pass.
+    Contaminating a *grading* tag takes it out of the sample, so the grade moves
+    for a perfectly legitimate reason and the probe reports a leak that is not
+    one. Contaminating an *excluded* tag must change nothing, because that tag
+    was never in the sample - which is exactly the claim #4 makes, tested
+    directly.
+
+    A tag that already grades is left alone, and so is a timing-only one.
+
+    The wrong name is the **next slot round the list**, not a random one: AGENTS
+    rule 6 says a number that moves between runs is not a measurement, and a
+    probe that shuffles is a probe whose failures nobody can reproduce.
+    """
+    out = dict(events)
+    out["events"] = []
+    for e in events.get("events") or ():
+        named = e.get("player")
+        if PV.grades(e) or named is None or named not in ids or len(ids) < 2:
+            out["events"].append(e)
+            continue
+        wrong = ids[(ids.index(named) + 1) % len(ids)]
+        out["events"].append({**e, "player": wrong, PV.KEY: PV.TRACKER})
+    return out
+
+
+def _offence(doc: dict) -> list[str]:
+    """The slots a holder can be, which is the set a wrong name comes from."""
+    off = doc["possession"]["offense"]
+    return [p["id"] for p in doc["players"] if p["team"] == off]
+
+
 def _same(a, b) -> bool:
     """Compare two graders' answers, NaN included.
 
@@ -181,7 +224,9 @@ def audit(work: Path) -> dict:
       it whatever `blind` does. Reporting that as a tested pass would be a row
       that cannot fail wearing a gate's clothes (AD-11).
     """
-    doc = json.loads((work / "possession.json").read_text(encoding="utf-8"))
+    # Unblinded, because the probe is laid down on top of it and each grader is
+    # then run with its own exclusion on and off. Through the view all the same.
+    doc = GV.load(work, blinded=False)[0]
     with_probe = probed(doc)
     verdict = {}
     for name, fn in graders(work, doc).items():
@@ -203,6 +248,56 @@ def audit(work: Path) -> dict:
             "probe_frames": marked}
 
 
+def identity_verdict(work: Path, doc: dict,
+                     ev: dict | None = None) -> tuple[str, str] | None:
+    """Can a name the tracker supplied move the span grade? #4.
+
+    Positions are held blinded throughout, so the only thing that varies is the
+    name. Four runs, and the fourth is what makes this a check rather than a
+    row that cannot fail:
+
+    - **clean** - the real tags, grader blinding on. The baseline.
+    - **kept** - the mangled tags, grader blinding on. Must equal `clean`.
+    - **base** / **raw** - the real and the mangled tags with no name blinding.
+      They must differ, or the probe reached nothing.
+
+    `kept` differing from `clean` is the failure: a name the tracker supplied
+    moved a number. `raw` agreeing with `base` means the mangling was invisible
+    even unblinded, so the agreement above is structural and says nothing
+    (AD-11).
+
+    **On the corpus today this passes, and it is not vacuous.** Every tag is
+    tracker-sourced, so every one gets a wrong name; the blinded grade does not
+    move and the unblinded one does. The exclusion is demonstrated. What is
+    missing is ground truth, and that shows up where it belongs - in
+    `span identity accuracy` reading 0/0.
+    """
+    if ev is None:
+        if not GV.has_events(work):
+            return None
+        ev = GV.read_events(work)
+    from tools import gates
+    positions_only = HU.blind(doc)          # held still, so only the name varies
+    dirty = contaminated(ev, _offence(doc))
+    base = gates.grade_spans(work, positions_only, ev, blind=False)
+    raw = gates.grade_spans(work, positions_only, dirty, blind=False)
+    kept = gates.grade_spans(work, doc, dirty)
+    clean = gates.grade_spans(work, doc, ev)
+
+    if not _same(kept, clean):
+        return ("leaked", f"{kept} vs {clean}")
+    # `base` is the fourth run and the whole reason this is a check. Comparing
+    # `raw` against `clean` instead - the first version of this - compares
+    # "names in" against "names out", which differ for a reason that has nothing
+    # to do with the probe. Every possession came back `excluded` and the row was
+    # green while `contaminated` had changed not one tag. A row that cannot fail
+    # wearing a gate's clothes, in the ticket about exactly that (AD-11).
+    if _same(raw, base):
+        return ("unreachable", "the probe changed no name a grader could see: "
+                               "no tag here carries provenance, so none grades")
+    return ("excluded", f"{raw} contaminated and unblinded, {kept} as run")
+
+
 def check(works: list[Path]) -> dict:
     """One gate over every possession, and the list of graders it reached."""
     out: dict = {"possession": "human positions (the repair-mode trap)",
@@ -211,7 +306,7 @@ def check(works: list[Path]) -> dict:
     leaked: list[str] = []
     excluded: list[str] = []
     for work in works:
-        if not (work / "possession.json").exists():
+        if not GV.has(work):
             continue
         r = audit(work)
         ran += [f"{r['possession']}: {g}" for g in r["ran"]]
@@ -231,6 +326,36 @@ def check(works: list[Path]) -> dict:
         "a grader is reading positions a person placed, so the tracker scores "
         "better the more of the possession somebody fixes. Put the "
         "`ur.human.blind` back on whichever one is named above - #8"))
+
+    # The same argument about the other half of what a person supplies. #4.
+    id_leaked: list[str] = []
+    id_excluded: list[str] = []
+    id_ran: list[str] = []
+    for work in works:
+        if not GV.has(work):
+            continue
+        v = identity_verdict(work, GV.load(work, blinded=False)[0])
+        if v is None:
+            continue
+        id_ran.append(work.name)
+        if v[0] == "leaked":
+            id_leaked.append(f"{work.name}: {v[1]}")
+        elif v[0] == "excluded":
+            id_excluded.append(work.name)
+    out["checks"].append(C.gate(
+        "no contaminated identity in a metric",
+        not id_leaked and bool(id_excluded),
+        (f"{len(id_excluded)} of {len(id_ran)} possession(s) had a mangled name "
+         f"refused" if not id_leaked
+         else f"{len(id_leaked)} leaked: {'; '.join(id_leaked)}")
+        + ("" if id_excluded else " - the probe reached no grader, so nothing "
+                                  "here was tested"),
+        "every grader answers the same with and without a name the tracker "
+        "supplied",
+        "declare what carried each tagged identity - the footage, or the "
+        "viewer's label - in events.json. Until then no span may be scored "
+        "against, which is the point: a name read off the tracker cannot grade "
+        "the tracker. #4"))
     return out
 
 
@@ -240,9 +365,9 @@ def main(argv: list[str] | None = None) -> int:
     a = p.parse_args(argv)
     works = ([Path(w) for w in a.work] if a.work
              else sorted(q for q in Path("work").iterdir()
-                         if (q / "possession.json").exists()))
+                         if GV.has(q)))
     for work in works:
-        if not (work / "possession.json").exists():
+        if not GV.has(work):
             continue
         r = audit(work)
         print(f"  {r['possession']}  probe marked {r['probe_frames']} slot-frames")

@@ -47,6 +47,7 @@ finding about the margin.
 """
 
 from __future__ import annotations
+from ur import grading as GV
 
 import argparse
 import json
@@ -81,8 +82,11 @@ def solve(doc: dict, cost: np.ndarray, ids: list[str],
 
 
 def score(work: Path, *, every: int = 3) -> dict:
-    doc = json.loads((work / "possession.json").read_text(encoding="utf-8"))
-    ev = json.loads((work / "events.json").read_text(encoding="utf-8"))
+    # Through the view, which is the whole of this scorer's part in #4. It used
+    # to read both files raw and so applied neither exclusion: not AD-13's
+    # hand-placed positions and not the tracker-supplied names. It is in no
+    # probe registry either, so nothing said so.
+    doc, ev = GV.load(work)
     fps = float(doc["possession"]["fps"])
     ids, cost, _ = disc.emission_costs(doc)
     none = len(ids)
