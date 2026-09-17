@@ -2325,6 +2325,18 @@ over.style.cursor="pointer"; radar.style.cursor="crosshair";
 // never has to draw outside itself, and on the near sideline where nothing real
 // is, so a handle there reads as "not placed" rather than as a position.
 const PARK_Y = 1.6;
+// Below this the frame's own calibration does not stand behind the projection,
+// so a click on the video unprojects to a field position nobody should trust.
+// The same floor `radarContradiction` refuses to run under, and for the same
+// reason: p0003 frame 56 projects two probe points 1.2e11 px apart. Placing
+// through it would turn a person's honest look at the footage into a
+// `confirmed` position with sigma 0.3 in the wrong part of the field - the
+// worst thing this whole mode could do, because it is indistinguishable
+// downstream from a good one. The overhead drag is unaffected: it reads yards
+// off the radar and never goes near the homography.
+const PLACE_MIN_CALIB = 0.5;
+function calibHere(){ const P=projector(S.f); return P&&P.conf!==undefined?P.conf:1; }
+function canPlaceOnVideo(){ return calibHere() >= PLACE_MIN_CALIB; }
 // `f` is the frame the staged placements were made on, and it is not `S.f`. A
 // person can stage a marker, scrub, and then save; saving to wherever the clock
 // had got to would write a keyframe of frame 100's positions onto frame 200 and
@@ -2514,6 +2526,10 @@ function renderRepair(){
        ? "The disc has a handle of its own on this frame."
        : "The disc is held here, so its position is the holder's — place "
          + "<b>them</b> and the disc follows."}
+     ${canPlaceOnVideo() ? "" :
+       `<b style="color:var(--warn)">Calibration here is ${calibHere().toFixed(2)},
+        under ${PLACE_MIN_CALIB} — clicking the video is off on this frame.</b>
+        Drag on the overhead, or step to a frame the calibration stands behind.`}
      <div style="margin-top:6px">
        <button id="repSave"${n?"":" disabled"}>Save keyframe (${n})</button>
        <button id="repClear"${n?"":" disabled"}>Discard</button>
@@ -2612,6 +2628,16 @@ over.onclick = ev => {
   const [u,v]=overXY(ev);
   if(REPAIR.on){
     if(paintHit(u,v,P)) return;              // that was a paint drag, not a placement
+    if(!canPlaceOnVideo()){
+      renderRepair();
+      document.getElementById("repairbox").insertAdjacentHTML("beforeend",
+        `<div class="issue" style="margin-top:6px">This frame's calibration is
+         <b>${calibHere().toFixed(2)}</b>, under ${PLACE_MIN_CALIB} — the projection
+         does not stand behind itself here, so a click on the video would land
+         somewhere the page cannot vouch for. Step to a better-calibrated frame,
+         or drag on the overhead instead.</div>`);
+      return;
+    }
     const id = S.sel || (REPAIR.put.has(DISC_ID) ? DISC_ID : null);
     if(!id){
       // Saying nothing here is what made the old path unusable: the click did
