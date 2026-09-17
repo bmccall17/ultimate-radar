@@ -296,15 +296,53 @@ since the day it was written and asks only whether the tags changed the artefact
 They did, in the disc stage, invisibly. Whether the reader can *see* the work is
 a separate question and now has a separate row. #12.
 
+### 2.9 A guard is only as wide as the array it reads
+
+Nobody throws to themselves. `addTag()` has refused a catch naming the player of
+the preceding throw since the first p0009 tagging pass, where selecting the
+thrower and pressing `t` then `c` named them twice across the whole back half of
+the possession. It found that preceding throw in `TAGS` — the tags made in the
+current browser tab.
+
+So a throw already in `events.json` was invisible to it. § 2.8 putting the
+published tags on screen is what made that reachable: a reader could select O2,
+press `c` after p0003's published `throw O2 @ 26.33 s`, and watch a self-pass
+join the list with nothing said. The same read was wrong a second way. `TAGS` is
+sorted by `t`, so "the last tag made" is not "the last tag before this one" —
+tag a throw at 30 s, scrub back to 5 s, tag a catch, and the guard compared
+against a throw twenty-five seconds in the future.
+
+**The general form.** § 2.8's rule was that evidence which is used is not the same
+as evidence which is shown. This is the third member of that family: evidence the
+page *displays* is not the same as evidence the page *reasons over*. Three code
+paths read the published events — the metric cards through `allEvents()`, the
+download button through `D.events`, and, since § 2.8, the list — and a fourth,
+the one guard whose whole job is to refuse a wrong tag, read none of them. When a
+fact has several consumers, each is a separate place it can be missed, and the
+consumers that stay silent when they are wrong are the ones to go looking at.
+
+**The trap in checking it.** Every `events.json` in `work/` is correct, so no
+published possession contains a self-pass. A check that read the published data
+would therefore have passed today whether or not the guard was fixed — a
+definition of done that can never fail to be met, which is the AD-11 trap in a
+new costume. So `a self-pass is always refused` **constructs its failure**: it
+runs the page's own `selfPassRefusal` under node against four invented scenarios,
+using two slots off that page's own roster. Two of the four exist only to stop
+the row going green the easy way — a legitimate catch by somebody else, which
+must *not* be refused, and the same self-pass with the published throw taken
+away, which must go quiet. Without the first, a guard that refused every tag
+would pass. Without the second, a guard that refused on the selection alone
+would.
+
 ---
 
 ## 3. The gates, and which of them fail on purpose
 
-`python -m tools.gates` prints **155 rows, and only 131 of them can fail.** It
+`python -m tools.gates` prints **161 rows, and only 137 of them can fail.** It
 ends on two totals, and they are not the same kind of number:
 
 ```
-117 of 131 failable check(s) pass, 14 failing.
+123 of 137 failable check(s) pass, 14 failing.
 24 informational row(s) report a measurement and no verdict.
 ```
 
@@ -360,7 +398,7 @@ counted as a passing check.
 and on camera motion — they have not been through the impossible-motion check and
 are not published.
 
-### The published site — 68 rows, 65 of them failable, all passing
+### The published site — 74 rows, 71 of them failable, all passing
 
 `tools/audit_site.py`, folded into `python -m tools.gates`. Every other gate in
 this document reads `work/`; these read `docs/`, which is the only thing anybody
@@ -375,6 +413,7 @@ defects that the whole suite was green through.
 | no unmeasured percentage printed | render the page a second time with **every measurement removed**; no percentage may survive | § 2.7. Five pages printed a rounded `0 %` for recall and sigma containment off `null` fields. These two are the only checks here that read the **rendered sentence** rather than the data behind it, because the data was right and the sentence was not — they run the viewer's own `gateSentence` under node (`tools/gate_sentence.py`), which is why `node` has a row in `docs/07`. Taking the measurement away rather than comparing against an expected value is what makes it catch the bug on p0001 too, where it was latent behind a real 97 %. #11 |
 | an unmeasured page says so | the word `unmeasured` appears in the sentence, on a page with no measurement of its own | § 2.7, the other half. Printing no number is not the same as saying there is none: a gap where a figure would go reads as "fine". Only the five pages with nothing measured carry this row; p0001 has numbers and says so. #11 |
 | published tags show on load | the page lists exactly the tags it was given before a key is pressed, the empty state appears only where there is nothing, and the list falls back to it once those tags are taken away | § 2.8. Three pages published 6, 14 and 12 human tags and all three opened saying "Nothing tagged yet", because the list was seeded from the in-session array alone. The third check here that reads the **rendered page** rather than the data: `tools/tag_list.py` runs the viewer's own `tagListHtml` under node, twice. Four ways to fail — dropping a tag, listing one twice, claiming emptiness over tags that exist, and printing rows that survive having the tags removed. #12 |
+| a self-pass is always refused | the page's own guard refuses a catch naming the player of the preceding throw, whether that throw is published or made in this session, and still takes a catch naming anybody else | § 2.9. The guard read only the tags made in the current browser tab, so a throw in `events.json` was invisible to it, and § 2.8 is what made that reachable. The fourth check to read the published page, and the only one about what the page **refuses** rather than what it says. It has to construct its own failure — every `events.json` in `work/` is correct — so it runs four invented scenarios off the page's own roster, two of which exist to stop a guard that refuses everything, or refuses regardless of its input, from passing. #25 |
 | no disc drawn from the failed inference | every drawn frame rests on a human tag | already true, now locked in — the viewer correctly suppressed all 385 `predicted` frames on p0009 |
 | no disc drawn on a guessed position | the holder's own position is `observed`/`confirmed` on every drawn frame | the check above asks WHO, this asks WHERE, and they are two facts about one frame. p0003 published the disc on a match official at `confirmed`: the tracker lost O2, re-acquired 26.9 yd away over the sideline, and a correct tag about the catch carried the disc there. 3 frames → 0. The tracker's own error is #4; this is the stage that was publishing it |
 | no confirmed disc from an inferred name | no frame renders a `confirmed` disc state from a tag carrying `player_inferred` | the third way a tag is weaker than it looks, after WHO and WHERE: **how the person arrived at the name**. p0003's 21.27–26.33 s holder was settled by elimination, not read off a jersey (§ 2.5 and `docs/27`), and part of that argument is which slots the tracker loses, so `span identity accuracy` already refuses to grade against it. The flag stopped at span resolution. The disc stage saw a human tag and observed coordinates and emitted `confirmed`, so the Mark card said MEASURED about a holder nobody named. 6 frames → 0. The span still draws, at `predicted`, on exactly the frames it drew on before, and every card built on it says the name was inferred. Suppressing it would reopen the display hole that naming it closed. #15 |

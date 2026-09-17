@@ -36,6 +36,8 @@ from pathlib import Path
 import numpy as np
 
 from tools import checks as C
+from tools import human_positions as HP
+from ur import human as HU
 
 _PID = __import__("re").compile(r"p\d{4}")
 
@@ -92,6 +94,9 @@ ISSUE = {
     # A measurement today, so it never fails and never shows a number here -
     # the mapping is so the ticket is findable the day it gets a threshold.
     "...longest blind stretch": 8,
+    # Repair mode's own gate: the one thing that has to be true before a person
+    # is invited to hand-place fourteen markers and a disc.
+    "no human position in a metric": 8,
     # A name settled by elimination rendering at the strongest state the format
     # has is the disc stage's own doing, not the tracker's: the flag is in the
     # tag and the stage dropped it.
@@ -102,6 +107,9 @@ ISSUE = {
     # The third rendered-page check, and the same shape of defect one pane over:
     # the data carried the tags and the list never read them.
     "published tags show on load": 12,
+    # The fourth, and the only one about what the page refuses rather than what
+    # it says. Same pane, same half-blindness: the guard never read D.events.
+    "a self-pass is always refused": 25,
     "median roster in shot": 6,
     "frames with nothing at all": 6,
     "camera motion is possible": 6,
@@ -341,10 +349,77 @@ def check_directions(works: list[Path]) -> dict:
     return out
 
 
-def check_disc(works: list[Path]) -> dict:
-    """Grade the span solver wherever a human has named who held the disc."""
+def grade_spans(work: Path, doc: dict, ev: dict, blind: bool = True
+                ) -> tuple[int, int, list, str] | None:
+    """Grade the span solver on one possession. `(correct, graded, pairs, note)`.
+
+    Pulled out of `check_disc` so `tools/human_positions.py` can run it twice
+    over one possession - once on the file and once with every hand-placed
+    position taken out - and require the two to agree. A grade that moves when a
+    person's work is removed is a grade that person was scoring.
+
+    **The solver is graded on what the TRACKER produced.** A hand-placed position
+    is the strongest evidence in the file and the cheapest way to make a span's
+    emission cost come out right, so leaving it in would mean the solver scored
+    better the more of the possession had been repaired - #8's trap, and the same
+    shape as the contamination in #4. The published page still solves against the
+    corrected positions; only the grade is blind to them. ur/human.py.
+    """
     from ur import spans as SP
 
+    # `blind=False` is for tools/human_positions.py only; see the note there.
+    if blind:
+        doc = HU.blind(doc)
+    nf = int(doc["possession"]["frames"])
+    fps = float(doc["possession"]["fps"])
+    off = doc["possession"]["offense"]
+    ids = [p["id"] for p in doc["players"] if p["team"] == off]
+    tspans = SP.spans_from_events(ev, nf, fps, ids)
+    truth = [s.fixed for s in tspans]
+    if not any(t is not None for t in truth):
+        return None
+        # Tags that contradict each other are not truth. check_disc talks to the
+        # solver directly rather than through ur.spans.build, so it has to repeat
+        # build's refusal or it would quietly score against a contradiction.
+        #
+        # A *conflict* is no longer fatal: it means a throw went untagged, and
+        # spans_from_events already leaves that span unknown, so it drops out of
+        # the truth by itself. A *self-pass* is fatal - it is two tags that cannot
+        # both be true, and nothing can be scored around it.
+    bad = sum(1 for i in range(len(tspans) - 1)
+              if tspans[i].fixed is not None
+              and tspans[i].fixed == tspans[i + 1].fixed)
+    if bad:
+        return (0, 0, [], f"{work.name} NOT GRADED ({bad} self-passes in the tags)")
+    unnamed = {"events": [{**e, "player": None} for e in ev.get("events", [])]}
+    sp = SP.spans_from_events(unnamed, nf, fps, ids)
+    if len(sp) < 2 or len(sp) != len(truth):
+        return None
+    SP.span_costs(doc, sp, ids)
+    path, margins = SP.solve(doc, sp, ids)
+    pairs: list[tuple[float, float]] = []
+    n = ok = 0
+    for g, t, m, sp_i in zip(path, truth, margins, tspans):
+        if t is None:
+            continue
+        # An identity nobody saw is not ground truth. p0003's 21.27-26.33 s
+        # holder was worked out by elimination - and part of that argument was
+        # which slots the TRACKER loses, so grading the solver against it grades
+        # the solver partly against its own upstream. The brief's second trap:
+        # never feed the solver's own output back as a constraint. It stays in
+        # the file, where it closes a real hole in the display; it does not
+        # count here.
+        if sp_i.inferred:
+            continue
+        n += 1
+        ok += (g == t)
+        if np.isfinite(m):
+            pairs.append((float(m), 1.0 if g == t else 0.0))
+    return (ok, n, pairs, f"{work.name} {ok}/{n}")
+
+
+def check_disc(works: list[Path]) -> dict:
+    """Grade the span solver wherever a human has named who held the disc."""
     out: dict = {"possession": "disc / holder inference", "checks": []}
     graded, correct, pairs = 0, 0, []
     per = []
@@ -354,54 +429,14 @@ def check_disc(works: list[Path]) -> dict:
             continue
         ev = json.loads(ev_p.read_text(encoding="utf-8"))
         doc = json.loads((work / "possession.json").read_text(encoding="utf-8"))
-        nf = int(doc["possession"]["frames"])
-        fps = float(doc["possession"]["fps"])
-        off = doc["possession"]["offense"]
-        ids = [p["id"] for p in doc["players"] if p["team"] == off]
-        tspans = SP.spans_from_events(ev, nf, fps, ids)
-        truth = [s.fixed for s in tspans]
-        if not any(t is not None for t in truth):
+        r = grade_spans(work, doc, ev)
+        if r is None:
             continue
-        # Tags that contradict each other are not truth. check_disc talks to the
-        # solver directly rather than through ur.spans.build, so it has to repeat
-        # build's refusal or it would quietly score against a contradiction.
-        #
-        # A *conflict* is no longer fatal: it means a throw went untagged, and
-        # spans_from_events already leaves that span unknown, so it drops out of
-        # the truth by itself. A *self-pass* is fatal - it is two tags that cannot
-        # both be true, and nothing can be scored around it.
-        bad = sum(1 for i in range(len(tspans) - 1)
-                  if tspans[i].fixed is not None
-                  and tspans[i].fixed == tspans[i + 1].fixed)
-        if bad:
-            per.append(f"{work.name} NOT GRADED ({bad} self-passes in the tags)")
-            continue
-        blind = {"events": [{**e, "player": None} for e in ev.get("events", [])]}
-        sp = SP.spans_from_events(blind, nf, fps, ids)
-        if len(sp) < 2 or len(sp) != len(truth):
-            continue
-        SP.span_costs(doc, sp, ids)
-        path, margins = SP.solve(doc, sp, ids)
-        n = ok = 0
-        for g, t, m, sp_i in zip(path, truth, margins, tspans):
-            if t is None:
-                continue
-            # An identity nobody saw is not ground truth. p0003's 21.27-26.33 s
-            # holder was worked out by elimination - and part of that argument was
-            # which slots the TRACKER loses, so grading the solver against it grades
-            # the solver partly against its own upstream. The brief's second trap:
-            # never feed the solver's own output back as a constraint. It stays in
-            # the file, where it closes a real hole in the display; it does not
-            # count here.
-            if sp_i.inferred:
-                continue
-            n += 1
-            ok += (g == t)
-            if np.isfinite(m):
-                pairs.append((float(m), 1.0 if g == t else 0.0))
-        graded += n
+        ok, n, prs, note = r
         correct += ok
-        per.append(f"{work.name} {ok}/{n}")
+        graded += n
+        pairs += prs
+        per.append(note)
 
     acc = correct / graded if graded else None
     out["checks"].append(C.gate(
@@ -458,6 +493,7 @@ def main(argv: list[str] | None = None) -> int:
                          if (q / "possession.json").exists()))
     reports = [check_possession(w) for w in works]
     reports.append(check_directions(works))
+    reports.append(HP.check(works))
     reports.append(check_site())
     reports.append(check_disc(works))
 

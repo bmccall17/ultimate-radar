@@ -57,6 +57,30 @@ rather than as a gap. Both constraints held without amendment: `tools/tag_list.p
 the page's own `tagListHtml`, and it renders a second time with the published tags taken
 away rather than comparing rows against expected text.
 
-Three site gates now: `no unmeasured percentage printed` and `an unmeasured page says so`,
-both owned by #11 with `docs/30` § 2.7 as the finding; and `published tags show on load`,
-owned by #12 with § 2.8.
+*The third instance, and the one that widens this decision.* `addTag()` refuses a catch
+naming the player of the throw before it, and read only the tags made in the current
+browser tab, so a throw already in `events.json` was invisible to it (§ 2.9). That is not a
+claim the formatter invents. It is a **refusal the page fails to make**, and the exemption
+above was written about printed claims.
+
+It is the same exemption rather than a wider one, and the reason is the test at the top of
+this file: *is this something the reader gets from the page that the data cannot show?* A
+refusal qualifies on both halves. The reader gets it — it is the sentence that appears, or
+does not, when they press `c`. And the data cannot show it: every `events.json` in `work/`
+is correct, so no published possession contains a self-pass, and no amount of reading them
+reveals a guard that would let one through. So the wording stands with one word widened:
+the exemption covers **what a page states**, whether that is a number it prints or a
+refusal it owes.
+
+*The constraint that widening costs.* A check on a printed claim has its subject in front
+of it. A check on a refusal has to **construct the failure**, and a constructed scenario is
+one the author chose, so it can be chosen to pass. Two scenarios are therefore required
+alongside it, and `a self-pass is always refused` carries both: **one legitimate case that
+must not be refused**, without which a guard that refused every tag would go green, and
+**the same case with the input taken away**, without which a guard that never read its
+input at all would. The second is constraint 2 above, unchanged. The first is new, and it
+is the price of checking a refusal rather than a claim.
+
+Four site gates now: `no unmeasured percentage printed` and `an unmeasured page says so`,
+both owned by #11 with `docs/30` § 2.7 as the finding; `published tags show on load`, owned
+by #12 with § 2.8; and `a self-pass is always refused`, owned by #25 with § 2.9.

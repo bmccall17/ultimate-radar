@@ -113,7 +113,10 @@ names are the stable handle: AD-7 is `docs/adr/0007-*.md`, never `ADR-0007`.
     printed a rounded `0 %` for recall off a `null`, green through every field-side
     check. Costs `node` on PATH. Applied a second time to the tag list, which asserted
     "Nothing tagged yet" over 6, 14 and 12 published tags — an invented absence, the same
-    act. See issues #11 and #12, and `docs/30` §§ 2.7-2.8.
+    act. Widened by a third: the exemption covers what a page **states**, whether a number
+    it prints or a refusal it owes, and a check on a refusal must construct its failure and
+    carry a legitimate case that is not refused. See issues #11, #12 and #25, and `docs/30`
+    §§ 2.7-2.9.
 
 ## Licence position
 

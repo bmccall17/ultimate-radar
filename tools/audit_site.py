@@ -39,6 +39,7 @@ from pathlib import Path
 
 from tools import checks as C
 from tools import gate_sentence as GS
+from tools import tag_guard as TG
 from tools import tag_list as TL
 
 SITE = Path("docs")
@@ -226,6 +227,10 @@ def audit(pid: str) -> list[dict]:
             "the site carries a page to read",
             "possession.js is published and index.html is not - the build is "
             "half-done, run tools.build_site")
+        add("a self-pass is always refused", False, f"no {idx}",
+            "the site carries a page to read",
+            "possession.js is published and index.html is not - the build is "
+            "half-done, run tools.build_site")
     else:
         try:
             html = idx.read_text(encoding="utf-8")
@@ -292,6 +297,42 @@ def audit(pid: str) -> list[dict]:
                 "the tag list can be rendered and read",
                 "the tag list is JS, so reading it needs node on PATH and a "
                 "`tagListHtml` to find - a gate that cannot run has not passed")
+
+    # ---- C4. ...and it refuses a tag nobody could have made -----------------
+    # The other half of the tagging pane, and the only check here that is about
+    # what the page REFUSES rather than what it says. Nobody throws to
+    # themselves; `addTag` has said so since p0009's first tagging pass, and it
+    # looked for the preceding throw in the tags made in this browser tab, so a
+    # throw already in `events.json` was invisible to it. C3 putting the
+    # published tags on screen is what made that reachable. #25.
+    #
+    # **It constructs the failure.** Every events.json in work/ is correct, so no
+    # published possession contains a self-pass, so reading the published data
+    # would pass today with or without the guard - a definition of done that can
+    # never fail to be met (AD-11). Two of the four scenarios exist only to stop
+    # the row going green the easy way: a legitimate pass that must not be
+    # refused, and the same self-pass with the throw taken away, which must go
+    # quiet.
+    roster = [q["id"] for q in doc.get("players", [])]
+    if idx.exists() and len(roster) >= 2:
+        try:
+            v = TG.check(idx.read_text(encoding="utf-8"), roster[0], roster[1])
+            add("a self-pass is always refused", v.ok,
+                f"{roster[0]} throws, {roster[0]} catches" + (v.fault or
+                 f" - refused on a published throw and on this session's, and "
+                 f"{roster[1]} catching is taken"),
+                "the guard reads the published throws as well as this session's, "
+                "and still takes a catch naming anybody else",
+                "a throw in events.json is a throw; a guard that cannot see one "
+                "lets a self-pass into the file it is there to keep out")
+        # Broad for the reason the blocks above are: a way of failing to read the
+        # page has to land as one red row, not as a traceback.
+        except Exception as e:
+            add("a self-pass is always refused", False,
+                f"{type(e).__name__}: {e}".strip()[:160],
+                "the guard can be run and read",
+                "the guard is JS, so running it needs node on PATH and a "
+                "`selfPassRefusal` to find - a gate that cannot run has not passed")
 
     # ---- D. nothing is drawn from an inference that failed its gate ----------
     # Behavioural, not textual: count the frames the viewer would draw a disc
