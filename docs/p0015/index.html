@@ -1,4 +1,5 @@
 <!doctype html>
+<html lang="en" data-theme="dark">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ultimate-radar</title>
@@ -52,6 +53,7 @@ button,select{font:inherit;color:var(--ink);background:var(--panel);
 button:hover{border-color:var(--dim)}
 button[aria-pressed=true]{background:var(--chill-fill);border-color:var(--chill)}
 :focus-visible{outline:2px solid var(--sel);outline-offset:2px}
+.banner:empty{display:none}
 .banner{margin:10px 16px 0;padding:9px 12px;border-radius:6px;font-size:13px;
   background:var(--warn-bg);color:var(--warn);border:1px solid currentColor}
 main{display:grid;grid-template-columns:1.45fr 1fr;gap:14px;padding:12px 16px}
@@ -217,11 +219,14 @@ footer{color:var(--dim);font-size:12px;padding:6px 16px 26px}
   <h1>ultimate-radar</h1>
   <div class="sub" id="subtitle"></div>
   <nav class="switch" aria-label="possession"><span class="navlabel">possession</span><a class="navlink" href="../">p0001</a><a class="navlink" href="../p0003/">p0003</a><a class="navlink" href="../p0004/">p0004</a><a class="navlink" href="../p0005/">p0005</a><a class="navlink" href="../p0009/">p0009</a><span class="navhere" aria-current="page">p0015</span></nav><div class="spacer"></div>
-  <button id="theme" title="Theme">Theme: auto</button>
-  <button id="copylink">Copy link to this moment</button>
 </header>
 
-<div class="banner" id="provenance"></div>
+<!-- Reserved for the orientation self-check, and empty every other time. The
+     provenance and accuracy sentence used to live here: a standing amber block
+     at the top of every page, which is a poor place for something that never
+     changes and a very good place for the one warning that says do not read
+     this page at all. -->
+<div class="banner" id="selfcheck"></div>
 
 <main>
   <section class="stack">
@@ -354,7 +359,14 @@ footer{color:var(--dim);font-size:12px;padding:6px 16px 26px}
   </section>
 </main>
 
-<footer id="foot"></footer>
+<footer>
+  <!-- What this page is made of, and how far it can be trusted. Still said in
+       full, and said where a standing fact belongs. `docs/05` allows no page to
+       state a measurement nobody took, and the sentence that says so is gated
+       (#11): it moved, it did not go. -->
+  <div id="provenance"></div>
+  <div id="foot"></div>
+</footer>
 
 <script>/* Built by tools/build_site.py - do not edit docs/, edit viewer/
    and rebuild. Opens mid-possession: frame 0 is often before the tracker
@@ -2514,33 +2526,15 @@ document.getElementById("tPin").onclick = e => {
   S.pin = S.pin===null ? S.f : null;
   e.currentTarget.setAttribute("aria-pressed", String(S.pin!==null)); draw();
 };
-// Unguarded this sits at top level of the main script, so a browser configured
-// to block site data renders the whole page blank - which is exactly the
-// failure the build environment could not test for. The matching setItem was
-// already wrapped; this is the other half.
-let themeMode = "auto";
-try{ themeMode = localStorage.getItem("ur-theme") || "auto"; }catch(_){}
-function applyTheme(){
-  if(themeMode==="auto") document.documentElement.removeAttribute("data-theme");
-  else document.documentElement.setAttribute("data-theme",themeMode);
-  document.getElementById("theme").textContent="Theme: "+themeMode;
-  camCache.clear(); draw();
-}
-document.getElementById("theme").onclick = () => {
-  themeMode = themeMode==="auto"?"light":themeMode==="light"?"dark":"auto";
-  try{ localStorage.setItem("ur-theme",themeMode); }catch(_){}
-  applyTheme();
-};
-document.getElementById("copylink").onclick = async () => {
-  const u=location.href.split("#")[0]+"#t="+(S.f/FPS).toFixed(2);
-  const b=document.getElementById("copylink"), t=b.textContent;
-  let ok=false;
-  // navigator.clipboard is unavailable on file:// in most browsers, so say so
-  // rather than flashing "Copied" over a copy that never happened.
-  try{ await navigator.clipboard.writeText(u); ok=true; }catch(_){}
-  if(ok){ b.textContent="Copied"; setTimeout(()=>b.textContent=t,1200); }
-  else prompt("This page cannot reach the clipboard from file://. Copy the link:", u);
-};
+/* The theme picker is gone and the page is dark, declared on <html>. It was
+   three states deep in a corner nobody visits twice, and it kept its answer in
+   localStorage, which a browser configured to block site data could refuse -
+   the whole page once rendered blank on exactly that.
+
+   "Copy link to this moment" is gone too. seek() writes `#t=` into the address
+   bar on every scrub, so the link to this moment is already in the place people
+   copy links from, and a button that duplicates the address bar cost a clipboard
+   API that file:// does not have and a prompt() to apologise for it. */
 
 /* ------------------------------------------- select and drag on the radar */
 function radarHit(ev){
@@ -3154,7 +3148,7 @@ function provenance(){
     prov.innerHTML = "<b>Stand-in identities.</b> " + (D.notice||"") + " " + human;
   } else {
     const sv=D.possession.source_video||{};
-    prov.innerHTML = `<b>Real footage.</b> ${sv.platform||""} ${sv.id||""} from ` +
+    prov.innerHTML = `${sv.platform||""} ${sv.id||""} from ` +
       `${(sv.start_s||0).toFixed(1)}s, ${D.possession.frames} frames at ` +
       `${D.possession.fps} fps. ` +
       (D.gates_measured===false
@@ -3267,11 +3261,11 @@ function radarContradiction(){
 const selfCheck = radarContradiction();
 window.__urSelfCheck = selfCheck;
 if(selfCheck.ok===false){
-  const el=document.getElementById("provenance");
+  const el=document.getElementById("selfcheck");
   el.innerHTML = `<b style="color:var(--warn)">Self-check failed</b> — the overhead view
     disagrees with the camera view about which way field y runs (frame ${selfCheck.f}:
     image Δv ${selfCheck.dImage}, radar Δy ${selfCheck.dRadar}). Every position on the
-    overhead view is mirrored. Do not read it.` + el.innerHTML;
+    overhead view is mirrored. Do not read it.`;
   console.error("[ur] radar/image orientation contradiction", selfCheck);
 } else if(selfCheck.ok===null){
   console.warn("[ur] orientation self-check did not run", selfCheck);
@@ -3283,6 +3277,6 @@ vid.addEventListener("loadedmetadata", () => { seekVideo(); sizeCanvases(); });
 renderIssues(); renderCorrections(); renderTags(); renderNowIssue(); renderRelabel();
 renderRepair();
 renderDirection();
-applyTheme(); sizeCanvases(); seek();
+sizeCanvases(); seek();
 })();
 </script>

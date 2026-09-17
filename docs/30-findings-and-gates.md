@@ -430,12 +430,12 @@ stopped there, which was the right call.
 
 ## 3. The gates, and which of them fail on purpose
 
-`python -m tools.gates` prints **162 rows, and only 138 of them can fail.** It
+`python -m tools.gates` prints **204 rows, and only 170 of them can fail.** It
 ends on two totals, and they are not the same kind of number:
 
 ```
-124 of 138 failable check(s) pass, 14 failing.
-24 informational row(s) report a measurement and no verdict.
+156 of 170 failable check(s) pass, 14 failing.
+34 informational row(s) report a measurement and no verdict.
 ```
 
 The fourteen failures are every one either a known-unpublished possession or a
@@ -466,6 +466,7 @@ things the brief asks not to happen.
 | `...measured on` | 10, one per possession | the fraction of frames the M1 mean was measured on | there is no fraction below which the possession is *wrong*. A thin denominator makes the **mean** weaker evidence; it is not itself a defect, and the mean it qualifies is already gated. § 2.1 | a measured relation between usable fraction and the error on the frames the acceptance never sampled. Nothing has measured that, and § 2.2 suggests the honest quantity is "is the halfway line in shot", which is a different row |
 | `offence drifts` | 10, one per possession | median per-player least-squares drift of the offence along x | § 2.0: this quantity is **not** the attacking direction, so no value of it is right or wrong. It stayed in the run because the movement is real and worth seeing, not because it decides anything | nothing, and that is the point. The thing it was mistaken for is gated across possessions in `Qn: opposite teams disagree`; this row is the diagnostic that was promoted to a fact once already |
 | `...quarters confirmed` | 1 | how many quarters have a human-confirmed attacking direction — today **0 of 4** | an unconfirmed quarter claims nothing, so there is nothing to contradict. Gating it would fail every possession cut before somebody got round to watching it, and a queue is not a defect | confirming becoming part of cutting a possession rather than a backlog. Then `0 of 4` **is** a defect, the threshold is *all of them*, and it moves to the failable total under #5 |
+| `...slots on somebody off the field` | 10, one per possession | the share of matched slot-frames whose detection sits outside the lines — p0003 **7 %**, p0001 and p0005 **0 %** | AD-3 puts a two-yard margin outside the sidelines on purpose: a thrower plants a pivot foot on the line. So "outside" is not by itself wrong and no fraction of it is defensibly the limit. The row exists to stop `coverage` being believed — p0003 at 28.67 s reads `14/14` over a frame with ten players on it, because the bench and the camera crew stand inside that margin | #29. Probably arithmetic rather than tolerance: at most fourteen people can be on the field, so a two-yard band holding twenty-six detections is a crowd by counting. That needs measuring across possessions before it is a threshold |
 | `...longest blind stretch` | 3, the published possessions carrying human tags | the longest stretch inside the tagged region where a reader sees no disc at all | still no principled threshold, and **two candidates were tried and rejected on 2026-09-17** — see below. A number picked because it happened to fail p0003 is tuning a constant to produce a verdict, backwards | a tolerance somebody decides and can defend, or a full repair pass becoming part of publishing a possession. #8 supplied the *remedy* and not the threshold |
 
 The count moves with the work: ten possessions in `work/`, so ten of each

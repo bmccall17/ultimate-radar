@@ -149,8 +149,7 @@ class Render(unittest.TestCase):
         # now lives, which is `pct` itself. It reopens both wounds at once: a
         # null rounded to 0 %, and a figure printed with no sample behind it.
         broken = self.html.replace(
-            'const pct = (v, n) => (num(v)===null || num(n)===null)
-'
+            'const pct = (v, n) => (num(v)===null || num(n)===null)\n'
             '      ? null : `${Math.round(v*100)} % of ${n}`;',
             'const pct = (v, n) => `${Math.round(v*100)} % of ${n}`;')
         self.assertNotEqual(broken, self.html, "the guard has moved; fix the patch")
