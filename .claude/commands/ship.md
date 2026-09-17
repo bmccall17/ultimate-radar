@@ -57,10 +57,20 @@ newly written.
 ## 3. The plan issue carries the orchestrator view
 
 The **board** is the glance surface: who is done, what can be picked up now, what is
-waiting and on what. It lives at the top of the parent plan issue the tickets were cut
-from, between the `ship:board` markers, because that is the one page somebody opens
-when they want to know where the sprint stands. Rewrite everything between those
-markers from what steps 1 and 2 found; leave the plan below the rule alone.
+waiting and on what. It lives in the parent plan issue the tickets were cut from, under
+its **`## Orchestrator View`** heading, between the `ship:board` markers. Rewrite
+everything between those markers from what steps 1 and 2 found, and touch nothing else
+in the issue: the heading, the note under it, and every outcome below the rule are the
+author's, not this step's.
+
+**Find the markers; never guess the position.** `<!-- ship:board -->` and
+`<!-- /ship:board -->` are the only anchors. If they are missing, put them under the
+`## Orchestrator View` heading and create it if it does not exist — directly under the
+issue's opening paragraph, above the rule that starts the outcomes. Do not write a
+second board anywhere else in the issue, and if you find one, delete it: two views of
+one sprint means one of them is wrong and no way to tell which. That has happened
+once already, a board at the very top and an empty `Orchestrator View` placeholder
+eight lines below it, each looking like the real one.
 
 The board holds, in this order:
 
