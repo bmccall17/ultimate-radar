@@ -56,7 +56,7 @@ passed.
 
 | invariant | how to check |
 |---|---|
-| the correction log round-trips | `python -m ur.resolve work/p0003 --verify-revert` says **YES, byte for byte** |
+| the correction log round-trips | `python -m ur.resolve work/p0003 --verify-revert` says **YES, byte for byte**, and leaves `possession.json` untouched |
 | corrections reach the page | `corrections reached the page` is PASS for every possession |
 | no hand-placed frame reaches a metric | `no human position in a metric` is PASS, and reports at least one grader **excluded** |
 | the suite is green | `python -m unittest discover -s tests -t .` |
@@ -180,16 +180,25 @@ $('over').dispatchEvent(new MouseEvent('click',
 
 ## 5. The calibration refusal
 
-`setf(<the dead frame>)` — the fixture prints its calibration beside it.
+**Two dead frames, and § 5 must refuse both in different words.** The fixture prints
+`dead_frame_collapsed` and `dead_frame_low_confidence` separately, because a run that
+exercises only one is a run that has tested half of this — and the collapsed kind is the
+one that silently passed until the QA pass of 2026-09-17 (`docs/30` § 2.14).
 
-- The panel says so, names the number, and offers **a button to the nearest frame that
-  clears 0.5**. Telling somebody to go and find one is not help; p0003 reads 0.00 across
+Run this scenario twice, once on each.
+
+- The panel says so and offers **a button to the nearest frame that clears 0.5**. On the
+  low-confidence frame it names the number; on the collapsed one it says the homography
+  does not invert, because there is no number to name. Telling somebody to go and find one is not help; p0003 reads 0.00 across
   several seconds.
 - A click on the video stages **nothing**.
 - The overhead drag still works, because it reads yards off the radar and never touches the
   homography.
 
-**Defect if:** a click at calibration 0.00 produces an anchor. That is the worst thing this
+**Defect if:** a click at calibration 0.00 produces an anchor — or if the panel says
+nothing at all. A frame whose projection has collapsed used to report itself as *fully*
+calibrated, so the click was swallowed with no warning and no way out; silence here is the
+defect even though no anchor is written. That is the worst thing this
 mode can do — it turns an honest look at the right player into a `confirmed` position with
 sigma 0.3 in the wrong part of the field, indistinguishable downstream from a good one.
 

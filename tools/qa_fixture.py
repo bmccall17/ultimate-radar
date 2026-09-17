@@ -23,8 +23,18 @@ what the QA script actually asserts:
   them on the sideline crowd (#29);
 - **a busy frame** - the most slots with any detection at all, for the rail.
 
-It reads the **published** page, not `work/`, because that is what a QA pass
-drives and `docs/32` is a script for the live site (AGENTS rule 7).
+It reads the **published** page and nothing else, because that is what a QA pass
+drives (AGENTS rule 7) and because a QA tool that needs `work/` cannot run from a
+clone - `work/` is gitignored, it holds the footage, and regenerating
+`detections.json` means having the broadcast. The first version needed it and the
+QA pass reported that as a finding against its own docstring (docs/30 § 2.15).
+
+The one thing `work/` had that the page does not is each detection's own field
+position, used to ask whether a matched slot is resting on somebody inside the
+lines or on the sideline crowd. The slot's **estimate** answers the same question:
+across p0003's 4053 matched slot-frames the two disagree on 5, or 0.12 %, and all
+five are within inches of a line. A fifth of a percent of boundary cases is not
+worth a dependency that stops the tool running at all.
 """
 
 from __future__ import annotations
@@ -54,24 +64,19 @@ def _field_ok(xy, L, W) -> bool:
     return xy is not None and 0 <= xy[0] <= L and 0 <= xy[1] <= W
 
 
-def fixture(pid: str, work: Path) -> dict:
+def fixture(pid: str) -> dict:
     doc = published(pid)
     fps = float(doc["possession"]["fps"])
     nf = int(doc["possession"]["frames"])
     pf = doc["camera"]["per_frame"]
     L = doc["field"]["length_yd"]
     W = doc["field"]["width_yd"]
-    dets = json.loads((work / "detections.json").read_text(encoding="utf-8"))
-    byf = {r["f"]: r["dets"] for r in dets["frames"]}
 
     def calib(f):
         return (pf[f] or {}).get("confidence", 0.0) or 0.0
 
     def on_field(p, f):
-        di = p["det"][f]
-        if di is None or f not in byf or di >= len(byf[f]):
-            return False
-        return _field_ok(byf[f][di].get("field"), L, W)
+        return p["det"][f] is not None and _field_ok(p["est"][f], L, W)
 
     clean = busy = None
     for f in range(nf):
@@ -108,7 +113,24 @@ def fixture(pid: str, work: Path) -> dict:
         if collision:
             break
 
+    # Two kinds of dead frame and § 5 must refuse both, in different words. A
+    # low confidence still has a homography; a collapsed one does not invert at
+    # all, and that is the case that slipped through (docs/30 § 2.14) precisely
+    # because it looked like the absence of a problem rather than the worst one.
+    def collapsed(f):
+        H = (pf[f] or {}).get("H")
+        if not H:
+            return True
+        a, b, c = H
+        det3 = (a[0]*(b[1]*c[2] - b[2]*c[1]) - a[1]*(b[0]*c[2] - b[2]*c[0])
+                + a[2]*(b[0]*c[1] - b[1]*c[0]))
+        return abs(det3) < 1e-12
+
     dead = next((f for f in range(nf) if calib(f) < 0.01), None)
+    dead_collapsed = next((f for f in range(nf)
+                           if calib(f) < PLACE_MIN_CALIB and collapsed(f)), None)
+    dead_intact = next((f for f in range(nf)
+                        if calib(f) < PLACE_MIN_CALIB and not collapsed(f)), None)
 
     seen_at = None
     if busy:
@@ -128,16 +150,25 @@ def fixture(pid: str, work: Path) -> dict:
         "busy_frame": seen_at,
         "collision": collision,
         "dead_frame": None if dead is None else
-            {"f": dead, "t": round(dead / fps, 2), "calib": round(calib(dead), 2)},
+            {"f": dead, "t": round(dead / fps, 2), "calib": round(calib(dead), 2),
+             "projection_collapsed": collapsed(dead)},
+        # § 5 has to see both, because they take different wording and the
+        # collapsed one is the one that was silently passing.
+        "dead_frame_collapsed": None if dead_collapsed is None else
+            {"f": dead_collapsed, "t": round(dead_collapsed / fps, 2)},
+        "dead_frame_low_confidence": None if dead_intact is None else
+            {"f": dead_intact, "t": round(dead_intact / fps, 2),
+             "calib": round(calib(dead_intact), 2)},
     }
 
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="tools.qa_fixture")
-    p.add_argument("work", nargs="?", default="work/p0003")
+    # A possession id, or a `work/<id>` path, because both spellings are in
+    # docs/32 and neither is worth correcting somebody over.
+    p.add_argument("possession", nargs="?", default="p0003")
     a = p.parse_args(argv)
-    work = Path(a.work)
-    fx = fixture(work.name, work)
+    fx = fixture(Path(a.possession).name)
 
     print(f"\nQA fixture for {fx['possession']} as published "
           f"({fx['corrections_applied']} correction(s) applied)\n")
@@ -163,8 +194,14 @@ def main(argv: list[str] | None = None) -> int:
     if dd:
         print(f"  dead frame    f{dd['f']}  #t={dd['t']}   calibration "
               f"{dd['calib']}, under {PLACE_MIN_CALIB}")
+        print(f"                {'the homography does not invert' if dd['projection_collapsed'] else 'the homography inverts, the fit is poor'}")
         print( "                -> docs/32 section 5: a click on the video must "
                "stage nothing")
+    for label, key in (("collapsed", "dead_frame_collapsed"),
+                       ("low-confidence", "dead_frame_low_confidence")):
+        v = fx.get(key)
+        if v:
+            print(f"  dead ({label:<15}) f{v['f']}  #t={v['t']}")
     print()
     print(json.dumps(fx, indent=1))
     return 0

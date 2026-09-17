@@ -1286,8 +1286,11 @@ function drawPlaceHint(P,s,k){
   const id = S.sel;
   const msg = !id ? "Repair — pick a slot below, then click them here"
     : !canPlaceOnVideo()
-      ? `Repair — calibration ${calibHere().toFixed(2)} on this frame: placing from `
-        + `the video is off. Use the jump below.`
+      ? (projectionCollapsed()
+          ? "Repair — no usable projection on this frame: placing from the video "
+            + "is off. Use the jump below."
+          : `Repair — calibration ${calibHere().toFixed(2)} on this frame: placing `
+            + `from the video is off. Use the jump below.`)
       : `Repair — click ${id===DISC_ID?"the disc":id+"'s feet"} on this picture`;
   octx.save();
   octx.font=`600 ${13*k}px ui-sans-serif,system-ui`;
@@ -2768,7 +2771,19 @@ const PARK_Y = 1.6;
 // downstream from a good one. The overhead drag is unaffected: it reads yards
 // off the radar and never goes near the homography.
 const PLACE_MIN_CALIB = 0.5;
-function calibHere(){ const P=projector(S.f); return P&&P.conf!==undefined?P.conf:1; }
+// A frame with no usable projection has NO calibration, not full calibration.
+// This returned 1 when `projector()` came back null - which is what a homography
+// that will not invert produces, on 41 frames of p0003 and 10 of p0009 - so the
+// one case where placing from the video is most obviously impossible was the one
+// case that got no warning, no number and no way out. The click was swallowed by
+// `if(!P) return` further down and the panel went on saying "click their feet".
+// Found by the QA pass, docs/30 § 2.14.
+function calibHere(){
+  const P=projector(S.f);
+  if(!P) return 0;
+  return P.conf!==undefined ? P.conf : 1;
+}
+function projectionCollapsed(){ return !projector(S.f); }
 function canPlaceOnVideo(){ return calibHere() >= PLACE_MIN_CALIB; }
 // `f` is the frame the staged placements were made on, and it is not `S.f`. A
 // person can stage a marker, scrub, and then save; saving to wherever the clock
@@ -3105,8 +3120,11 @@ function renderRepair(){
       <button id="repPaint" aria-pressed="${REPAIR.paintOn}">Field paint</button>
     </div>
     ${ok ? "" : `<div class="why" style="display:block;margin-top:6px">
-      <b style="color:var(--warn)">This frame's calibration is
-      ${calibHere().toFixed(2)}, under ${PLACE_MIN_CALIB}.</b> The projection does
+      <b style="color:var(--warn)">${projectionCollapsed()
+        ? "This frame has no usable projection at all — its homography does not "
+          + "invert."
+        : `This frame's calibration is ${calibHere().toFixed(2)}, under `
+          + `${PLACE_MIN_CALIB}.`}</b> The projection does
       not stand behind itself here, so a click on the video would land somewhere
       the page cannot vouch for, and the field paint below is drawn wherever the
       broken camera model thinks it is.

@@ -300,7 +300,20 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             "tracker_diagnostics": trk["diagnostics"],
         },
     }
-    GV.write(work, doc)
+    # **This does not write.** `build` returns a document; `main` puts it on disk.
+    #
+    # It used to write here, and that one line corrupted the work tree from four
+    # directions at once. `ur/resolve.py::load_uncorrected` calls this to get the
+    # UNCORRECTED document to compare against - so `--verify-revert`, whose whole
+    # job is to prove it changes nothing, left an uncorrected `possession.json`
+    # behind every time it ran. Two sessions blamed that on a parallel process
+    # and could not reproduce it, and `docs/32` § 0 told a QA runner to do it
+    # first thing.
+    #
+    # The symptom is the one there is no trace of in the artefact: the log keeps
+    # every correction, the page looks plausible, and the repair is simply gone.
+    # `corrections reached the page` is the row that catches it; this is the
+    # thing it was catching.
     if verbose:
         import collections
         st = collections.Counter(x for p in players for x in p["state"])
@@ -416,7 +429,8 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="ur.possess")
     p.add_argument("work")
     a = p.parse_args(argv)
-    build(Path(a.work))
+    work = Path(a.work)
+    print(f"[possess] wrote {GV.write(work, build(work))}")
     return 0
 
 

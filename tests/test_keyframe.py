@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import unittest
 
+from pathlib import Path
+
 from ur import human as H
 from ur import resolve as R
 
@@ -118,6 +120,44 @@ class Keyframes(unittest.TestCase):
         for p in d["players"]:
             self.assertEqual(p["state"][4], "confirmed")
         self.assertEqual({c["keyframe"] for c in d["corrections_applied"]}, {"k1"})
+
+
+class BuildingIsNotWriting(unittest.TestCase):
+    """`ur.possess.build` returns a document and must not put one on disk.
+
+    docs/30 § 2.13. `ur.resolve.load_uncorrected` calls it to get the
+    *uncorrected* document to compare against, so a write there means
+    `--verify-revert` - whose whole job is to prove it changes nothing - leaves
+    an uncorrected possession.json behind every time. Two sessions blamed the
+    resulting vanished corrections on a parallel process and could not reproduce
+    it; docs/32 § 0 told a QA runner to run it first thing.
+
+    Checked against the real p0003 because the failure is about a path on disk,
+    and a fixture in a temp directory would not have caught it.
+    """
+
+    WORK = Path("work/p0003")
+
+    def setUp(self):
+        if not (self.WORK / "tracks.json").exists():
+            self.skipTest("p0003's tracks are not in this clone")
+
+    def test_load_uncorrected_leaves_the_file_alone(self):
+        p = self.WORK / "possession.json"
+        before = p.read_bytes() if p.exists() else None
+        R.load_uncorrected(self.WORK)
+        after = p.read_bytes() if p.exists() else None
+        self.assertEqual(before, after,
+                         "building the uncorrected document rewrote possession.json")
+
+    def test_verify_revert_leaves_the_file_alone(self):
+        p = self.WORK / "possession.json"
+        if not p.exists():
+            self.skipTest("p0003 has not been through the pipeline")
+        before = p.read_bytes()
+        R.main([str(self.WORK), "--verify-revert"])
+        self.assertEqual(before, p.read_bytes(),
+                         "--verify-revert rewrote the document it was checking")
 
 
 class Detach(unittest.TestCase):

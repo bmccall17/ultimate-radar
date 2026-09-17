@@ -461,6 +461,193 @@ So it is written here, where it outlives the work, and #4, #26 and #29 each own
 the part of it that has a definition of done. The sentence that used to assign it
 to #4 was struck from #26 on 2026-09-17.
 
+### 2.13 The oracle's own first check un-applies every correction
+
+**2026-09-17, from a `docs/32` pass against the published p0003 and p0009.**
+
+`docs/32` § 0 opens with `python -m ur.resolve <work> --verify-revert`, and § 9
+puts the same command at step 4, between `tools.pipeline --from correct` and
+`tools.build_site`. It prints **YES, byte for byte** and it is telling the truth.
+It also **leaves the reverted document on disk**:
+
+```
+python -m ur.resolve work/p0003                  ->  corrections_applied = 17
+python -m ur.resolve work/p0003 --verify-revert  ->  corrections_applied = 0
+python -m ur.resolve work/p0003                  ->  corrections_applied = 17
+```
+
+The revert is the whole method — apply nothing, compare against the uncorrected
+output — and the comparison is sound. What is missing is putting the corrected
+document back afterwards. So a verification command that promises to read
+silently writes, and what it writes is the uncorrected page.
+
+**Run the script in its own order and it publishes the uncorrected page.** Step 3
+applies the corrections, step 4 removes them, step 5 builds `docs/` from what
+step 4 left. Nothing between them says so. This is precisely "the silent one"
+§ 9 warns about — *"any run of `ur.possess` ... rewrites `possession.json`
+without corrections and nothing in the artefact shows it"* — except the stray
+command is not `ur.possess` and not a parallel session. It is step 4 of the
+script, and it is also the first thing § 0 tells a runner to type.
+
+**`corrections reached the page` caught it, for the third time.** That is the
+gate's whole job and it did it: after the § 0 oracle ran, p0003 reported
+`0 applied, 15 active in the log` against a published page carrying all fifteen.
+Re-running plain `ur.resolve work/p0003` restored `15 applied, 15 active` and the
+row went green, with nothing else in the suite moving — 158 of 173 before, 159 of
+173 after, one row's difference.
+
+**The near-miss is worth recording, because § 10 is what stopped it.** That FAIL
+was first written up as a pre-existing dirty work tree — a stray `ur.possess` by
+an earlier session. It was not. It was this pass's own § 0 oracle, four commands
+earlier. The question § 10 asks is whether the thing being measured is the
+tracker's output or somebody's correction held up against it; the useful
+generalisation is that the runner is also somebody, and a QA pass has to suspect
+its own footprints before it suspects the tree it walked into.
+
+**What would close it.** `--verify-revert` should either restore the corrected
+document before exiting or refuse to touch `possession.json` at all and do the
+comparison in memory. Until one of those, § 0 and § 9 step 4 need `ur.resolve
+<work>` run immediately after them, and `docs/32` should say so.
+
+**Fixed 2026-09-17, and one level below where the finding puts it.**
+`--verify-revert` never wrote anything. `ur/possess.py::build` did: it ended on
+`GV.write(work, doc)`, so *building* a document put it on disk, and
+`ur/resolve.py::load_uncorrected` calls `build` precisely to get the uncorrected
+one to compare against.
+
+So restoring the corrected document afterwards — the first option above — would
+have left the side effect in place for every other caller and made
+`--verify-revert` responsible for cleaning up after a function it only wanted to
+read from. `build` now returns and `ur.possess.main` writes, which is where the
+one-writer rule `ur/grading.py::write` describes was always meant to sit.
+
+Two tests hold it: `load_uncorrected` and `--verify-revert` must each leave
+`possession.json` byte-identical. They run against the real p0003 rather than a
+fixture, because the failure is about a path on disk and a temp directory would
+not have caught it.
+
+This also closes the two earlier sightings. Both were recorded as unreproducible
+and blamed on a parallel session; both had `--verify-revert` run immediately
+before, which nobody thought to look at because it is a verification command.
+
+### 2.14 The calibration refusal is skipped exactly where the camera model is worst
+
+**2026-09-17, same pass, and it is a § 5 red on p0003 and a green on p0009 for a
+reason that has nothing to do with either possession.**
+
+`docs/32` § 5 asks that at a frame under `PLACE_MIN_CALIB` the repair panel says
+so, names the number, and offers a button to the nearest frame that clears 0.5.
+At the fixture's dead frame for p0003 — **f0, calibration 0.00** — it does none of
+the three. There is no warning, no number and no jump button; the panel still
+reads *"Click their feet on the video — that is the picture that knows where they
+are."* The click is then swallowed: nothing stages, and the console is clean. The
+person gets neither the refusal nor the anchor, and no account of either.
+
+At p0009's dead frame — **f67, also calibration 0.00** — the refusal renders
+correctly, names `0.00`, and offers *"Go to 4.40 s, the nearest frame it does"*.
+The two frames carry the same confidence. The difference is the homography.
+
+```js
+function projector(i){ ... const M = inv3(pf.H); if (M) { o = {...} } ... }
+function calibHere(){ const P=projector(S.f); return P && P.conf!==undefined ? P.conf : 1; }
+```
+
+When `inv3(pf.H)` fails, `projector` returns `null` and `calibHere` falls back to
+**1** — the value meaning *fully calibrated* — so `canPlaceOnVideo()` is true and
+the refusal branch never renders. The fallback is backwards: a frame with no
+usable projection is the one case where the page is least entitled to vouch for
+anything.
+
+**It is not confined to p0003, and the fixture only made it look that way.**
+`det(H) == 0` on **41 of p0003's 555 frames**, f0–f11 among them, and on **10 of
+p0009's 555**, f440–f449. Driving p0009 at f440 and f445 reproduces the p0003
+behaviour exactly — no refusal, no number, no jump, click swallowed — and f67
+keeps working. `tools/qa_fixture.py` picks the dead frame by
+`confidence < 0.01`, which finds a singular frame first on p0003 and an
+invertible one first on p0009. The scenario's pass on p0009 was luck of the
+scan order.
+
+**Severity, honestly.** This is *not* the thing § 5 calls the worst this mode can
+do. No anchor is produced at 0.00 — the placement path needs the projector it
+does not have, so it bails a few lines later. What fails is every positive
+requirement of § 5, plus a silent swallow: the panel invites a click, the click
+does nothing, and nothing explains it. A person reads that as the page being
+broken, or worse, keeps clicking.
+
+**What would close it.** `calibHere()` should return `0`, not `1`, when
+`projector()` gives back nothing — a frame with no invertible homography is
+below any floor, not above every one. `nearestPlaceable()` already skips those
+frames correctly, so the jump button has somewhere to send people the moment the
+refusal renders.
+
+**Fixed 2026-09-17, exactly as written above**, plus the wording. The two dead
+frames are not the same thing and the refusal now says which one it is: a low
+confidence still has a homography and reads *"calibration is 0.01, under 0.5"*; a
+collapsed one does not invert at all and reads *"no usable projection at all —
+its homography does not invert"*. Both offer the jump, both stage nothing,
+verified on p0003 f0 and f42.
+
+**And the fixture now names both**, because § 5 passed for a year on whichever
+kind `qa_fixture` happened to surface first. `dead_frame_collapsed` and
+`dead_frame_low_confidence` are separate entries, so a run that only exercises
+one is visibly a run that only exercised one. That is the general shape of this
+finding: the case that slipped through did so because it looked like the absence
+of a problem rather than the worst instance of one.
+
+### 2.15 The QA script's first instruction cannot be followed from a clone
+
+**2026-09-17, and this one is about `docs/32` itself.**
+
+`docs/32` opens with *"Run this first, and use what it prints"* and
+`tools/qa_fixture.py`, whose own docstring says it *"reads the **published**
+page, not `work/`, because that is what a QA pass drives"*. It reads both. The
+clean frame is chosen by asking whether each matched detection lands inside the
+lines, and that test needs `work/<pid>/detections.json`:
+
+```
+FileNotFoundError: [Errno 2] No such file or directory: 'work/p0003/detections.json'
+```
+
+`.gitignore` excludes it deliberately and for a good reason — it is footage — and
+it cannot be regenerated without the clip and the M2 weights. So a fresh clone
+gets no further than the first command, and the runner has no fixture at all: not
+the clean frame, and not the busy frame, collision or dead frame either, because
+the loader fails before any of them are computed.
+
+The published page is not missing the information by accident. `possession.js`
+carries `unused_detections`, but only the leftovers and without the indices
+`players[i].det[f]` refers to, so the matched detection's own field position
+cannot be recovered from the page. Counting `est` instead is the substitution
+`#29` already warns about — f430 read fourteen of fourteen with four of them on
+the sideline crowd — so the substitution is worse than the gap.
+
+Two ways out, and they are not equivalent. Publishing each matched detection's
+field position into `possession.js` makes the fixture true to its docstring and
+the script runnable by anyone with the URL. Failing that, `docs/32` should say in
+the first section that the fixture needs a work tree, and `qa_fixture` should
+degrade to the three frames it can derive from the page alone rather than dying
+on the import of the one it cannot.
+
+**Fixed 2026-09-17 by taking the substitution this finding rules out, because the
+measurement does not support ruling it out.** The objection is that counting the
+slot's `est` instead of its detection's field position repeats `#29`, where f430
+read fourteen of fourteen with four of them on the sideline crowd. That is a fair
+thing to suspect and it turns out not to be the same substitution.
+
+`#29`'s error was counting *matched* slots without asking where the match was, so
+a slot on a spectator counted as a slot on a player. Using `est` still asks where
+it is; it asks of the filtered estimate rather than the raw detection. On f430,
+the frame `#29` came from, the two agree exactly — **10 of 14 in-field either
+way**, and the same four slots flagged: `O1`, `O3`, `D1`, `D4`. Across p0003's
+4053 matched slot-frames they disagree on **5**, 0.12 %, all of them within
+inches of a line.
+
+A fifth of a percent of boundary cases is not worth a dependency that stops the
+tool running at all, and the alternative — publishing every matched detection's
+field position — puts a second copy of a coordinate on every page to answer a
+question the first copy already answers. `qa_fixture` now reads `docs/` and
+nothing else, which is what its docstring always claimed.
+
 ## 3. The gates, and which of them fail on purpose
 
 `python -m tools.gates` prints **204 rows, and only 170 of them can fail.** It
