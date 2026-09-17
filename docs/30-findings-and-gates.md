@@ -336,6 +336,56 @@ would.
 
 ---
 
+### 2.10 A repair pass raises the score it was excluded from
+
+AD-13 keeps a hand-placed position out of every grading sample, and that closes
+the direct route: a person's own work cannot be counted as the tracker's. It does
+not close the indirect one. **A person repairs the frames the tracker got wrong**,
+which is what repair is for, so `blind()` removes exactly the hard cases and the
+sample that survives is the easier part of the possession. Recall over it goes up,
+computed honestly, meaning less.
+
+Nothing is wrong with the arithmetic, which is what makes this worth writing down.
+§ 2.7 was a formatter turning a null into `0 %`; here the number is real, the
+fields behind it are real, and it is still not the thing a reader takes it for.
+
+The answer is a name and a denominator. A figure measured over a possession
+carrying any hand-placed frame is **bounded** - an upper bound, not a result - and
+`CONTEXT.md` now carries that beside declared, measured and observed. And every
+percentage prints its sample size, whether bounded or not, because `83 %` and
+`33 of 40` are different claims and only the second can be weighed.
+
+Bounded-ness follows `measured_on` rather than the page. Five of the six published
+pages quote `p0001`, so a repair pass on p0001 makes p0003's printed figure a
+ceiling while nothing in p0003 changes at all. `tools/make_view.py` resolves it at
+build time across `work/`, the same way and for the same reason it resolves the
+attacking direction (AD-9: the page has no siblings to read).
+
+**Two gates, and the second half of each was the part that did the work.**
+
+`every percentage names its sample` began as one ablation, the § 2.7 move a field
+over: null every denominator and fail on any percentage that survives. It passed a
+deliberately broken page that required the sample size and never printed it,
+because removal proves a figure *depends* on its denominator and the row claims
+the figure *names* it. So the denominator is now also **substituted** for 4242, a
+number nothing else on the page could produce, and has to appear in what a reader
+sees. The wording is free - `of 4242`, `4242 labelled players`, `n=4242` all pass.
+
+`a bounded number says it is one` forces the flag both ways, because no possession
+is hand-placed yet and the claim has to be constructed (AD-12). The negative
+scenario is the one that matters: a page hard-coding the phrase satisfies the
+positive case forever. A third run checks the probe reaches a printed figure at
+all, since five of six pages print none of their own and agreement on an empty
+sentence is not agreement.
+
+All four deliberate breakages fire: denominator dropped from the sentence,
+denominator no longer required, bounded prefix disabled, phrase hard-coded.
+
+Today every possession in `work/` is 0.0% hand-placed, so no published page has
+printed a bounded number yet. The gates exist ahead of the defect on purpose. #8
+lands the first repair pass, and the day it does these rows are what stop the
+tracker quietly scoring better for it.
+
 ## 3. The gates, and which of them fail on purpose
 
 `python -m tools.gates` prints **162 rows, and only 138 of them can fail.** It

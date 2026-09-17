@@ -58,6 +58,21 @@ def is_touched(obj: dict | None, f: int) -> bool:
     return int(f) in touched(obj)
 
 
+def count(doc: dict) -> int:
+    """How many (slot, frame) cells in `doc` a human's hand created or moved.
+
+    The number a **bounded** figure has to print beside it (AD-13). Zero means
+    every grader saw the whole possession, so its accuracy is a result rather
+    than a ceiling; anything else means `blind()` took frames out of the sample,
+    and the frames it took out are the ones the tracker got wrong.
+
+    Counted over the players and the disc together, because both are positions a
+    repair pass places and both are scored.
+    """
+    n = sum(len(touched(p)) for p in doc.get("players") or ())
+    return n + len(touched(doc.get("disc_meta")))
+
+
 def as_flags(obj: dict | None, n: int) -> list[bool]:
     """The same fact as a per-frame array, for code that replays in order."""
     marked = touched(obj)

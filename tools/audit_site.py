@@ -231,6 +231,14 @@ def audit(pid: str) -> list[dict]:
             "the site carries a page to read",
             "possession.js is published and index.html is not - the build is "
             "half-done, run tools.build_site")
+        add("every percentage names its sample", False, f"no {idx}",
+            "the site carries a page to read",
+            "possession.js is published and index.html is not - the build is "
+            "half-done, run tools.build_site")
+        add("a bounded number says it is one", False, f"no {idx}",
+            "the site carries a page to read",
+            "possession.js is published and index.html is not - the build is "
+            "half-done, run tools.build_site")
     else:
         try:
             html = idx.read_text(encoding="utf-8")
@@ -250,6 +258,49 @@ def audit(pid: str) -> list[dict]:
             # and also says nothing has not told the reader its accuracy is
             # unknown - it has just left a gap where a figure would go, and a
             # gap reads as "fine". #11 asks for both halves.
+            # ---- C3. AD-13: the sample size, and the ceiling ------------
+            # Same ablation as `no unmeasured percentage printed`, one field
+            # over. There the measurement was taken away and a number survived;
+            # here the DENOMINATOR is taken away, and a number that survives is
+            # one the page printed with no sample size beside it. `83 %` and
+            # `33 of 40` are not the same claim and only the second can be
+            # weighed.
+            # Two halves, and the second was added because the first alone
+            # passed a page that required a denominator and never printed one.
+            # Removing the sample size proves the figure DEPENDS on it; swapping
+            # it for a number nothing else could produce proves the figure NAMES
+            # it. The row claims the second, so it has to test the second.
+            orphan = GS.orphaned(html, doc)
+            hidden = GS.hides_sample(html, doc)
+            add("every percentage names its sample", not orphan and not hidden,
+                (f"prints {', '.join(v + ' %' for v in orphan[:4])} with every "
+                 "denominator removed" if orphan else
+                 f"{', '.join(hidden)} print a rate and not its sample size"
+                 if hidden else
+                 "prints " + ", ".join(v + " %" for v in shown) + " with sample "
+                 "sizes" if shown else "prints no percentage"),
+                "no percentage survives its denominator being removed, and each "
+                "one shows the denominator it has",
+                "a rate with no sample size behind it cannot be told from one "
+                "measured on ten times the data (AD-13)")
+            # Two scenarios, because this claim has to be CONSTRUCTED: no
+            # possession is hand-placed yet, so the flag is forced both ways.
+            # The negative is the half that matters - a page hard-coding the
+            # phrase passes the positive case forever (AD-12).
+            on, off = (GS.says_bounded(html, doc, True),
+                       GS.says_bounded(html, doc, False))
+            # Five of six pages carry no measurement of their own, so the probe
+            # lends them one. Without this third run the two above could agree
+            # on an empty sentence, and that agreement would be structural
+            # rather than tested - AD-11's whole complaint.
+            reached = GS.prints_probe(html, doc)
+            add("a bounded number says it is one", reached and on and not off,
+                (f"bounded: {'says' if on else 'silent'}; "
+                 f"unbounded: {'says' if off else 'silent'}" if reached
+                 else "the probed measurement never reaches a printed figure"),
+                f"'{GS.BOUNDED}' when the flag is set, and never when it is not",
+                "a repair pass removes exactly the frames the tracker got "
+                "wrong, so the figure left is a ceiling (AD-13)")
             if not GS.measured(doc):
                 add("an unmeasured page says so", GS.UNMEASURED in said.lower(),
                     f"{'says' if GS.UNMEASURED in said.lower() else 'never says'} "
@@ -262,6 +313,11 @@ def audit(pid: str) -> list[dict]:
         # here takes down all 114 rows and reports nothing about any of them,
         # which is the failure mode this whole file was written against.
         except Exception as e:
+            for _n in ("every percentage names its sample",
+                       "a bounded number says it is one"):
+                add(_n, False, f"{type(e).__name__}: {e}".strip()[:160],
+                    "the sentence can be rendered and read",
+                    "a gate that cannot run has not passed (AD-11)")
             add("no unmeasured percentage printed", False,
                 f"{type(e).__name__}: {e}".strip()[:160],
                 "the sentence can be rendered and read",

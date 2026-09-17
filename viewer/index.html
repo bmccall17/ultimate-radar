@@ -2957,12 +2957,32 @@ function provenance(){
     // a page must not state a measurement that was never taken. An absent field
     // now prints no figure at all, and the sentence says the accuracy is
     // unmeasured rather than leaving a gap that reads as fine. #11, docs/30 2.7
-    const pct = v => (typeof v === "number" && isFinite(v))
-      ? `${Math.round(v*100)} %` : null;
-    const r = pct(g.per_player_recall), s = pct(g.sigma_containment);
+    const num = v => (typeof v === "number" && isFinite(v)) ? v : null;
+    // AD-13: a percentage with no sample size behind it is not something a
+    // reader can weigh - 33 of 40 and 330 of 400 print identically - so a figure
+    // needs its value AND its denominator, and prints neither without the other.
+    // That is also what makes the gate checkable: take the denominators away and
+    // no percentage may survive.
+    const pct = (v, n) => (num(v)===null || num(n)===null)
+      ? null : `${Math.round(v*100)} % of ${n}`;
+    const r = pct(g.per_player_recall, g.per_player_recall_n);
+    const s = pct(g.sigma_containment, g.sigma_containment_n);
     const parts = [];
-    if(r) parts.push(`recall ${r} of player-frames`);
-    if(s) parts.push(`sigma containment ${s}`);
+    if(r) parts.push(`recall ${r} labelled players`);
+    if(s) parts.push(`sigma containment ${s} samples`);
+    // AD-13. A hand-placed position sits outside every grading sample, and the
+    // frames a person repairs are the ones the tracker got WRONG - so what
+    // survives blinding is the easier part of the possession, and the figure
+    // computed over it rises honestly while meaning less. It is a fact about the
+    // possession named in `measured_on`, so a repair pass on p0001 makes this
+    // page's quoted number a ceiling while nothing on this page changes.
+    const bound = g.bounded
+      ? `<b>These are an upper bound, not a result.</b> ` +
+        `${g.bounded_frames} hand-placed frame${g.bounded_frames===1?"":"s"} on ` +
+        `<code>${g.measured_on}</code> ${g.bounded_frames===1?"is":"are"} excluded ` +
+        `from the grading sample (AD-13), and those are the frames the tracker got ` +
+        `wrong, so what is left is the easier part of it. `
+      : "";
     // No re-acquisition on any possession has been labelled by a human, so there
     // is no honest switch-detection number to print. Saying nothing is wrong too:
     // the reader would assume the queue is exhaustive. docs/25 R4. It is a count
@@ -2974,9 +2994,9 @@ function provenance(){
       : ` Identity switches caught: ${g.identity_switches_caught}.`;
     const here = !g.measured_on || g.measured_on===id;
     if(here && parts.length)
-      return `Tracker ${parts.join(", ")} (docs/17).${sw} `;
+      return `${bound}Tracker ${parts.join(", ")} (docs/17).${sw} `;
     if(parts.length)
-      return `<b>Accuracy on this possession is unmeasured.</b> The tracker's ` +
+      return `<b>Accuracy on this possession is unmeasured.</b> ${bound}The tracker's ` +
              `${parts.join(" and ")} were measured on <code>${g.measured_on}</code> ` +
              `(docs/17), against hand labels that do not exist for this one. Treat ` +
              `them as a prior, not a result.${sw} `;

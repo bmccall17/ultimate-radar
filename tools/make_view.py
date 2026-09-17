@@ -84,6 +84,45 @@ def _attacking_direction(work: Path, doc: dict) -> None:
         print(f"[make_view] ! {c['detail']}")
 
 
+def _bounded(work: Path, doc: dict) -> None:
+    """Say whether the accuracy numbers on this page are an upper bound. AD-13.
+
+    A hand-placed position is excluded from every grading sample, and the frames
+    a person repairs are the ones the tracker got **wrong** - so what survives
+    blinding is the easier part of the possession and the number computed over it
+    rises honestly while meaning less. AD-13 calls that a **bounded** number and
+    requires the page to say so.
+
+    It is a fact about the possession named in `measured_on`, not about this one.
+    Five of the six published pages quote `p0001`, so a repair pass on p0001
+    makes p0003's printed figure a ceiling while nothing in p0003 changes at all.
+    That is the same shape as the attacking direction above and is answered the
+    same way: at build time, across `work/`, baked into the page (AD-9).
+
+    A `measured_on` naming a possession that is not cut leaves the flag null, and
+    the viewer treats null as "nobody has looked" rather than as "no".
+    """
+    from ur import human as HU
+
+    g = doc.get("gates") or {}
+    on = g.get("measured_on")
+    if not on:
+        return
+    src = work.parent / on / "possession.json"
+    if not src.exists():
+        print(f"[make_view] - gates were measured on {on}, which is not in "
+              "work/; the page cannot say whether they are bounded")
+        return
+    n = HU.count(json.loads(src.read_text(encoding="utf-8")))
+    g["bounded"], g["bounded_frames"] = n > 0, n
+    doc["gates"] = g
+    if n:
+        print(f"[make_view] + gates are BOUNDED: {n} hand-placed frame(s) on "
+              f"{on} are outside the grading sample")
+    else:
+        print(f"[make_view] + gates are not bounded: {on} is 0.0% hand-placed")
+
+
 def build(work: Path, out: Path, video: str | None = None) -> Path:
     doc = json.loads((work / "possession.json").read_text(encoding="utf-8"))
     clip = work / "clip.mp4"
@@ -121,6 +160,7 @@ def build(work: Path, out: Path, video: str | None = None) -> Path:
             doc["events_note"] = ev["note"]
 
     _attacking_direction(work, doc)
+    _bounded(work, doc)
 
     issues = _maybe(work, "issues.json")
     if issues:

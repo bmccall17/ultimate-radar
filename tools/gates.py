@@ -91,6 +91,10 @@ ISSUE = {
     # else is the tracker losing the player, which is #4. The disc stage only
     # decides whether to publish the mistake.
     "no disc drawn on a guessed position": 4,
+    # AD-13: a figure with no sample size behind it, and a figure over a
+    # repaired possession that does not admit it is a ceiling.
+    "every percentage names its sample": 27,
+    "a bounded number says it is one": 27,
     # A measurement today, so it never fails and never shows a number here -
     # the mapping is so the ticket is findable the day it gets a threshold.
     "...longest blind stretch": 8,

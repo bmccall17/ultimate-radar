@@ -183,6 +183,23 @@ def build(work: Path, *, verbose: bool = True) -> dict:
             "sigma_containment": (0.829 if clip["possession_id"] == "p0001"
                                   else None),
             "measured_here": clip["possession_id"] == "p0001",
+            # The denominators, lifted out of the prose in `note` below and into
+            # fields the page can print. AD-13 requires a bounded number to carry
+            # its sample size, and a reader cannot tell 33 of 40 from 330 of 400
+            # when neither is on the page. They travel with the value and are
+            # null wherever it is, so no page carries another's sample size.
+            "per_player_recall_n": (234 if clip["possession_id"] == "p0001"
+                                    else None),
+            "sigma_containment_n": (40 if clip["possession_id"] == "p0001"
+                                    else None),
+            # Whether the possession these were MEASURED ON carries any
+            # hand-placed position, which makes them an upper bound rather than
+            # a result (AD-13). It is a fact about `measured_on` and not about
+            # this possession, so it cannot be answered here - `tools/make_view`
+            # fills it at build time, the same way it resolves the attacking
+            # direction. Null means nobody has looked.
+            "bounded": None,
+            "bounded_frames": None,
             "note": "Per-player recall is 0.9744 against a threshold left "
                     "deliberately unset, because the statistic is chaotically "
                     "sensitive at this sample size - it moves non-monotonically "
