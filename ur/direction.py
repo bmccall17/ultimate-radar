@@ -1,5 +1,24 @@
 """Which end a team attacks, held once per (quarter, team). AD-10.
 
+**AD-10 IS WITHDRAWN (2026-09-16), AND THIS MODULE STILL IMPLEMENTS IT.** Ends
+change every point: after a goal the scoring team pulls from the end it just
+scored in, so it now defends the end it was attacking. A quarter-wide direction
+is therefore wrong about the sport, and the same-sign drift in `docs/30`
+section 2.0 that appeared to contradict the old per-possession model was never a
+contradiction at all - two possessions in consecutive points drift the same way,
+legitimately. **So the finding this module was built on measured nothing.**
+
+What survives: the storage shape, and the three provenance words. An observation
+is written where it was made and the fact is resolved at read time; `confirmed`,
+`derived` and `declared` mean what they say below. What does not survive is the
+key. Issue #5 re-keys this to `(point, team)`, seeded from goal-line crossings
+in the review sitting (#19), with every further score a *check* rather than a
+new input.
+
+Until that lands: do not add confirmations through this module, and do not read
+a passing `Qn: opposite teams disagree` as evidence that a direction is known.
+Nothing is confirmed today, which is the only reason those checks are green.
+
     python -m ur.direction                        # what is known, across work/
     python -m ur.direction confirm work/p0003 --direction=+x
     python -m ur.direction confirm work/p0009 --direction=-x --team chill

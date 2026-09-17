@@ -121,25 +121,32 @@ ultimate field frame.
 
 **Confirmed / derived / declared** — where a direction came from, and a separate
 vocabulary from the per-frame **evidence state** above, because it is about a
-statement rather than about a position.
+statement rather than about a position. A human is the only source: nothing in
+the pipeline measures which end a team attacks, and the drift of the offence,
+which was once read as measuring it, does not.
 
-- **Confirmed** — a human watched that quarter and said which end. The only
-  source there is: `docs/30` § 2.0 measured that the drift of the offence does
-  not answer this. Written as an **observation** into the possession where it was
-  made, `events.json:observed`.
-- **Derived** — the other team was confirmed in that quarter, so this is the
-  other end. As true as the confirmation it comes from, and **never written down
-  as one**: a derivation recorded as evidence becomes its own constraint, and it
-  would also destroy the check that two confirmations in one quarter must
-  disagree about the end.
+- **Confirmed** — a human watched and said which end. Written as an
+  **observation** into the possession where it was made, `events.json:observed`.
+- **Derived** — worked out from a confirmation made elsewhere, rather than
+  watched. As true as the confirmation it comes from, and **never written down as
+  one**: a derivation recorded as evidence becomes its own constraint, and it
+  would also destroy the only check there is, which is a second confirmation
+  disagreeing with the first.
 - **Declared** — `clip.json:attacking_direction`, typed at cut time. In the
   general sense above: written down and never checked. It is not a source of
   direction, it is a thing to check against one.
 
-The *fact* is never stored, only the observations. `ur/direction.py` resolves
-`(quarter, team) → direction` from all of them at read time, so nothing is
-written twice and a contradiction stays a contradiction instead of becoming a
-value somebody had to pick between.
+The *fact* is never stored, only the observations; the resolver answers from all
+of them at read time, so nothing is written twice and a contradiction stays a
+contradiction instead of becoming a value somebody had to pick between.
+
+> **The three words above survive the withdrawal; what they are keyed to does
+> not.** `ur/direction.py` still resolves `(quarter, team) → direction` and its
+> docstring still cites AD-10, because the module has not been re-keyed yet — so
+> the code and the withdrawn paragraph above agree with each other and both are
+> wrong about the sport. #5 re-keys it to `(point, team)`. Until it lands, read
+> "confirmed for a quarter" as "confirmed for the wrong unit", and do not add
+> confirmations on the strength of it.
 
 **Ultimate frame** — field coordinates in yards, `x` 0–120 along the length with
 goal lines at 20 and 100, `y` 0–53⅓ across. Shared by every possession: the same

@@ -266,6 +266,14 @@ def check_directions(works: list[Path]) -> dict:
     """
     from ur import direction as DIR
 
+    # NOTE, 2026-09-16: AD-10 is withdrawn and these checks outlive it for now.
+    # Ends change every point, not every quarter, so a quarter-wide direction is
+    # wrong about the sport, and the same-sign drift that appeared to contradict
+    # the old per-possession model was never a contradiction - two possessions in
+    # consecutive points drift the same way, legitimately. These rows pass today
+    # only because nothing is confirmed and an empty quarter claims nothing, so a
+    # green line here is NOT evidence that any direction is known. #5 replaces
+    # them with checks keyed on a point, which can actually fail.
     out: dict = {"possession": "attacking direction (across possessions)",
                  "checks": []}
 
@@ -298,7 +306,7 @@ def check_directions(works: list[Path]) -> dict:
             f"Q{q}: opposite teams disagree",
             not bad,
             "; ".join(c["detail"] for c in bad) if bad else got,
-            "opposite ends, or nothing claimed",
+            "opposite ends (AD-10 WITHDRAWN - #5 re-keys to a point)",
             "two people watched the same quarter and disagree - watch it "
             "again and clear the wrong one with `python -m ur.direction "
             "clear <work>`"))
