@@ -17,6 +17,8 @@ more:
   `slot: "disc"` is the disc; AD-2's fourteen are players and cannot collide
   with it, so the disc needs no operation and no file of its own.
 - **swap** — exchange two slots' trajectories from a frame onward.
+- **detach** — a human says this slot is on nobody over a span; it becomes
+  `unknown`. #26.
 - **confirm** — affirm an estimate is right; collapses sigma.
 
 And one that is not an operation so much as a property of the log:
@@ -277,6 +279,63 @@ def apply_disc_anchor(doc: dict, f: int, xy, z=None) -> dict:
     return {"lo": lo, "hi": hi, "reshaped": reshaped}
 
 
+# The sigma an `unknown` sample carries: the tracker's own, so a detached frame
+# is shaped exactly like one the tracker never had.
+UNKNOWN_SIGMA = 16.0
+
+
+def apply_detach(player: dict, from_f: int, to_f: int | None) -> dict:
+    """A human says this slot is on nobody, from `from_f` until it re-acquires.
+
+    **The commonest thing a person has to say, and until #26 there was no way to
+    say it.** A slot that loses its player keeps dead reckoning, and on 11-33 %
+    of frames of every published possession one of them drifts within 1.5 yd of
+    a slot that has a real detection - two labels on one person, which is what
+    makes a roster pass unreadable. Neither existing operation fits. `swap`
+    claims a real player is under the wrong name; `anchor` needs somewhere to
+    put them, and the reason the slot is lost is usually that they left frame.
+
+    The span becomes `unknown`, which is what the rest of the pipeline already
+    means by "this slot states no position": no marker (docs/25 R5), no
+    contribution to coverage, nothing for the disc to rest on. AD-2 is intact -
+    the slot is neither created nor destroyed, it stops claiming.
+
+    **It refuses to cross an observation.** A frame the camera actually saw
+    somebody on is evidence, and removing it is not a correction but a deletion;
+    AD-6 keeps the tracks for exactly that reason. If a person believes an
+    `observed` frame is on the wrong person, that is a `swap`, and the refusal
+    says so rather than quietly dropping the frame.
+    """
+    st, est = player["state"], player["est"]
+    n = len(st)
+    # An open-ended detach stops where the slot re-acquires, not at the end of
+    # the possession. "This one is on nobody" is a claim about the stretch the
+    # tracker is guessing through, and it ends the moment the camera sees
+    # somebody again - the same boundary the viewer's relabel already uses, so a
+    # person says *from here* and does not have to go and find the other end.
+    if to_f is None:
+        end = next((k - 1 for k in range(from_f, n) if st[k] in ANCHORED), n - 1)
+    else:
+        end = int(to_f)
+    kept = [k for k in range(from_f, end + 1) if st[k] in ANCHORED]
+    if kept:
+        raise ValueError(
+            f"cannot detach {player['id']} over frames {from_f}-{end}: "
+            f"{len(kept)} of them are {st[kept[0]]} (first at {kept[0]}). The "
+            "camera saw somebody there and AD-6 keeps what it saw. If that "
+            "somebody is under the wrong label, swap it.")
+    mark = _flags(player, n)
+    for k in range(from_f, end + 1):
+        est[k] = None
+        st[k] = "unknown"
+        player["sigma"][k] = UNKNOWN_SIGMA
+        # As human-sourced as a placed frame. A person removing the frames the
+        # tracker got wrong would otherwise raise its recall, which is #8's trap
+        # running backwards.
+        mark[k] = True
+    return {"from": from_f, "to": end, "cleared": end - from_f + 1}
+
+
 def apply_confirm(player: dict, f: int) -> dict:
     before = player["state"][f]
     if player["est"][f] is None:
@@ -301,6 +360,9 @@ def resolve(doc: dict, log: dict, *, verbose: bool = True) -> dict:
             r = apply_anchor(players[c["slot"]], int(c["f"]), c["xy"])
         elif op == "swap":
             r = apply_swap(players, c["slots"][0], c["slots"][1], int(c["from_f"]))
+        elif op == "detach":
+            r = apply_detach(players[c["slot"]], int(c["from_f"]),
+                             c.get("to_f"))
         elif op == "confirm":
             r = apply_confirm(players[c["slot"]], int(c["f"]))
         else:

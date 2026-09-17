@@ -60,10 +60,21 @@ closes a hole in the display; it does not grade the solver, and it never renders
 `confirmed`.
 
 **Correction** — a human statement about the *tracking*, written to
-`corrections.json` as an append-only log (AD-6). Four operations: **anchor**
+`corrections.json` as an append-only log (AD-6). Five operations: **anchor**
 (place a slot *or the disc* at a position), **swap** (exchange two slots'
-trajectories), **confirm** (affirm an estimate), **revert** (neutralise an
-earlier entry).
+trajectories), **detach** (this slot is on nobody over a span), **confirm**
+(affirm an estimate), **revert** (neutralise an earlier entry).
+
+**Detach** — the third thing a person can say about a label, after "it is right"
+and "it is somebody else": *it is on nobody*. A slot that has lost its player
+keeps dead reckoning, and on 11–33 % of frames of every published possession one
+drifts within 1.5 yd of a slot that has a real detection — two labels, one body.
+`swap` cannot say that (it claims a real player is mislabelled) and `anchor`
+cannot (there is nowhere to put them). The span becomes `unknown`, which is what
+the rest of the pipeline already means by a slot stating no position, and it
+stops where the slot re-acquires. AD-2 holds: the slot is neither created nor
+destroyed, it stops claiming. It refuses to cross an `observed` frame, because
+removing what the camera saw is a deletion and not a correction.
 
 **Keyframe** — everything one save of repair mode placed: a person pauses the
 clip, puts every marker and the disc right, and saves once. In the log it is a

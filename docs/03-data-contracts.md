@@ -334,7 +334,9 @@ gaps. Two orthogonal fields, and conflating them is the mistake to avoid:
    {"id":"c5","at":"2026-09-16T18:02:00Z","keyframe":"k1","op":"anchor",
     "slot":"O2","f":330,"xy":[64.0,22.0]},
    {"id":"c6","at":"2026-09-16T18:02:00Z","keyframe":"k1","op":"anchor",
-    "slot":"disc","f":330,"xy":[64.4,22.3]}]}
+    "slot":"disc","f":330,"xy":[64.4,22.3]},
+   {"id":"c7","at":"2026-09-17T16:20:00Z","op":"detach","slot":"D6",
+    "from_f":136,"to_f":496}]}
 ```
 
 Order matters; `resolve.py` replays them in sequence. `revert` neutralises an earlier
@@ -354,6 +356,15 @@ the disc needs no operation and no file of its own. It brackets its ramp against
 tags, so treating it as an observation would pin the correction to the estimate it is
 there to fix. Its height is left alone unless stated: a person clicking on the grass is
 saying where the disc is over the field, not how high it is.
+
+**`detach`** says a slot is on nobody. The span becomes `unknown` — no position, no
+marker (docs/25 R5), nothing for the disc to rest on — and `to_f` is optional: without it
+the span ends where the slot re-acquires, so a person says *from here* rather than hunting
+for the other end. It refuses to cross an `observed` or `confirmed` frame, because the
+camera saw somebody there and removing that is a deletion rather than a correction; if the
+somebody is under the wrong label, that is a `swap`. Every frame it clears is marked
+`human`, for the same reason a placed one is: a person removing the frames the tracker got
+wrong would otherwise raise its recall. #26.
 
 A correction is only ever applied by `ur/resolve.py`, and it is applied **in front of**
 `ur/disc.py` in the pipeline. The disc's position is the holder's position, so placing a

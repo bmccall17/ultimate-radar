@@ -150,6 +150,22 @@ It exists for the roster verification pass in `#4`. Deciding whether a slot is o
 person means looking at a person, and the viewer used to make that a fourteen-times
 repeated hunt: select somewhere, read a panel somewhere else, look back at the video.
 
+## Saying a label is wrong
+
+Selected Player carries the two statements about identity, and names the span each one
+covers rather than asking for a frame:
+
+- **`this is actually…`** — a real player under the wrong label. Applies from here to
+  where the slot leaves the camera or re-acquires, written as a swap and a swap back.
+- **`This is nobody, from here`** — the label is on a spectator, the bench, or is a guess
+  that has drifted onto somebody else's player. Clears the span to `unknown`. Disabled on
+  a frame that has a detection, because that is a swap.
+
+When another slot of the same team is within 1.5 yd, the panel says so and says which of
+the two the camera can vouch for — the one with a detection on this frame. That is the
+state a roster pass spends most of its time in: 11–33 % of frames of every published
+possession have a slot that has lost its player dead-reckoning onto one that has not.
+
 ## Repair mode
 
 `Repair`, or `r`. Entering it pauses the clip, because a moving picture cannot be placed

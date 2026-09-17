@@ -646,6 +646,7 @@ function applyLog(){
     if(c.op==="anchor" && c.slot===DISC_ID) discAnchor(c.f, c.xy);
     else if(c.op==="anchor") anchor(BY[c.slot], c.f, c.xy);
     else if(c.op==="swap") swap(BY[c.slots[0]], BY[c.slots[1]], c.from_f);
+    else if(c.op==="detach") detach(BY[c.slot], c.from_f, c.to_f);
     else if(c.op==="confirm") confirm_(BY[c.slot], c.f);
   }
   invalidate();
@@ -699,6 +700,21 @@ function anchor(p,f,xy){
     HUMAN.get(p.id).add(k);
   }
   p.est[f]=[xy[0],xy[1]]; p.state[f]="confirmed"; p.sigma[f]=0.3;
+}
+// #26. The span becomes `unknown` - no position, no marker, nothing for the
+// disc to rest on - and stops where the slot re-acquires. ur/resolve.py has the
+// same arithmetic and the two have to agree, or the page shows one thing and
+// the published rebuild another.
+function detach(p, from_f, to_f){
+  const end = (to_f===undefined || to_f===null)
+    ? (() => { for(let k=from_f;k<NF;k++) if(ANCHORED.has(p.state[k])) return k-1;
+               return NF-1; })()
+    : to_f;
+  const mark = HUMAN.get(p.id);
+  for(let k=from_f;k<=end;k++){
+    if(ANCHORED.has(p.state[k])) continue;   // never delete an observation
+    p.est[k]=null; p.state[k]="unknown"; p.sigma[k]=16.0; mark.add(k);
+  }
 }
 function confirm_(p,f){
   if(!p.est[f]) return;              // nothing to affirm; ur/resolve.py refuses too
@@ -1909,6 +1925,28 @@ function renderNowIssue(){
 // identity question reopens. `apply_swap` runs to the end of the possession, so
 // a *bounded* relabel is a swap here and a swap back there - two entries in the
 // append-only log, no new primitive, and both reversible.
+// Which other slot of the same team is close enough to be the same person, and
+// which of the two the camera can actually vouch for. This is the thing that
+// makes a roster pass confusing: on 11-33 % of frames of every published
+// possession a slot that has lost its player has dead-reckoned within 1.5 yd of
+// one that has a real detection, so two labels sit on one body and nothing on
+// the page says which is which.
+const SAME_PERSON_YD = 1.5;
+function collidesWith(id, f){
+  const p = BY[id], xy = at(p, f);
+  if(!xy) return null;
+  let best = null, bd = SAME_PERSON_YD;
+  for(const q of PL){
+    if(q.id === id || q.team !== p.team) continue;
+    const o = at(q, f); if(!o) continue;
+    const dd = dist(xy, o);
+    if(dd < bd){ bd = dd; best = q; }
+  }
+  if(!best) return null;
+  const mine = MEASURABLE.has(p.state[f]) || p.state[f] === "provisional";
+  const theirs = MEASURABLE.has(best.state[f]) || best.state[f] === "provisional";
+  return {other: best.id, yd: bd, mine, theirs};
+}
 function relabelEnd(id, f){
   const p=BY[id]; if(!p) return null;
   for(let k=f+1;k<NF;k++){
@@ -1923,7 +1961,7 @@ function renderRelabel(){
   // draw() runs every animation frame while playing, and rebuilding this
   // panel's innerHTML on each one would reset the dropdown under the pointer.
   // Only redraw when the thing it describes has actually changed.
-  const key = `${S.sel}|${S.f}`;
+  const key = `${S.sel}|${S.f}|${LOG.length}`;
   if(key === _relabelKey) return;
   _relabelKey = key;
   if(!S.sel){
@@ -1937,16 +1975,46 @@ function renderRelabel(){
                .map(q=>`<option value="${q.id}">${q.id}${q.jersey?" #"+q.jersey:""}</option>`).join("");
   const until = end ? `${(end.f/FPS).toFixed(1)}s, where ${end.why}`
                     : `the end of the possession — it neither leaves the camera nor re-acquires after this`;
+  const clash = collidesWith(S.sel, f);
+  const canDetach = !ANCHORED.has(p.state[f]) && !!at(p, f);
   el.innerHTML = `<div class="issue">
       <b>${p.id}${p.jersey?" #"+p.jersey:""}</b> · ${p.team===OFF?"offence":"defence"}
       · ${p.state[f]} at ${(f/FPS).toFixed(2)}s
+      ${clash ? `<div class="why" style="display:block;margin-top:5px">
+        <b style="color:var(--warn)">${clash.other} is ${clash.yd.toFixed(1)} yd away —
+        close enough to be the same person.</b>
+        ${clash.mine && !clash.theirs
+          ? `This slot has a detection on this frame and ${clash.other} does not, so
+             ${clash.other} is the one that has lost somebody.`
+          : !clash.mine && clash.theirs
+            ? `${clash.other} has a detection on this frame and <b>this slot does
+               not</b> — it is dead reckoning, and this is very likely the one that
+               has lost somebody.`
+            : `Neither has a detection on this frame, so the camera cannot settle it
+               here — step to a frame where one of them does.`}</div>` : ""}
       <div class="why">If the tracker has this person under the wrong label, say who they
         actually are. The change applies from <b>${(f/FPS).toFixed(1)}s</b> to
         <b>${until}</b> — written as a swap and a swap back, so it is two entries in the
         correction log and both can be undone.</div>
       <select id="relabelTo"><option value="">this is actually…</option>${same}</select>
       <button id="relabelGo">Relabel from here</button>
+      <div class="why" style="display:block;margin-top:7px">
+        Or if this label is on <b>nobody</b> — a spectator, the bench, or a guess that
+        has drifted onto somebody else's player — say that instead. It clears the
+        span to <code>unknown</code>, from here to where the slot re-acquires, and
+        those frames then count for nothing (#26).
+      </div>
+      <button id="detachGo"${canDetach?"":" disabled"}>${
+        canDetach ? "This is nobody, from here"
+                  : at(p,f) ? "This frame has a detection — swap it instead"
+                            : "Already states no position here"}</button>
     </div>`;
+  const dg = document.getElementById("detachGo");
+  if(dg && canDetach) dg.onclick = () => {
+    addCorrection({op:"detach", slot:S.sel, from_f:f,
+                   to_f:(end ? end.f - 1 : null)});
+    _relabelKey = null; draw(); renderRelabel();
+  };
   document.getElementById("relabelGo").onclick = () => {
     const to=document.getElementById("relabelTo").value;
     if(!to) return;
@@ -1977,8 +2045,11 @@ function renderCorrections(){
         <b>keyframe</b> ${grp.length} anchor(s) @ f${c.f} ·
         ${grp.map(x=>x.slot).join(", ")}${off?" · reverted":""}</div>`);
     } else {
+      const where = c.op==="detach"
+        ? `f${c.from_f}–${c.to_f??"re-acquire"}`
+        : `f${c.f??c.from_f}`;
       rows.push(`<div class="issue" ${reverted.has(c.id)?'style="opacity:.45"':""}>
-        <b>${c.op}</b> ${c.slot||(c.slots||[]).join(" ↔ ")} @ f${c.f??c.from_f}
+        <b>${c.op}</b> ${c.slot||(c.slots||[]).join(" ↔ ")} @ ${where}
         ${reverted.has(c.id)?" · reverted":""}</div>`);
     }
   }

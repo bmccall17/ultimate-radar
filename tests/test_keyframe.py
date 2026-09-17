@@ -120,6 +120,85 @@ class Keyframes(unittest.TestCase):
         self.assertEqual({c["keyframe"] for c in d["corrections_applied"]}, {"k1"})
 
 
+class Detach(unittest.TestCase):
+    """#26: saying a slot is on nobody.
+
+    The commonest verdict in a roster pass and the one with no operation until
+    now. A slot that has lost its player dead-reckons, and on 11-33 % of frames
+    of every published possession it drifts within 1.5 yd of a slot that has a
+    real detection - two labels, one person. `swap` cannot say it (that claims a
+    real player is mislabelled) and `anchor` cannot (there is nowhere to put
+    them). `detach` says the slot states no position here, which is what
+    `unknown` already means everywhere else in the pipeline.
+    """
+
+    def doc_with_gap(self, n=11):
+        d = doc(n)
+        p = d["players"][0]
+        for k in range(3, 8):
+            p["state"][k] = "predicted"
+        p["state"][0] = p["state"][10] = "observed"
+        return d
+
+    def test_clears_the_span(self):
+        d = R.resolve(self.doc_with_gap(),
+                      log({"id": "c1", "op": "detach", "slot": "O1",
+                           "from_f": 3, "to_f": 7}), verbose=False)
+        p = d["players"][0]
+        self.assertEqual(p["state"][3:8], ["unknown"] * 5)
+        self.assertEqual(p["est"][3:8], [None] * 5)
+
+    def test_leaves_the_rest_alone(self):
+        d = R.resolve(self.doc_with_gap(),
+                      log({"id": "c1", "op": "detach", "slot": "O1",
+                           "from_f": 3, "to_f": 7}), verbose=False)
+        p = d["players"][0]
+        self.assertEqual(p["state"][2], "predicted")
+        self.assertEqual(p["state"][8], "predicted")
+        self.assertIsNotNone(p["est"][8])
+
+    def test_the_cleared_frames_are_human(self):
+        """A frame a person removed is as human-sourced as one they placed.
+
+        Otherwise the tracker's recall improves every time somebody deletes a
+        frame it got wrong, which is #8's trap running backwards.
+        """
+        d = R.resolve(self.doc_with_gap(),
+                      log({"id": "c1", "op": "detach", "slot": "O1",
+                           "from_f": 3, "to_f": 7}), verbose=False)
+        self.assertEqual(H.touched(d["players"][0]), {3, 4, 5, 6, 7})
+
+    def test_an_open_ended_detach_stops_where_the_slot_re_acquires(self):
+        """`from_f` alone runs to the frame before the next observation, so a
+        person says *from here* without going to find the other end."""
+        d = R.resolve(self.doc_with_gap(),
+                      log({"id": "c1", "op": "detach", "slot": "O1",
+                           "from_f": 8}), verbose=False)
+        p = d["players"][0]
+        self.assertEqual(p["state"][8:10], ["unknown", "unknown"])
+        self.assertEqual(p["state"][10], "observed")     # untouched
+        self.assertEqual(p["state"][7], "predicted")     # untouched
+
+    def test_a_reverted_detach_puts_it_back(self):
+        d = R.resolve(self.doc_with_gap(),
+                      log({"id": "c1", "op": "detach", "slot": "O1",
+                           "from_f": 3, "to_f": 7},
+                          {"id": "r1", "op": "revert", "target": "c1"}),
+                      verbose=False)
+        p = d["players"][0]
+        self.assertEqual(p["state"][3], "predicted")
+        self.assertEqual(H.touched(p), set())
+
+    def test_refuses_to_delete_an_observation(self):
+        """A detach over a frame the camera actually saw somebody on is not a
+        correction, it is deleting evidence. AD-6 keeps the tracks; this says
+        so out loud rather than quietly dropping them."""
+        with self.assertRaises(ValueError):
+            R.resolve(self.doc_with_gap(),
+                      log({"id": "c1", "op": "detach", "slot": "O1",
+                           "from_f": 0, "to_f": 7}), verbose=False)
+
+
 class DiscAnchor(unittest.TestCase):
     def disc_doc(self, n=11):
         d = doc(n)
