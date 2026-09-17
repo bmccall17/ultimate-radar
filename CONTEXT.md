@@ -49,8 +49,14 @@ unnamed span between two named ones is a hole, not a long flight.
 ## What a human supplies
 
 **Tag** — a human statement about the *game*, written to `events.json`: a throw
-or a catch at a moment, optionally naming who. **Timing-only tag** — the common
-case, naming the moment and nobody; the moment is the half a person can see.
+or a catch at a moment, optionally naming who. **Timing-only tag** — naming the
+moment and nobody; the moment is the half a person can see.
+
+> **Corrected 2026-09-17.** The timing-only tag was described here as "the common
+> case". It is not, and the difference is the whole of #4. Every tag in the corpus
+> names somebody: **32 of 32** across p0001, p0003 and p0009. A name reached by
+> looking at the viewer is the tracker's name, so naming every tag is what turned
+> one identity error into a contaminated ground truth.
 
 **Inferred name** — a tag whose `player` the tagger did not read, reached by
 elimination instead. It carries `player_inferred`. Still a human's statement, and

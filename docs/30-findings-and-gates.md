@@ -422,7 +422,7 @@ tracker has `O2` on a `sol` player at the far sideline, `[67.2, 53.5]`. The pers
 repairing clicked the disc holder near the camera, `[56.0, 0.2]`, and at that
 frame the detector finds eight in-bounds players of whom the nearest to that
 sideline is at `y = 12.3` — **nobody is where they clicked**. So the disc holder
-is a player the detector never found, which is § 2.5 and #4 again: the jersey-#20
+is a player the detector never found, which is § 2.5 and #4 again: the jersey-#28
 player who has no correct slot anywhere in p0003. Anchoring `O2` onto them does
 not correct `O2`; it moves the label from one person to another, and the page
 would look repaired while the data said something new and false. The repair pass

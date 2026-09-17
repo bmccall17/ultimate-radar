@@ -106,7 +106,7 @@ ISSUE = {
     # A measurement, not a gate: an unconfirmed quarter is a queue, not a
     # defect. Mapped so the ticket is findable the day it becomes failable.
     "...quarters confirmed": 5,
-    # The unnamed span is the jersey-#20 player, who has no correct slot
+    # The unnamed span is the jersey-#28 player, who has no correct slot
     # anywhere in p0003 - the same root cause as #4, not a separate problem.
     "disc not lost for long": 4,
     # Likewise: a disc drawn on a slot whose marker has wandered onto somebody

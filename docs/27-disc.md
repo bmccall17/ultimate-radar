@@ -409,7 +409,7 @@ were mine, not the data's:
 - **There are no untagged throws.** The two "chain breaks" are tracking identity
   errors. At 5.67 s O1 catches; by 8.73 s the tracker has lost O1 and put the same
   person under the label O5, so the tagger — clicking the same human both times —
-  produced "O1 caught, O5 threw". At 21.27–26.33 s the player is jersey #20 and is
+  produced "O1 caught, O5 threw". At 21.27–26.33 s the player is jersey #28 and is
   *neither* O1 nor O5; no slot names them correctly at all.
 
 **What that means is the important part: the identity ground truth is not
