@@ -132,6 +132,15 @@ slot draws no marker at all (docs/25 R5), and p0003's O2 at 23.5 s is estimated 
 invisible marker in the wrong place and dragging it across the field while judging the
 right spot from a different panel.
 
+**The video is where the work happens, and the panel says so on the picture itself.** The
+overhead view is built out of the estimate being corrected, so somebody judging a position
+there is reading the answer off the thing that got it wrong — which is the problem this
+mode exists to remove, and it walks straight back in if the only obvious handle is on that
+canvas. So: pick a slot from the chooser in the repair panel, and the video carries a
+banner naming who you are placing and a dashed ring round where the tracker currently
+thinks they are. One click on their feet is one placement. The overhead handles remain,
+for a stretch the calibration cannot carry.
+
 - **Every slot has a handle**, whether or not the tracker knows where it is. A slot with
   no position waits at its last bearing, or on a parking rail if nothing ever saw it, drawn
   hollow and dashed — a handle to grab, not a claim. A position estimated outside the field
@@ -145,11 +154,19 @@ right spot from a different panel.
   inverted for drawing, so the selected slot goes where the click lands and nobody has to
   judge a field position from a different panel.
 - **One save is one keyframe.** Drags stage; the save writes. `Enter` saves.
-- **Field paint is draggable too, and saves somewhere else.** Ten landmarks whose field
-  position is known exactly are drawn through the frame's own homography; dragging one onto
-  the paint states where the camera actually is. It goes to `calibration_truth.json` and
-  never to the correction log — docs/03 says why the split has to be in the storage rather
-  than in anybody's memory.
+- **Field paint is a separate job behind its own toggle, off by default.** Ten landmarks
+  whose field position is known exactly are drawn through the frame's own homography, each
+  carrying its name; dragging one onto the paint states where the camera actually is. It
+  goes to `calibration_truth.json` and never to the correction log — docs/03 says why the
+  split has to be in the storage rather than in anybody's memory. They were on whenever
+  repair mode was, and the first person to use it read two unlabelled crosses sitting in
+  empty grass as places to put a player. On a frame the calibration cannot carry they are
+  *meant* to be nowhere near the paint, which is exactly what makes them unreadable as
+  anything else.
+- **A click on the video is refused under calibration 0.5**, the floor the overhead
+  self-check already uses, and the panel offers the nearest frame that clears it. The
+  projection not standing behind itself is the one way this mode could turn an honest look
+  at the right player into a `confirmed` position in the wrong part of the field.
 
 Every position placed here is human-sourced. The panel says how many frames of the picture
 are hand-placed and that none of them count toward recall, sigma containment or the solver
