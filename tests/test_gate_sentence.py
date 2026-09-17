@@ -31,9 +31,17 @@ VIEWER = pathlib.Path("viewer/index.html")
 
 
 def doc(**gates) -> dict:
-    """The least possession document `gateSentence` needs: gates and a roster."""
+    """The least possession document `gateSentence` needs: gates and a roster.
+
+    The denominators are here because AD-13 made them load-bearing: a figure
+    prints its value AND its sample size or it prints neither, so a fixture
+    carrying only `per_player_recall` renders no percentage at all. They default
+    to the real ones - 234 labelled players, 40 sigma samples - and a test that
+    wants them gone takes them away itself.
+    """
     g = {"document": "docs/17-m4-tracking.md", "measured_on": "p0001",
-         "per_player_recall": None, "sigma_containment": None,
+         "per_player_recall": None, "per_player_recall_n": 234,
+         "sigma_containment": None, "sigma_containment_n": 40,
          "identity_switches_caught": None, **gates}
     return {"gates_measured": True, "gates": g,
             "possession": {"id": "p0003"},
@@ -135,10 +143,16 @@ class Render(unittest.TestCase):
         away is what exposes that, and comparing printed values against expected
         ones never would.
         """
+        # The guard moved with AD-13 and the patch moves with it. Breaking
+        # `num` alone no longer reintroduces the defect - `pct` still compares
+        # `=== null` and catches it - so the breakage goes where the decision
+        # now lives, which is `pct` itself. It reopens both wounds at once: a
+        # null rounded to 0 %, and a figure printed with no sample behind it.
         broken = self.html.replace(
-            'const pct = v => (typeof v === "number" && isFinite(v))\n'
-            '      ? `${Math.round(v*100)} %` : null;',
-            'const pct = v => `${Math.round(v*100)} %`;')
+            'const pct = (v, n) => (num(v)===null || num(n)===null)
+'
+            '      ? null : `${Math.round(v*100)} % of ${n}`;',
+            'const pct = (v, n) => `${Math.round(v*100)} % of ${n}`;')
         self.assertNotEqual(broken, self.html, "the guard has moved; fix the patch")
         self.assertEqual(GS.invented(broken, doc()), ["0", "0"])
 

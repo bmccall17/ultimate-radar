@@ -194,8 +194,9 @@ under "The first ground truth".
 
 **Acted on the same day, and it did not survive contact.** The gate became a
 ranking and was tested on two possessions tagged afterwards and held out:
-**p0009 3 / 7, p0003 1 / 5, together 4 / 12 = 33 %** against about 14 % for a
-guess and a 75 % gate. The 11 yd/s centre generalises (p0009's true throws median
+**p0009 3 / 7, p0003 1 / 7, together 4 / 14 = 29 %** against about 14 % for a
+guess and a 75 % gate. (p0003 was 1 / 5 when this was written; two more of its
+spans became gradeable later — § 3 says which commits and why.) The 11 yd/s centre generalises (p0009's true throws median
 11.79) but the *tightness* did not — p0001's three throws spanned 0.26 yd/s and
 p0009's six spanned 9.7, so a wrong pair can sit closer to 11 than the true one.
 p0001's tight cluster was a coincidence of n = 3. Full account in `docs/27` under
@@ -386,7 +387,7 @@ printed a bounded number yet. The gates exist ahead of the defect on purpose. #8
 lands the first repair pass, and the day it does these rows are what stop the
 tracker quietly scoring better for it.
 
-### 2.10 A correction is not a movement, and the first new gate forgot it
+### 2.11 A correction is not a movement, and the first new gate forgot it
 
 **2026-09-17, and the finding is about the tooling rather than the footage.**
 
@@ -637,12 +638,24 @@ never a publishing one.
 
 | gate | threshold | why that number |
 |---|---|---|
-| span identity accuracy | ≥ 75 % over ≥ 8 graded spans | currently **8 / 16 = 50 %**, and that includes p0001's 4 / 4, which is the training set. **Held out on p0003 + p0009 it is 4 / 12 = 33 %**, against about 14 % for a guess |
-| margin predicts correctness | r ≥ 0.5 | currently **r = −0.16**. Not a confidence, and briefly measured at −0.47, so `docs/27` step 4's plan to ask where the margin is thinnest is withdrawn either way |
+| span identity accuracy | ≥ 75 % over ≥ 8 graded spans | currently **8 / 18 = 44 %** — p0001 4 / 4, p0003 1 / 7, p0009 3 / 7. p0001 is the training set, so the number to read is **held out on p0003 + p0009: 4 / 14 = 29 %**, against about 14 % for a guess among seven offence slots. **p0003 alone is 1 / 7, which is chance exactly.** It was 8 / 16 = 50 % — see below for why more truth lowered it |
+| margin predicts correctness | r ≥ 0.5 | currently **r = −0.17**. Not a confidence, and briefly measured at −0.47, so `docs/27` step 4's plan to ask where the margin is thinnest is withdrawn either way |
 
 **These are the two numbers that decide whether Goal 2 works.** Neither can move
 without more identity tags, and both must be measured on a possession the solver
 was not built against.
+
+> **Why 50 % became 44 %, and why that is the right direction.** The 8 / 16 this
+> table used to carry was measured before three commits changed what counts as
+> truth on p0003. `d3961d5` *removed* four names, because the tagger had selected
+> people in the picture and been handed the **tracker's** label for them — § 2.5's
+> finding and #4's. `926bc29` named O2. `f3aff10` named the last span by
+> elimination and, in the same commit, marked it `player_inferred` and taught
+> `check_disc` to skip it: part of that argument is which slots the tracker loses,
+> so counting it would grade the solver against its own upstream (now AD-13).
+> p0009 never moved. p0003 went 1 / 5 → 1 / 7, the solver got neither new span
+> right, and the headline fell 50 % → 47 % → 44 %. **A score that drops when more
+> truth arrives is a score that is working.**
 
 ---
 

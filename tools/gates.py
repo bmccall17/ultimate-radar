@@ -120,6 +120,8 @@ ISSUE = {
     # A measurement today, so it never fails and never shows a number here -
     # the mapping is so the ticket is findable the day it gets a threshold.
     "...longest blind stretch": 8,
+    # A measurement today; mapped so the ticket is findable the day it is gated.
+    "...slots on somebody off the field": 29,
     # Repair mode's own gate: the one thing that has to be true before a person
     # is invited to hand-place fourteen markers and a disc.
     "no human position in a metric": 8,
@@ -238,6 +240,39 @@ def check_possession(work: Path) -> dict:
         "publishing gate, not a pipeline gate")
     add("frames with nothing at all", blank <= PUBLISH_MAX_BLANK, f"{blank:.0%}",
         f"<= {PUBLISH_MAX_BLANK:.0%}", "publishing gate")
+
+    # How much of the roster is standing in the crowd.
+    #
+    # Not a gate, and #29 says why it is not one yet. AD-3 puts a two-yard margin
+    # outside the sidelines because a thrower plants a pivot foot on the line and
+    # a defender chases a disc out - so "outside the lines" is not by itself
+    # wrong, and there is no fraction of it that is defensibly the limit. What
+    # this row exists to stop is the `coverage` readout being believed: p0003 at
+    # 28.67 s says `14/14` over a frame with ten players on it, because the bench
+    # and the camera crew at Breese Stevens stand inside AD-3's margin and get
+    # slots assigned to them like anybody else.
+    outside = matched = 0
+    try:
+        dets = json.loads((work / "detections.json").read_text(encoding="utf-8"))
+        byf = {r["f"]: r["dets"] for r in dets["frames"]}
+        fld = doc.get("field") or {}
+        L, W = fld.get("length_yd", 120.0), fld.get("width_yd", 53.333)
+        for p_ in doc["players"]:
+            for f, di in enumerate(p_.get("det") or []):
+                if di is None or f not in byf or di >= len(byf[f]):
+                    continue
+                xy = byf[f][di].get("field")
+                if not xy:
+                    continue
+                matched += 1
+                outside += not (0 <= xy[0] <= L and 0 <= xy[1] <= W)
+    except (FileNotFoundError, KeyError):
+        matched = 0
+    if matched:
+        report("...slots on somebody off the field",
+               f"{outside} of {matched} matched slot-frames ({outside/matched:.0%})",
+               "AD-3 allows 2 yd outside the lines on purpose, so no fraction of "
+               "this is defensibly wrong yet - #29")
 
     # Could a person have moved like that?
     #

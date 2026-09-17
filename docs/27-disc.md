@@ -356,21 +356,26 @@ p0003 was tagged after the model was frozen, so it is a second clean test.
 |---|---|---|
 | p0001 — training | 4 / 4 | 100 % (proves nothing) |
 | p0009 — held out | 3 / 7 | 43 % |
-| **p0003 — held out** | **1 / 5** | **20 %** |
-| **both held out** | **4 / 12** | **33 %** |
+| **p0003 — held out** | **1 / 7** | **14 %** |
+| **both held out** | **4 / 14** | **29 %** |
 | gate | | ≥ 75 % |
 
-Seven candidates per span, so chance is about 14 %. **33 % is better than guessing
-and nowhere near usable, and the honest reading of "43 %" a possession earlier is
-that n = 7 was too small to tell.** The margin over all sixteen spans correlates
-with correctness at **r = −0.16** — no longer strongly inverted, but still not a
-confidence.
+Seven candidates per span, so chance is about 14 %. **29 % is twice chance and
+nowhere near usable — and p0003 on its own is now 1 / 7, which is chance exactly.**
+The honest reading of "43 %" a possession earlier is that n = 7 was too small to
+tell. The margin over all eighteen spans correlates with correctness at
+**r = −0.17** — no longer strongly inverted, but still not a confidence.
 
-The one p0003 span it got right is the weakest of the five: the true holder is
-anchored on 5 of that span's 71 frames. Three of the four it got wrong had the
-true holder anchored on *every* frame of the span. So the failures are not a
-tracking-coverage problem; the model is being shown the right players and
-choosing the wrong one.
+The one p0003 span it got right is the weakest-anchored of the seven: the true
+holder is on 5 of that span's 71 frames. Of the six it got wrong, **two had the
+true holder anchored on *every* frame** (86/86 and 45/45) and two more on over
+two-thirds. So the failures are not a tracking-coverage problem; the model is
+being shown the right players and choosing the wrong one.
+
+The exception is worth naming because it is the opposite case. On 538–554 the
+true holder O1 is anchored on **none** of the span's 17 frames, so no amount of
+solver improvement recovers that one from position evidence — it is #4's problem,
+not #1's.
 
 **Two things p0003 exposed that are not about accuracy.**
 
