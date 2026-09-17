@@ -403,7 +403,7 @@ def main(argv: list[str] | None = None) -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(res, indent=1) + chr(10), encoding="utf-8")
 
-    print(f"[issues] {src}")
+    print(f"[issues] {t}")
     for k, v in sorted(res["counts"].items()):
         print(f"    {k:>22}  {v}")
     if not res["counts"]:

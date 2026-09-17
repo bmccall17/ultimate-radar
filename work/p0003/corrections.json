@@ -145,7 +145,39 @@
     55.973,
     0.172
    ]
+  },
+  {
+   "id": "c13",
+   "at": "2026-09-17T18:30:01.092Z",
+   "op": "detach",
+   "slot": "D1",
+   "from_f": 204,
+   "to_f": 204
+  },
+  {
+   "id": "c14",
+   "at": "2026-09-17T18:30:35.765Z",
+   "keyframe": "r14",
+   "op": "anchor",
+   "slot": "D1",
+   "f": 204,
+   "xy": [
+    73.736,
+    31.791
+   ]
+  },
+  {
+   "id": "c15",
+   "at": "2026-09-17T18:32:10.184Z",
+   "keyframe": "r15",
+   "op": "anchor",
+   "slot": "D5",
+   "f": 204,
+   "xy": [
+    72.66,
+    25.477
+   ]
   }
  ],
- "note": "Placed by hand on the live page, 2026-09-17. Seven further anchors on O2 (f352-389) were made in the same session and are NOT here: the page clamped them to y = 0.000 exactly, so they record the field edge rather than where anybody was. They are being re-made against the fixed page."
+ "note": "Placed by hand on the live page. 2026-09-17: twelve anchors closing p0003's O1 hole and part of the O2 one; then D1 detached and replaced at f204, and D5 placed at f204, from the first roster pass."
 }
