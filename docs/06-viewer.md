@@ -28,7 +28,10 @@ else.
   frame they describe — nobody reads two numbers that change 15 times a second. The strip
   seeks on click, and on 0.7 s of dwell says what it is drawing at that point: the frame,
   how much of the roster is on it, and the mark under the pointer if there is one. Only one
-  card is ever up, because the two are about different frames.
+  card is ever up, because the two are about different frames. The scrub bar and the strip
+  are one column, laid out on one axis - same left and right edge, and a frame at the same
+  x in both, including the half-thumb at each end that a slider cannot reach. Play and
+  jump-back sit to the left of that column, jump-forward, speed and the clock to the right.
 - **Readouts** — six cards, each with an evidence label.
 - **Roster** — 14 rows: slot, jersey, evidence now, share of possession seen, speed, who
   they are guarding and at what range.

@@ -70,19 +70,44 @@ main{display:grid;grid-template-columns:1.45fr 1fr;gap:14px;padding:12px 16px}
   width:100%;height:100%}
 .stage video{object-fit:contain}
 #over,#radar{width:100%;height:auto;display:block}
-/* Transport, attached to the camera panel it drives. */
+/* Transport, attached to the camera panel it drives. The scrub bar and the
+   strip are one column; the controls are two blocks flanking it. */
 .transport{border-top:1px solid var(--line);padding:8px 11px 9px;
-  background:var(--panel)}
-.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.track{position:relative;flex:1;min-width:150px;display:flex;align-items:center}
-input[type=range]{flex:1;min-width:0;accent-color:var(--chill)}
+  background:var(--panel);display:grid;align-items:center;
+  grid-template-columns:auto minmax(0,1fr) auto;column-gap:10px;row-gap:5px;
+  grid-template-areas:"left track right" "left strip right"}
+.tleft{grid-area:left;display:flex;gap:6px;align-items:center}
+.tright{grid-area:right;display:flex;flex-direction:column;align-items:flex-end;
+  gap:4px}
+.trow{display:flex;gap:6px;align-items:center}
+.track{grid-area:track;position:relative;display:flex;align-items:center}
+/* Under 620 px the three columns leave the axis no room, so the axis takes the
+   full width and the controls go under it rather than squeezing it. */
+@media (max-width:620px){
+  /* auto for the left block, not 1fr: a fractional column will squeeze its own
+     contents and the first thing to go was the jump-back button. */
+  .transport{grid-template-columns:auto minmax(0,1fr);
+    grid-template-areas:"track track" "strip strip" "left right"}
+  .tright{flex-direction:row;flex-wrap:wrap;align-items:center;
+    justify-content:flex-end}
+}
+/* margin:0 because the UA gives a range 2 px of it, and 2 px is exactly how
+   far out of line that puts the slider from the strip under it. */
+input[type=range]{flex:1;min-width:0;margin:0;accent-color:var(--chill)}
 .mono{font:12px/1.4 ui-monospace,Consolas,monospace;color:var(--dim);
   white-space:nowrap}
 .clock{color:var(--ink);font-size:12.5px}
 /* One card, used twice: the paused readout that rides the playhead, and the
    strip's hover card. Both point down at the thing they are about, both sit
    above it, and both are pointer-events:none because they overlap a control. */
-.tipcard{position:absolute;bottom:calc(100% + 7px);transform:translateX(-50%);
+/* Moved with a transform, and left pinned at 0. An absolutely positioned box
+   shrinks to fit the space between its own `left` and the far side of its
+   container, so a card placed by `left` is narrower the further right it goes -
+   it was measured at one width, positioned, and then re-laid out at another,
+   which put it some tens of pixels away from the thing it points at. A
+   transform moves it after layout and cannot change its width. */
+.tipcard{position:absolute;bottom:calc(100% + 7px);left:0;
+  transform:translateX(calc(var(--x,0px) - 50%));
   background:var(--panel);border:1px solid var(--line);border-radius:5px;
   padding:3px 8px;color:var(--ink);pointer-events:none;z-index:3;
   box-shadow:0 2px 6px rgba(0,0,0,.22)}
@@ -93,7 +118,7 @@ input[type=range]{flex:1;min-width:0;accent-color:var(--chill)}
 .tipcard .why{color:var(--dim)}
 #striptip{font-size:12.5px;line-height:1.45;max-width:min(360px,90vw)}
 #striptip .mono{color:var(--ink)}
-.striprow{position:relative;margin-top:8px}
+.striprow{grid-area:strip;position:relative}
 #strip{width:100%;height:26px;display:block;cursor:pointer;
   border:1px solid var(--line);border-radius:5px}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
@@ -181,18 +206,19 @@ footer{color:var(--dim);font-size:12px;padding:6px 16px 26px}
            playhead, over the frame it describes. Nobody reads those two numbers
            at 25 fps, and a figure that changes faster than it can be read is
            noise sitting on top of the one control you are aiming at. -->
+      <!-- Two views of the same axis, so they share a column: the scrub bar and
+           the strip start and end at the same x, and a frame is at the same
+           place in both. Everything else is pushed into the margins either
+           side - back on the left, forward and the numbers on the right -
+           because the two rows in the middle are the thing being read. -->
       <div class="transport">
-        <div class="bar">
+        <div class="tleft">
           <button id="play">Play</button>
           <button id="prevThrow" title="Previous throw">&#8676;</button>
-          <div class="track">
-            <input type="range" id="scrub" min="0" value="0" step="1">
-            <div class="mono tipcard" id="frameinfo" hidden></div>
-          </div>
-          <button id="nextThrow" title="Next throw">&#8677;</button>
-          <select id="speed"><option value="1">1×</option><option value="0.6">0.6×</option>
-            <option value="0.35">0.35×</option></select>
-          <span class="mono clock" id="readout"></span>
+        </div>
+        <div class="track">
+          <input type="range" id="scrub" min="0" value="0" step="1">
+          <div class="mono tipcard" id="frameinfo" hidden></div>
         </div>
         <!-- The strip is a control. It reads as a picture, so it also says what
              it is: dwell on it and it names the frame under the pointer, what
@@ -200,8 +226,16 @@ footer{color:var(--dim);font-size:12px;padding:6px 16px 26px}
              0.7 s of dwell, because a card that appears the instant a pointer
              crosses on its way somewhere else is a flinch, not an answer. -->
         <div class="striprow">
-          <canvas id="strip" height="26" title=""></canvas>
+          <canvas id="strip" height="26"></canvas>
           <div class="tipcard" id="striptip" hidden></div>
+        </div>
+        <div class="tright">
+          <div class="trow">
+            <button id="nextThrow" title="Next throw">&#8677;</button>
+            <select id="speed"><option value="1">1×</option><option value="0.6">0.6×</option>
+              <option value="0.35">0.35×</option></select>
+          </div>
+          <span class="mono clock" id="readout"></span>
         </div>
       </div>
     </div>
@@ -886,6 +920,21 @@ function evidence(f, slots){
 const over=document.getElementById("over"), octx=over.getContext("2d");
 const radar=document.getElementById("radar"), rctx=radar.getContext("2d");
 const strip=document.getElementById("strip"), sctx=strip.getContext("2d");
+/* One axis for both rows of the transport. The scrub thumb's CENTRE travels
+   from half a thumb in to half a thumb short of the far end - it cannot reach
+   either edge - so the strip has to lay its frames out over that same span or
+   the playhead drawn on it walks away from the thumb sitting above it, by the
+   width of half a thumb at the ends. 8 px is half the default thumb in every
+   browser this page opens in. The cost is ~7 px of blank at each end of the
+   strip, which is exactly the part of the slider track the thumb never reaches:
+   the two rows are blank in the same places for the same reason. */
+const AXIS_PAD = 8;
+function axisX(f, w){
+  return AXIS_PAD + (NF>1 ? f/(NF-1) : 0) * Math.max(0, w-2*AXIS_PAD);
+}
+function axisFrame(x, w){
+  return clamp(Math.round((x-AXIS_PAD)/Math.max(1,w-2*AXIS_PAD)*(NF-1)), 0, NF-1);
+}
 const vid=document.getElementById("vid");
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const teamColour = t => t===OFF ? css("--sol") : css("--chill");
@@ -1470,22 +1519,25 @@ function drawFormation(f, ghost){
 function drawStrip(){
   sctx.setTransform(1,0,0,1,0,0);
   sctx.clearRect(0,0,strip.width,strip.height);
-  const h=strip.height;
+  const h=strip.height, cw=strip.clientWidth||1, R=strip.width/cw;
+  const x = f => axisX(f, cw)*R;                // css px on the axis -> canvas
+  const bin = Math.max(1, (strip.width-2*AXIS_PAD*R)/Math.max(1,NF-1));
   for(let f=0;f<NF;f++){
     const c=coverage(f)/14;
     sctx.fillStyle=`color-mix(in srgb, ${css("--chill")} ${Math.round(c*100)}%, transparent)`;
-    sctx.fillRect(f/NF*strip.width, 0, strip.width/NF+1, h);
+    // Centred on the frame, not starting at it: the frame is a point on the
+    // axis here, the same point the thumb and the hover card use.
+    sctx.fillRect(x(f)-bin/2, 0, bin+1, h);
   }
   // allEvents(), not D.events: a tag made in this tab counts everywhere else on
   // the page the moment it is made, and a timeline that goes on denying it is
   // the one place a reader would look to check the keystroke landed.
   for(const e of allEvents()){
-    const x=e.t*FPS/NF*strip.width;
     sctx.fillStyle = e.source==="suggested"?css("--dim"):css("--warn");
-    sctx.fillRect(x-1,0,2,h*0.45);
+    sctx.fillRect(x(clamp(Math.round(e.t*FPS),0,NF-1))-1, 0, 2, h*0.45);
   }
   sctx.fillStyle=css("--ink");
-  sctx.fillRect(S.f/NF*strip.width-1,0,2,h);
+  sctx.fillRect(x(S.f)-1,0,2,h);
 }
 
 /* ----------------------------------------------------------------- cards */
@@ -2235,9 +2287,10 @@ scrub.oninput = () => { S.f=+scrub.value; seek(); };
    and it says what it is drawing, because a band of blue with amber ticks in
    it is a picture nobody has been told how to read. */
 function stripAt(ev){
-  const r=strip.getBoundingClientRect();
-  const x=clamp(ev.clientX-r.left, 0, Math.max(0,r.width-0.001));
-  return {x, w:r.width, f:clamp(Math.floor(x/(r.width||1)*NF), 0, NF-1)};
+  // Inside the canvas's content box, on the same axis the strip is drawn on.
+  const r=strip.getBoundingClientRect(), w=strip.clientWidth||1;
+  const x=clamp(ev.clientX-r.left-strip.clientLeft, 0, w);
+  return {x, w, f:axisFrame(x, w)};
 }
 strip.addEventListener("click", ev => { S.f=stripAt(ev).f; seek(); });
 
@@ -2273,7 +2326,7 @@ function showStripTip(){
   // Which mark you are pointing at, in frames, from how many frames a tick is
   // wide on screen. At 450 frames in 400 px one tick covers about three frames,
   // and a reader aiming at a 2 px line is not aiming to the frame.
-  const tol=Math.max(1, Math.round(NF/Math.max(1,tipPos.w)*4));
+  const tol=Math.max(1, Math.round((NF-1)/Math.max(1,tipPos.w-2*AXIS_PAD)*4));
   let near=null, best=1e9;
   for(const e of evs){
     const ef=clamp(Math.round(e.t*FPS),0,NF-1), d=Math.abs(ef-f);
@@ -2310,10 +2363,11 @@ function showStripTip(){
   document.getElementById("frameinfo").hidden=true;
   // Same clamp as the paused card: keep it inside the strip and walk the
   // pointer within it, so a mark near either end is still described legibly.
-  const w=striptip.offsetWidth, lim=tipPos.w;
-  const left=clamp(tipPos.x, w/2, Math.max(w/2, lim-w/2));
-  striptip.style.left=left+"px";
-  striptip.style.setProperty("--tip", clamp(tipPos.x-left+w/2, 8, Math.max(8,w-8))+"px");
+  const w=striptip.offsetWidth, lim=striptip.parentElement.clientWidth||tipPos.w;
+  const at=axisX(f, tipPos.w)+strip.clientLeft;
+  const left=clamp(at, w/2, Math.max(w/2, lim-w/2));
+  striptip.style.setProperty("--x", left+"px");
+  striptip.style.setProperty("--tip", clamp(at-left+w/2, 8, Math.max(8,w-8))+"px");
 }
 document.getElementById("play").onclick = togglePlay;
 function togglePlay(){
@@ -2960,8 +3014,7 @@ function draw(){
    place near either end; 8 px is half the default thumb everywhere this page
    runs. Measured off the input rather than assumed, because the bar wraps. */
 function thumbX(){
-  const pad=8, w=scrub.clientWidth;
-  return scrub.offsetLeft + pad + (NF>1 ? S.f/(NF-1) : 0) * Math.max(0, w-2*pad);
+  return scrub.offsetLeft + axisX(S.f, scrub.clientWidth);
 }
 /* Frame and clock always; how well the frame is KNOWN only while paused, on the
    playhead. See the comment on .transport in the markup. */
@@ -2981,8 +3034,8 @@ function renderReadout(){
   // either end the card stays readable and still points at the thumb.
   const x=thumbX(), w=box.offsetWidth, lim=scrub.parentElement.clientWidth;
   const left=clamp(x, w/2, Math.max(w/2, lim-w/2));
-  box.style.left = left+"px";
-  box.style.setProperty("--tip", clamp(x-left+w/2, 8, w-8)+"px");
+  box.style.setProperty("--x", left+"px");
+  box.style.setProperty("--tip", clamp(x-left+w/2, 8, Math.max(8,w-8))+"px");
 }
 /* ------------------------------------------------------ the self-check
    HANDOFF § 8: eight bugs across M1–M6 shared one shape — something rendered
