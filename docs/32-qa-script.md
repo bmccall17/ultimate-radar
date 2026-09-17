@@ -10,7 +10,33 @@ https://bmccall17.github.io/ultimate-radar/p0003/
 
 p0003 is the reference possession: it is the one with hand tags, hand corrections, a
 sideline crowd, a disc hole and the worst calibration stretch, so it exercises everything.
-Where a scenario needs a clean case instead, it says so.
+
+`tools/qa_fixture.py` takes any possession, and p0009 is worth a second pass — its clean
+frame is **14 of 14** slots on a real in-field detection with none on the crowd, which
+p0003 never reaches. A scenario that passes on p0003 and fails on p0009 is a finding.
+
+## Run this first, and use what it prints
+
+```
+.venv/Scripts/python.exe -m tools.qa_fixture
+```
+
+**The frame numbers below are not in this document.** A QA script that hard-codes "at f345
+the pips read O2 O3 O4 O7" is right on the day it is written and wrong the first time
+somebody repairs something — and a runner who meets a red scenario caused by the data
+*improving* learns that red means nothing. So this script carries the properties and
+`tools/qa_fixture.py` derives the numbers from the page as currently published. It names
+four frames by rule:
+
+| name | the rule | used by |
+|---|---|---|
+| **clean frame** | most slots on a detection *inside* the lines | § 4 placing, § 7 jerseys |
+| **busy frame** | most slots with any detection at all | § 2 the rail |
+| **collision** | two same-team slots inside 1.5 yd, one with a detection and one dead reckoning | § 6 detach |
+| **dead frame** | calibration under the floor | § 5 the refusal |
+
+Wherever a scenario says *the clean frame* or *the collision*, it means the one the fixture
+just printed.
 
 ## What this covers, and what it does not
 
@@ -95,17 +121,17 @@ evaporated.
 
 ## 2. The rail
 
-`setf(345)`, then read every `[data-slot]` button.
+`setf(<the busy frame>)`, then read every `[data-slot]` button.
 
 - **14 buttons**, `O1`–`O7` then `D1`–`D7`, in that order.
 - Each carries one of three classes: `seen` (a detection is matched on this frame),
   `guess` (dead reckoning), `lost` (no position at all).
-- The classes must agree with the data: `seen` ⇔ `POSSESSION.players[i].det[345] !== null`.
+- The classes must agree with the data: `seen` ⇔ `POSSESSION.players[i].det[f] !== null`.
   A pip that disagrees with `det` is the readout lying, which is the whole family of
   defect this project exists to prevent.
 - `title` on each names the state, whether a detection is matched, and either the position
   and sigma or how long since anything saw it.
-- On p0003 at f345 exactly this split: `O2 O3 O4 O7` and `D2 D5 D6` seen, the rest not.
+- The set of `seen` slots matches the fixture's `busy_frame.slots` exactly.
 
 **Defect if:** fewer than 14, an order that is not roster order, or a pip that contradicts
 `det`.
@@ -127,7 +153,7 @@ evaporated.
 
 ## 4. Placing from the video
 
-`setf(204)`, `pick('O3')`, then click the overlay:
+`setf(<the clean frame>)`, `pick('O3')`, then click the overlay:
 
 ```js
 const o = $('over').getBoundingClientRect();
@@ -136,9 +162,9 @@ $('over').dispatchEvent(new MouseEvent('click',
 ```
 
 - The repair panel reads **Save keyframe (1)**.
-- `$('repSave').click()`, then `grab('dl')` → exactly one `anchor`, `slot: "O3"`, `f: 204`,
-  and `xy` inside the field.
-- The correction panel shows **one row**, not fourteen: `keyframe 1 anchor(s) @ f204 · O3`.
+- `$('repSave').click()`, then `grab('dl')` → exactly one `anchor`, `slot: "O3"`, the clean
+  frame's `f`, and `xy` inside the field.
+- The correction panel shows **one row**, not fourteen: `keyframe 1 anchor(s) @ f<n> · O3`.
 
 **The three regressions this scenario exists for**, each of which shipped once:
 
@@ -146,15 +172,15 @@ $('over').dispatchEvent(new MouseEvent('click',
   between: the staged count stays **0** and no position changes. The hit test reaches 4 yd,
   so staging on the press moved a marker four yards every time somebody clicked it to see
   who it was.
-- **A save writes to the frame the placements were made on.** Stage on f204, `setf(400)`,
-  save: the anchor is at **f204**, and the panel warns that the staged work belongs to
-  another frame.
+- **A save writes to the frame the placements were made on.** Stage on the clean frame,
+  scrub somewhere else, save: the anchor carries the **clean frame's** number, and the panel
+  warns that the staged work belongs to another frame.
 - **Undo steps back.** Save two keyframes on different frames, press Undo twice: **both**
   come back reverted. Undo used to re-revert the most recent one forever.
 
 ## 5. The calibration refusal
 
-`setf(52)` — p0003's calibration is `0.00` there.
+`setf(<the dead frame>)` — the fixture prints its calibration beside it.
 
 - The panel says so, names the number, and offers **a button to the nearest frame that
   clears 0.5**. Telling somebody to go and find one is not help; p0003 reads 0.00 across
@@ -169,12 +195,13 @@ sigma 0.3 in the wrong part of the field, indistinguishable downstream from a go
 
 ## 6. Saying a label is wrong
 
-`setf(136)`, `pick('D6')`. D6 is dead-reckoning onto the player D1 has, 0.63 yd away.
+Take the fixture's **collision**: `setf(<f>)`, `pick(<the ghost>)`. That slot is dead
+reckoning onto the player the other one has.
 
-- The panel says **D1 is 0.6 yd away — close enough to be the same person**, and says which
-  of the two the camera can vouch for: the one with a detection.
-- **`This is nobody, from here`** is enabled. Click it: D6's span becomes `unknown`, the
-  log reads `detach D6 @ f136–<n>`, and Undo restores it exactly.
+- The panel names the other slot and the distance, and says which of the two the camera can
+  vouch for: the one with a detection.
+- **`This is nobody, from here`** is enabled. Click it: the ghost's span becomes `unknown`,
+  the log reads `detach <slot> @ f<a>–<b>`, and Undo restores it exactly.
 - On a frame where the slot **has** a detection, the same button is disabled and says to
   swap instead. A detach may never cross an `observed` frame — the camera saw somebody
   there, and removing that is a deletion, not a correction.
@@ -187,10 +214,14 @@ A slot has no referent of its own. `CONTEXT.md`: it *"is not a person: it is a l
 tracker maintains"*. A jersey read off a shirt is the only reference there is.
 
 ```js
-setf(204); pick('D5'); $('jerseyIn').value = 7;  $('jerseyGo').click();
-setf(330); pick('D5'); $('jerseyIn').value = 12; $('jerseyGo').click();
+setf(CLEAN);  pick('D5'); $('jerseyIn').value = 7;  $('jerseyGo').click();
+setf(LATER);  pick('D5'); $('jerseyIn').value = 12; $('jerseyGo').click();
 const ident = await grab('dlIdent');
 ```
+
+`CLEAN` is the fixture's clean frame; `LATER` is any frame where D5 still has a position.
+The numbers are invented on purpose — this scenario tests the contradiction machinery, not
+the footage.
 
 - Two readings, each carrying **the frame it was read on**.
 - `slots` resolves `D5` to `jersey: null` with a `conflict` — **not** to one of the two.
@@ -227,7 +258,9 @@ human-verified player positions.
 Everything above is a click. This is whether the click reaches the reader.
 
 1. Save a keyframe on the live page and `grab('dl')`.
-2. Write it to `work/p0003/corrections.json`.
+2. **Append** it to `work/p0003/corrections.json`, renumbering the `id`s past the ones
+   already there — that file holds a real roster pass and is tracked in git. Replacing it
+   destroys somebody's work, which is what `docs/30` § 2.8 is about.
 3. `.venv/Scripts/python.exe -m tools.pipeline work/p0003 --from correct`
 4. `.venv/Scripts/python.exe -m ur.resolve work/p0003 --verify-revert` → **YES, byte for byte**
 5. `.venv/Scripts/python.exe -m tools.build_site`
