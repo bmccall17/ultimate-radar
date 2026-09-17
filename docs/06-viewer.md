@@ -166,6 +166,23 @@ the two the camera can vouch for — the one with a detection on this frame. Tha
 state a roster pass spends most of its time in: 11–33 % of frames of every published
 possession have a slot that has lost its player dead-reckoning onto one that has not.
 
+## Jerseys
+
+A slot has no referent of its own — `CONTEXT.md` is explicit that it "is not a person: it
+is a label the tracker maintains" — so "is this the right person?" has nothing to check
+against until somebody supplies one. Selected Player takes a number read **off the shirt**,
+never guessed (`docs/04` M5: a wrong number is worse than none), and records it against the
+frame it was read on.
+
+That last part is what makes it a check rather than a convenience. A slot is one label over
+time, so #7 at 13.6 s and #12 at 22.0 s on the same slot is proof the label moved between
+two people, and the readings say so without anybody watching the stretch between. The
+resolution refuses to pick: a slot with contradictory readings has `jersey: null` and its
+conflict recorded, and the panel and the rail tooltip both say the label is on two people.
+
+`Download jerseys` writes `identities.json` — `readings` as the append-only record, `slots`
+as the resolution.
+
 ## Repair mode
 
 `Repair`, or `r`. Entering it pauses the clip, because a moving picture cannot be placed

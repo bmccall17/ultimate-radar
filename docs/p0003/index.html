@@ -199,6 +199,9 @@ footer{color:var(--dim);font-size:12px;padding:6px 16px 26px}
 .legend i{display:inline-block;width:11px;height:11px;border-radius:50%;
   vertical-align:-1px;margin-right:5px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.jread{display:inline-block;font-family:ui-monospace,Consolas,monospace;
+  font-size:11px;padding:1px 5px;border:1px solid var(--line);border-radius:4px;
+  margin-right:3px}
 .slotpicks{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
 .slotpick{font:inherit;font-size:12px;padding:3px 8px;border-radius:5px;
   border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
@@ -353,7 +356,8 @@ footer{color:var(--dim);font-size:12px;padding:6px 16px 26px}
     <div class="panel">
       <h2>Corrections <span class="spacer"></span>
         <button id="undo">Undo</button><button id="dl">Download log</button>
-        <button id="dlPaint">Download paint</button></h2>
+        <button id="dlPaint">Download paint</button>
+        <button id="dlIdent">Download jerseys</button></h2>
       <div id="corrections"></div>
     </div>
   </section>
@@ -1959,6 +1963,47 @@ function collidesWith(id, f){
   const theirs = MEASURABLE.has(best.state[f]) || best.state[f] === "provisional";
   return {other: best.id, yd: bd, mine, theirs};
 }
+/* ------------------------------------------------------- jerseys, #4
+   **The referent a slot does not otherwise have.** A slot "is not a person: it
+   is a label the tracker maintains" (CONTEXT.md), so "is this the right person"
+   has nothing to check against - the first roster pass on p0003 came back with
+   thirteen of fourteen unanswerable, and it was right to. p0003 has no
+   identities.json and not one of its fourteen slots carries a number.
+
+   A person watching reads the number off the shirt without effort. That is the
+   reference, and it is the one thing here nothing else can supply.
+
+   **Every reading is against the frame it was read on**, and that is what turns
+   a convenience into a check. A slot is one label over time; if a human reads
+   #7 on it at 13.6 s and #12 at 22.0 s, the slot is on two different people and
+   the readings say so without anybody having to watch the stretch between. Two
+   honest observations contradicting each other is exactly the shape docs/30
+   likes and the reason `ur/direction.py` stores observations rather than facts:
+   a contradiction stays a contradiction instead of becoming a value somebody
+   had to pick between. */
+const JERSEY = [];
+let jerseySeq = 0;
+function readingsFor(id){ return JERSEY.filter(r => r.slot === id); }
+function jerseyOf(id){
+  // The resolution, and it refuses to guess. One number across every reading is
+  // the slot's jersey; two different numbers is not a tie to break, it is the
+  // finding.
+  const rs = readingsFor(id);
+  if(!rs.length) return {jersey:null, conflict:null};
+  const nums = [...new Set(rs.map(r => r.jersey))];
+  return nums.length === 1
+    ? {jersey: nums[0], conflict: null}
+    : {jersey: null, conflict: rs};
+}
+function recordJersey(id, n, f){
+  // Same slot, same frame, read twice is a correction of the first, not a
+  // second observation - nobody saw two numbers on one shirt at one moment.
+  const k = JERSEY.findIndex(r => r.slot === id && r.f === f);
+  if(k >= 0) JERSEY.splice(k, 1);
+  JERSEY.push({id:"j" + (++jerseySeq), at:new Date().toISOString(),
+               slot:id, f, t:+(f/FPS).toFixed(2), jersey:n});
+  _relabelKey = null; _railKey = null; draw();
+}
 function relabelEnd(id, f){
   const p=BY[id]; if(!p) return null;
   for(let k=f+1;k<NF;k++){
@@ -2016,11 +2061,46 @@ function renderRelabel(){
         span to <code>unknown</code>, from here to where the slot re-acquires, and
         those frames then count for nothing (#26).
       </div>
+      ${(() => {
+        const j = jerseyOf(S.sel), rs = readingsFor(S.sel);
+        const list = rs.map(r =>
+          `<span class="jread">#${r.jersey} at ${r.t.toFixed(2)}s</span>`).join(" ");
+        return `<div class="why" style="display:block;margin-top:9px;
+          border-top:1px solid var(--line);padding-top:7px">
+          <b>Who is this?</b> Read the number off the shirt — never guess one
+          (docs/04 M5: a wrong number is worse than none). It is recorded against
+          <b>this frame</b>, so two different numbers on one slot prove it is on
+          two different people.
+          ${j.conflict
+            ? `<div style="margin-top:5px"><b style="color:var(--warn)">This slot
+               has been read as two different players.</b> ${list} — the label
+               moves between them somewhere in between, and that stretch is what
+               needs a swap or a detach.</div>`
+            : rs.length
+              ? `<div style="margin-top:5px">Read as <b>#${j.jersey}</b> — ${list}</div>`
+              : ""}
+          <div style="margin-top:5px">
+            <input id="jerseyIn" type="number" min="0" max="99" placeholder="number"
+              style="width:78px" value="">
+            <button id="jerseyGo">Record jersey here</button>
+          </div></div>`;
+      })()}
       <button id="detachGo"${canDetach?"":" disabled"}>${
         canDetach ? "This is nobody, from here"
                   : at(p,f) ? "This frame has a detection — swap it instead"
                             : "Already states no position here"}</button>
     </div>`;
+  const jg = document.getElementById("jerseyGo"),
+        ji = document.getElementById("jerseyIn");
+  if(jg && ji){
+    const go = () => {
+      const n = parseInt(ji.value, 10);
+      if(!Number.isFinite(n) || n < 0 || n > 99) return;
+      recordJersey(S.sel, n, f);
+    };
+    jg.onclick = go;
+    ji.onkeydown = e => { if(e.key === "Enter"){ e.preventDefault(); go(); } };
+  }
   const dg = document.getElementById("detachGo");
   if(dg && canDetach) dg.onclick = () => {
     addCorrection({op:"detach", slot:S.sel, from_f:f,
@@ -2079,6 +2159,29 @@ document.getElementById("dl").onclick = () => {
 // are gathered in the same session with the same gesture and they answer to
 // different stages, so sharing a store would mean ur/resolve.py replaying a
 // camera measurement as somebody's position.
+document.getElementById("dlIdent").onclick = () => {
+  const slots = PL.map(p => {
+    const j = jerseyOf(p.id);
+    return {slot:p.id, jersey:j.jersey, source:"read",
+            readings:readingsFor(p.id).length,
+            conflict: j.conflict
+              ? j.conflict.map(r => ({f:r.f, jersey:r.jersey}))
+              : null};
+  });
+  const doc = {schema:"ultimate-radar/identities@2",
+    possession_id:D.possession.id,
+    note:"Jersey numbers READ OFF THE SHIRT by a human, each against the frame "+
+         "it was read on. A slot is a label the tracker maintains and is not a "+
+         "person, so this is the only referent it has. `readings` is the "+
+         "append-only record; `slots` is the resolution, and it resolves to null "+
+         "where readings disagree rather than picking one - two numbers on one "+
+         "slot is not a tie to break, it is proof the label moved between two "+
+         "people. docs/04 M5: a wrong number is worse than no number.",
+    readings:JERSEY, slots};
+  const blob=new Blob([JSON.stringify(doc,null,1)],{type:"application/json"});
+  const u=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=u; a.download="identities.json"; a.click(); URL.revokeObjectURL(u);
+};
 document.getElementById("dlPaint").onclick = () => {
   const doc = {schema:"ultimate-radar/calibration-truth@1",
     possession_id:D.possession.id,
@@ -2909,6 +3012,10 @@ function railTitle(p, f){
   const h = HUMAN.get(p.id);
   if(h && h.has(f)) bits.push("this frame was placed by hand — excluded from "
                               + "every metric (tools/human_positions.py)");
+  const j = jerseyOf(p.id);
+  if(j.conflict) bits.push("read as two different jerseys — this label is on two "
+                           + "people and the stretch between needs splitting");
+  else if(j.jersey !== null) bits.push(`read as #${j.jersey}`);
   if(p.state[f] === "provisional")
     bits.push("re-acquired after a gap and never reviewed — it may be a "
               + "different person (docs/25 R4)");

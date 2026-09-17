@@ -30,6 +30,15 @@ wrong without the tagger making a mistake.
 `jersey: null` for every slot in every published possession, so a jersey number
 cannot be turned into a slot without tracking continuity to carry it.
 
+**Jersey reading** — a human statement of the number on a shirt, against the
+frame it was read on, written to `identities.json`. It is the only **referent** a
+slot has: a slot is a label the tracker maintains and is not a person, so without
+one, "is this the right person" cannot be asked. Recorded per frame because a
+slot is one label over time — two different numbers read on one slot is not a tie
+to break, it is proof the label moved between two people, and the resolution says
+`null` and keeps both rather than picking. Read off the shirt, never inferred:
+`docs/04` M5 says a wrong number is worse than no number.
+
 **Offence / defence** — which team has the disc. Held per possession, as a single
 value. **A turnover breaks that**, and the model has no room for one: after a
 turnover, `offense` is wrong for the rest of the possession.
