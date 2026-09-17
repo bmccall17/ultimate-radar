@@ -77,10 +77,13 @@ A separate `provenance_stated` says whether the statement was made at tagging
 time or reconstructed later, because provenance recalled from memory is not
 provenance.
 
-> A jersey read is not provenance. See `Jersey`: a number cannot become a slot
-> without tracking continuity to carry it, and p0003 is the proof — the tagger
-> read #28 off the kit and still could not name the slot. Provenance is about the
-> chain, not the number.
+> **A jersey read settles a name only from inside the span that tag bounds**
+> (AD-14). See `Jersey`: a number cannot become a slot without tracking
+> continuity to carry it, so a reading at f212 and a tag at f319 are joined by
+> the tracker and that join is the contamination one step back. Inside the span
+> nothing has to be carried. p0003 is the proof both ways — the tagger read #28
+> off the kit at 14.1 s and still could not name the 21.3 s holder, while jersey
+> 5 read at 12.2 s does settle the O4 span it falls inside.
 
 **Fault** — which of three things went wrong with a tag somebody has since
 corrected, carried in its `superseded` block and named for the **source**:
