@@ -122,9 +122,10 @@ Clear those, and say what the call produced:
 - `ready-for-implement` and `ready-for-human` stay until the work lands, because the
   call they name is the work itself.
 
-Done when the board names every ticket in the milestone exactly once under the right
-heading, every triage label in the milestone names a call still waiting to be made, and
-a reader who saw none of this session can tell what to pick up from the board alone.
+Done when the milestone description names every open ticket in the milestone exactly
+once under the right heading, the rendered milestone page reads correctly rather than
+just its source, every triage label in the milestone names a call still waiting to be
+made, and a reader who saw none of this session can tell what to pick up from it alone.
 
 ## 4. The next immediate steps
 
