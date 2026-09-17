@@ -1,0 +1,151 @@
+{
+ "schema": "ultimate-radar/corrections@1",
+ "possession_id": "p0003",
+ "corrections": [
+  {
+   "id": "c1",
+   "at": "2026-09-17T12:54:27.675Z",
+   "keyframe": "k1",
+   "op": "anchor",
+   "slot": "O1",
+   "f": 98,
+   "xy": [
+    50.919,
+    1.048
+   ]
+  },
+  {
+   "id": "c2",
+   "at": "2026-09-17T12:54:53.673Z",
+   "keyframe": "k2",
+   "op": "anchor",
+   "slot": "O1",
+   "f": 85,
+   "xy": [
+    49.712,
+    2.048
+   ]
+  },
+  {
+   "id": "c3",
+   "at": "2026-09-17T12:55:30.153Z",
+   "keyframe": "k3",
+   "op": "anchor",
+   "slot": "O1",
+   "f": 104,
+   "xy": [
+    51.168,
+    1.02
+   ]
+  },
+  {
+   "id": "c4",
+   "at": "2026-09-17T12:55:43.857Z",
+   "keyframe": "k4",
+   "op": "anchor",
+   "slot": "O1",
+   "f": 110,
+   "xy": [
+    51.017,
+    1.68
+   ]
+  },
+  {
+   "id": "c5",
+   "at": "2026-09-17T12:55:54.919Z",
+   "keyframe": "k5",
+   "op": "anchor",
+   "slot": "O1",
+   "f": 116,
+   "xy": [
+    51.354,
+    1.868
+   ]
+  },
+  {
+   "id": "c6",
+   "at": "2026-09-17T12:56:04.535Z",
+   "keyframe": "k6",
+   "op": "anchor",
+   "slot": "O1",
+   "f": 122,
+   "xy": [
+    51.221,
+    1.91
+   ]
+  },
+  {
+   "id": "c7",
+   "at": "2026-09-17T12:56:16.071Z",
+   "keyframe": "k7",
+   "op": "anchor",
+   "slot": "O1",
+   "f": 128,
+   "xy": [
+    51.011,
+    2.089
+   ]
+  },
+  {
+   "id": "c8",
+   "at": "2026-09-17T12:57:23.517Z",
+   "keyframe": "k8",
+   "op": "anchor",
+   "slot": "O2",
+   "f": 319,
+   "xy": [
+    53.341,
+    4.75
+   ]
+  },
+  {
+   "id": "c9",
+   "at": "2026-09-17T12:57:39.773Z",
+   "keyframe": "k9",
+   "op": "anchor",
+   "slot": "O2",
+   "f": 326,
+   "xy": [
+    54.287,
+    1.809
+   ]
+  },
+  {
+   "id": "c10",
+   "at": "2026-09-17T12:57:50.845Z",
+   "keyframe": "k10",
+   "op": "anchor",
+   "slot": "O2",
+   "f": 333,
+   "xy": [
+    54.592,
+    0.955
+   ]
+  },
+  {
+   "id": "c11",
+   "at": "2026-09-17T12:57:59.108Z",
+   "keyframe": "k11",
+   "op": "anchor",
+   "slot": "O2",
+   "f": 339,
+   "xy": [
+    55.322,
+    0.33
+   ]
+  },
+  {
+   "id": "c12",
+   "at": "2026-09-17T12:58:06.956Z",
+   "keyframe": "k12",
+   "op": "anchor",
+   "slot": "O2",
+   "f": 345,
+   "xy": [
+    55.973,
+    0.172
+   ]
+  }
+ ],
+ "note": "Placed by hand on the live page, 2026-09-17. Seven further anchors on O2 (f352-389) were made in the same session and are NOT here: the page clamped them to y = 0.000 exactly, so they record the field edge rather than where anybody was. They are being re-made against the fixed page."
+}

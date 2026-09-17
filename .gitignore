@@ -1,7 +1,27 @@
 # Media and derived artefacts — never committed.
 raw/
-work/
 survey/
+
+# `work/` is ignored because it holds the footage: clips of somebody else's
+# broadcast, which docs/10-getting-the-footage.md says not to redistribute.
+#
+# **What a human typed is not footage.** Three files in there are pure human
+# input - field coordinates, timestamps, and which end a team attacked - and
+# every one of them is the thing this project is least able to regenerate. AD-6
+# says the correction log is the highest-value training data it can produce and
+# that no public dataset of hand-verified field positions in ultimate exists;
+# docs/30 section 2.8 is about a release that quietly threw away tagging
+# somebody had been paid to do. All of it was ignored, so a fresh clone had none
+# of it and a lost laptop had none of it either.
+#
+# Git cannot re-include a file under an excluded directory, so the exclusion has
+# to be written a file at a time rather than as `work/`.
+work/*
+!work/*/
+work/*/*
+!work/*/corrections.json
+!work/*/events.json
+!work/*/calibration_truth.json
 .venv/
 __pycache__/
 *.pyc

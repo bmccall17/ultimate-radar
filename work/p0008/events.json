@@ -1,0 +1,6 @@
+{
+ "schema": "ultimate-radar/events@1",
+ "possession_id": "p0008",
+ "note": "source is 'human' or 'suggested'. A suggested event is shown differently in the viewer until a human confirms it (docs/03).",
+ "events": []
+}

@@ -1,0 +1,43 @@
+{
+ "schema": "ultimate-radar/events@1",
+ "possession_id": "p0001",
+ "note": "Human tags. Timings tagged in the viewer; the players were named by the same person from the footage afterwards. O7 -> O4 -> O5 -> O4; 11.8 s is the only time O5 catches it in this sequence.",
+ "events": [
+  {
+   "t": 7.6,
+   "type": "throw",
+   "player": "O7",
+   "source": "human"
+  },
+  {
+   "t": 8.467,
+   "type": "catch",
+   "player": "O4",
+   "source": "human"
+  },
+  {
+   "t": 9.933,
+   "type": "throw",
+   "player": "O4",
+   "source": "human"
+  },
+  {
+   "t": 11.8,
+   "type": "catch",
+   "player": "O5",
+   "source": "human"
+  },
+  {
+   "t": 15.867,
+   "type": "throw",
+   "player": "O5",
+   "source": "human"
+  },
+  {
+   "t": 16.533,
+   "type": "catch",
+   "player": "O4",
+   "source": "human"
+  }
+ ]
+}

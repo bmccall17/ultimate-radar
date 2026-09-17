@@ -312,7 +312,7 @@ footer{color:var(--dim);font-size:12px;padding:6px 16px 26px}
 <script>/* Built by tools/build_site.py - do not edit docs/, edit viewer/
    and rebuild. Opens mid-possession: frame 0 is often before the tracker
    has seen anyone, which reads as broken rather than as honest. */
-if(!/[#&]t=/.test(location.hash)){try{history.replaceState(null,"","#t=7.7")}catch(e){}}
+if(!/[#&]t=/.test(location.hash)){try{history.replaceState(null,"","#t=7.3")}catch(e){}}
 </script>
 <script src="possession.js"></script>
 <script>
@@ -2577,6 +2577,23 @@ function parkSpot(i){ return [(i+1)*FL/(PL.length+2), PARK_Y]; }
 // to overrule.
 function onField(xy){ return xy[0]>=0 && xy[0]<=FL && xy[1]>=0 && xy[1]<=FW; }
 function pull(xy){ return [clamp(xy[0],0,FL), clamp(xy[1],0,FW)]; }
+// How far outside the lines a PLACEMENT may go, and it is not zero. Ultimate is
+// played with people standing just out of bounds - a thrower with a foot over
+// the line, the whole bench on the sideline - and the pipeline has always known
+// that: `detections.json` carries real players at y = -1.6 on p0003 frame 389,
+// `tracks.json` keeps them, and `nobody observed in the stands` allows 5 yd
+// before calling it a calibration failure.
+//
+// Repair mode clamped a person's click to the field rectangle, which made the
+// human stricter than the machine they were correcting. Six of the first
+// nineteen placements ever made came back at y exactly 0.000 - somebody clicked
+// a player standing a yard outside the line and the page quietly moved them onto
+// it, then wrote `confirmed`, sigma 0.3, at a position nobody had stated. A
+// clamp that silently edits the one thing a human is here to supply is worse
+// than no bound at all.
+const PLACE_OUT_YD = 5.0;                 // tools/audit_site.py OFF_FIELD_LIMIT_YD
+function placeClamp(x,y){ return [clamp(x,-PLACE_OUT_YD,FL+PLACE_OUT_YD),
+                                  clamp(y,-PLACE_OUT_YD,FW+PLACE_OUT_YD)]; }
 // Where the handle for `id` is right now: staged if the person has moved it,
 // else the tracker's estimate, else the last place anything saw them, else the
 // rail. The last two are `placed:false` - a handle to grab, not a claim.
@@ -2645,6 +2662,9 @@ function repairHit(ev){
     const d=Math.hypot(h.xy[0]-x, h.xy[1]-y);
     if(d<bd){ bd=d; best=h.id; }
   }
+  // Bounded to what this canvas can draw: `ry(-5)` lands past the bottom edge,
+  // so a handle there would carry a value nobody could see. The video click is
+  // where a placement outside the lines has to be possible, and it is.
   return {id:best, x:clamp(x,0,FL), y:clamp(y,0,FW)};
 }
 function stage(id,x,y){
@@ -2653,7 +2673,7 @@ function stage(id,x,y){
   // positions saved as one moment is a lie about when anybody was there.
   if(REPAIR.f!==S.f && REPAIR.put.size) REPAIR.put.clear();
   REPAIR.f=S.f;
-  REPAIR.put.set(id,[clamp(x,0,FL), clamp(y,0,FW)]);
+  REPAIR.put.set(id, placeClamp(x,y));
   renderRepair();
 }
 function saveKeyframe(){

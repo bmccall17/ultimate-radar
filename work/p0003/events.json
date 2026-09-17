@@ -1,0 +1,93 @@
+{
+ "schema": "ultimate-radar/events@1",
+ "possession_id": "p0003",
+ "note": "Human tags, 2026-09-15, p0003. Timings as tagged. IDENTITIES CORRECTED after the tagger checked the footage against the viewer's labels: the tags name whoever the TRACKER was calling that person, so a tracking identity error becomes a wrong tag. 8.73s was tagged O5 because the tracker lost O1 and relabelled the same person; it is O1. 21.27-26.33s is the player the tagger reads as jersey #28, and is neither O1 nor O5. Identified as O2 by elimination on 2026-09-15: across those 77 frames the tracker observes O2 on 6 and O6 on 11, against 40-69 for every other offence slot, so O2 and O6 are the two it loses; the chain rules out O6, who catches the dump at 27.13. It also fits the play - O2 dumps to O6 and gets it back to huck. This is an INFERENCE from coverage and the chain, not a jersey read, and it is the one identity in this file nobody saw directly. 31.40-32.73s is O2, a Sol player carrying the label D5: NOT a turnover, and clip.json's 'no turnover' note was right. The tagger named O2 from the footage on 2026-09-15 after watching the possession display lose the disc there - O6 throws to O2 at ~30.2s, and O2 hucks for the goal. Unnamed events still fix the timing, which is the half the pipeline cannot see.",
+ "events": [
+  {
+   "t": 4.667,
+   "type": "throw",
+   "player": "O3",
+   "source": "human"
+  },
+  {
+   "t": 5.667,
+   "type": "catch",
+   "player": "O1",
+   "source": "human"
+  },
+  {
+   "t": 8.733,
+   "type": "throw",
+   "player": "O1",
+   "source": "human"
+  },
+  {
+   "t": 10.4,
+   "type": "catch",
+   "player": "O4",
+   "source": "human"
+  },
+  {
+   "t": 16.067,
+   "type": "throw",
+   "player": "O4",
+   "source": "human"
+  },
+  {
+   "t": 16.867,
+   "type": "catch",
+   "player": "O3",
+   "source": "human"
+  },
+  {
+   "t": 19.267,
+   "type": "throw",
+   "player": "O3",
+   "source": "human"
+  },
+  {
+   "t": 21.267,
+   "type": "catch",
+   "player": "O2",
+   "source": "human",
+   "player_inferred": true
+  },
+  {
+   "t": 26.333,
+   "type": "throw",
+   "player": "O2",
+   "source": "human",
+   "player_inferred": true
+  },
+  {
+   "t": 27.133,
+   "type": "catch",
+   "player": "O6",
+   "source": "human"
+  },
+  {
+   "t": 30.067,
+   "type": "throw",
+   "player": "O6",
+   "source": "human"
+  },
+  {
+   "t": 31.4,
+   "type": "catch",
+   "player": "O2",
+   "source": "human"
+  },
+  {
+   "t": 32.733,
+   "type": "throw",
+   "player": "O2",
+   "source": "human"
+  },
+  {
+   "t": 35.867,
+   "type": "catch",
+   "player": "O1",
+   "source": "human"
+  }
+ ]
+}

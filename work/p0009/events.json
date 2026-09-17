@@ -1,0 +1,79 @@
+{
+ "schema": "ultimate-radar/events@1",
+ "possession_id": "p0009",
+ "note": "Human tags, 2026-09-15. Timings tagged in the viewer. The identities as downloaded were unusable - the viewer's player selection persisted across both keystrokes, so each pair named the CATCHER twice and every throw read as a self-pass. The tagger then gave the chain from the footage: O3 -> O7 -> O4 -> O1 -> O4 -> O2 -> O6, the last catch being the goal. That is what is written here; the timings are exactly as tagged.",
+ "events": [
+  {
+   "t": 3.0,
+   "type": "throw",
+   "player": "O3",
+   "source": "human"
+  },
+  {
+   "t": 4.667,
+   "type": "catch",
+   "player": "O7",
+   "source": "human"
+  },
+  {
+   "t": 9.133,
+   "type": "throw",
+   "player": "O7",
+   "source": "human"
+  },
+  {
+   "t": 10.267,
+   "type": "catch",
+   "player": "O4",
+   "source": "human"
+  },
+  {
+   "t": 16.267,
+   "type": "throw",
+   "player": "O4",
+   "source": "human"
+  },
+  {
+   "t": 17.2,
+   "type": "catch",
+   "player": "O1",
+   "source": "human"
+  },
+  {
+   "t": 19.467,
+   "type": "throw",
+   "player": "O1",
+   "source": "human"
+  },
+  {
+   "t": 19.733,
+   "type": "catch",
+   "player": "O4",
+   "source": "human"
+  },
+  {
+   "t": 22.667,
+   "type": "throw",
+   "player": "O4",
+   "source": "human"
+  },
+  {
+   "t": 24.133,
+   "type": "catch",
+   "player": "O2",
+   "source": "human"
+  },
+  {
+   "t": 25.867,
+   "type": "throw",
+   "player": "O2",
+   "source": "human"
+  },
+  {
+   "t": 29.067,
+   "type": "catch",
+   "player": "O6",
+   "source": "human"
+  }
+ ]
+}

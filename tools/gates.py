@@ -97,6 +97,8 @@ ISSUE = {
     # Repair mode's own gate: the one thing that has to be true before a person
     # is invited to hand-place fourteen markers and a disc.
     "no human position in a metric": 8,
+    # ...and the one that says their work actually arrived.
+    "corrections reached the page": 8,
     # A name settled by elimination rendering at the strongest state the format
     # has is the disc stage's own doing, not the tracker's: the flag is in the
     # tag and the stage dropped it.
@@ -207,6 +209,29 @@ def check_possession(work: Path) -> dict:
         "publishing gate, not a pipeline gate")
     add("frames with nothing at all", blank <= PUBLISH_MAX_BLANK, f"{blank:.0%}",
         f"<= {PUBLISH_MAX_BLANK:.0%}", "publishing gate")
+
+    # Did the corrections in the log actually reach the file the viewer reads?
+    #
+    # Seen once on 2026-09-17 and not reproduced since: p0003 came out of a
+    # pipeline run with `disc_meta` confirmed from twelve hand-placed positions
+    # and `corrections_applied` empty - the disc stage had been handed the
+    # corrected positions and the pass after it had rebuilt the players without
+    # them. The published page then drew the disc on a holder its own data said
+    # nobody had seen, which is what turned the row red.
+    #
+    # A correction that sits in a file nobody replayed is the failure #8 exists
+    # to prevent, and it is silent: the log looks right, the page looks
+    # plausible, and only the two counts disagreeing says otherwise. Counting is
+    # cheap and this is the only place both numbers are in the same room.
+    from ur import resolve as RS
+    log = RS.load_log(work)
+    want_n = len(RS.active(log))
+    got_n = len(doc.get("corrections_applied", []))
+    add("corrections reached the page", want_n == got_n,
+        f"{got_n} applied, {want_n} active in the log",
+        "every active correction is replayed into possession.json",
+        "re-run `python -m tools.pipeline <work> --from correct`; the log is "
+        "intact, the file built from it is not")
 
     # Which way the offence actually moved. Never a gate: 2026-09-15 measured
     # that this quantity is not the attacking direction (docs/30 § 2.0), so

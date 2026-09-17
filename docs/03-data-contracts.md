@@ -20,6 +20,13 @@ work/p0001/
 
 Units everywhere: **yards**, **seconds**, and frame indices at the tracking rate.
 
+**`work/` is gitignored and three files in it are not.** The directory is ignored because
+it holds the footage, which `docs/10-getting-the-footage.md` says not to redistribute.
+`events.json`, `corrections.json` and `calibration_truth.json` are not footage — they are
+what a human typed, they are the only inputs this project cannot regenerate, and AD-6 says
+the correction log is the highest-value thing it produces. They are tracked; everything
+else under `work/` is not.
+
 Field frame: origin at the **back corner of the defending endzone on the near sideline** —
 the corner where `X = 0` (the back line the offence is attacking away from) meets `Y = 0`
 (the sideline nearest the camera). `X` runs 0→120 along the field in the direction of attack;
