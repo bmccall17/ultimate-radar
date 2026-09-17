@@ -20,13 +20,15 @@ a stale site has already cost this project a review round.
 - `git fetch && git status -sb`: local `main` and `origin/main` sit on the same commit.
 - `gh run list --limit 5 --json name,status,conclusion,headSha`: the newest
   `pages build and deployment` run concluded `success`, on HEAD's sha.
-- Fetch the live root page and compare it against `docs/index.html`, stripping `
-`
-  from both first: what the world serves is what the repo holds. The working tree is
-  CRLF and Pages serves LF, so a raw byte compare reports a difference of exactly one
-  byte per line and means nothing.
-- `python -m tools.gates`: record both totals - failable and informational - and
-  which ticket owns each failure. Only the failable total moves.
+- Fetch the live root page and compare it against `docs/index.html`, stripping every
+  carriage return from both first: what the world serves is what the repo holds. The
+  working tree is CRLF and Pages serves LF, so a raw byte compare reports a difference
+  of exactly one byte per line and means nothing.
+- `./.venv/Scripts/python.exe -m tools.gates`: record both totals, failable and
+  informational, and which ticket owns each failure. Only the failable total moves.
+  Use the venv's
+  interpreter: a bare `python` is missing scipy and dies partway through with a
+  traceback that reads like a defect in the check rather than the wrong python.
 
 Done when all five carry a verdict and any drift between HEAD, `origin/main` and the
 live site is named with the commit it is stuck on. Unpushed commits touching `docs/`
