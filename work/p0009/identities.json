@@ -1,0 +1,139 @@
+{
+ "schema": "ultimate-radar/identities@2",
+ "possession_id": "p0009",
+ "note": "Jersey numbers READ OFF THE SHIRT by a human, each against the frame it was read on. A slot is a label the tracker maintains and is not a person, so this is the only referent it has. `readings` is the append-only record; `slots` is the resolution, and it resolves to null where readings disagree rather than picking one - two numbers on one slot is not a tie to break, it is proof the label moved between two people. docs/04 M5: a wrong number is worse than no number.",
+ "readings": [
+  {
+   "id": "j1",
+   "at": "2026-09-17T23:31:49.733Z",
+   "slot": "O6",
+   "f": 22,
+   "t": 1.47,
+   "jersey": 31
+  },
+  {
+   "id": "j2",
+   "at": "2026-09-17T23:31:57.909Z",
+   "slot": "D4",
+   "f": 22,
+   "t": 1.47,
+   "jersey": 43
+  },
+  {
+   "id": "j3",
+   "at": "2026-09-17T23:32:03.373Z",
+   "slot": "D1",
+   "f": 22,
+   "t": 1.47,
+   "jersey": 99
+  },
+  {
+   "id": "j4",
+   "at": "2026-09-17T23:32:11.189Z",
+   "slot": "D5",
+   "f": 22,
+   "t": 1.47,
+   "jersey": 30
+  }
+ ],
+ "slots": [
+  {
+   "slot": "O1",
+   "jersey": null,
+   "source": "read",
+   "readings": 0,
+   "conflict": null
+  },
+  {
+   "slot": "O2",
+   "jersey": null,
+   "source": "read",
+   "readings": 0,
+   "conflict": null
+  },
+  {
+   "slot": "O3",
+   "jersey": null,
+   "source": "read",
+   "readings": 0,
+   "conflict": null
+  },
+  {
+   "slot": "O4",
+   "jersey": null,
+   "source": "read",
+   "readings": 0,
+   "conflict": null
+  },
+  {
+   "slot": "O5",
+   "jersey": null,
+   "source": "read",
+   "readings": 0,
+   "conflict": null
+  },
+  {
+   "slot": "O6",
+   "jersey": 31,
+   "source": "read",
+   "readings": 1,
+   "conflict": null
+  },
+  {
+   "slot": "O7",
+   "jersey": null,
+   "source": "read",
+   "readings": 0,
+   "conflict": null
+  },
+  {
+   "slot": "D1",
+   "jersey": 99,
+   "source": "read",
+   "readings": 1,
+   "conflict": null
+  },
+  {
+   "slot": "D2",
+   "jersey": null,
+   "source": "read",
+   "readings": 0,
+   "conflict": null
+  },
+  {
+   "slot": "D3",
+   "jersey": null,
+   "source": "read",
+   "readings": 0,
+   "conflict": null
+  },
+  {
+   "slot": "D4",
+   "jersey": 43,
+   "source": "read",
+   "readings": 1,
+   "conflict": null
+  },
+  {
+   "slot": "D5",
+   "jersey": 30,
+   "source": "read",
+   "readings": 1,
+   "conflict": null
+  },
+  {
+   "slot": "D6",
+   "jersey": null,
+   "source": "read",
+   "readings": 0,
+   "conflict": null
+  },
+  {
+   "slot": "D7",
+   "jersey": null,
+   "source": "read",
+   "readings": 0,
+   "conflict": null
+  }
+ ]
+}

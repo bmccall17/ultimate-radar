@@ -1,0 +1,318 @@
+{
+ "schema": "ultimate-radar/identities@1",
+ "possession_id": "p0001",
+ "method": {
+  "module": "ur.identify.vote",
+  "reader": "EasyOCR, English, digits only",
+  "min_read_confidence": 0.3,
+  "min_support": 1.5,
+  "min_margin_fraction": 0.4,
+  "measured": "single-frame OCR was 18.8 % accurate and 60 % precise on 48 crops a human had already read (eval/m4). This votes over the tracklet because the errors scatter and the truth does not.",
+  "null_policy": "docs/04 M5: emit null freely rather than guessing. A wrong number is worse than no number.",
+  "crops_read": 3420
+ },
+ "slots": [
+  {
+   "slot": "O1",
+   "team": "sol",
+   "frames_observed": 244,
+   "frames_with_a_read": 59,
+   "jersey": null,
+   "method": "none",
+   "support": 20.439,
+   "reads": 26,
+   "margin": 0.232,
+   "confidence": 0.0,
+   "why_null": "the top two candidates were too close to separate",
+   "alternatives": [
+    {
+     "jersey": 20,
+     "support": 15.706,
+     "reads": 20
+    },
+    {
+     "jersey": 25,
+     "support": 1.717,
+     "reads": 3
+    },
+    {
+     "jersey": 2,
+     "support": 1.644,
+     "reads": 2
+    }
+   ]
+  },
+  {
+   "slot": "O2",
+   "team": "sol",
+   "frames_observed": 220,
+   "frames_with_a_read": 10,
+   "jersey": 23,
+   "method": "ocr_vote",
+   "support": 5.34,
+   "reads": 6,
+   "margin": 0.556,
+   "confidence": 0.297,
+   "why_null": null,
+   "alternatives": [
+    {
+     "jersey": 2,
+     "support": 2.373,
+     "reads": 3
+    },
+    {
+     "jersey": 21,
+     "support": 0.552,
+     "reads": 1
+    }
+   ]
+  },
+  {
+   "slot": "O3",
+   "team": "sol",
+   "frames_observed": 236,
+   "frames_with_a_read": 19,
+   "jersey": 3,
+   "method": "ocr_vote",
+   "support": 18.683,
+   "reads": 19,
+   "margin": 1.0,
+   "confidence": 1.0,
+   "why_null": null,
+   "alternatives": []
+  },
+  {
+   "slot": "O4",
+   "team": "sol",
+   "frames_observed": 297,
+   "frames_with_a_read": 61,
+   "jersey": 50,
+   "method": "ocr_vote",
+   "support": 32.836,
+   "reads": 39,
+   "margin": 0.858,
+   "confidence": 0.858,
+   "why_null": null,
+   "alternatives": [
+    {
+     "jersey": 5,
+     "support": 4.66,
+     "reads": 6
+    },
+    {
+     "jersey": 60,
+     "support": 2.847,
+     "reads": 5
+    },
+    {
+     "jersey": 80,
+     "support": 1.624,
+     "reads": 3
+    }
+   ]
+  },
+  {
+   "slot": "O5",
+   "team": "sol",
+   "frames_observed": 293,
+   "frames_with_a_read": 36,
+   "jersey": 5,
+   "method": "ocr_vote",
+   "support": 28.101,
+   "reads": 33,
+   "margin": 0.917,
+   "confidence": 0.917,
+   "why_null": null,
+   "alternatives": [
+    {
+     "jersey": 3,
+     "support": 2.325,
+     "reads": 3
+    }
+   ]
+  },
+  {
+   "slot": "O6",
+   "team": "sol",
+   "frames_observed": 225,
+   "frames_with_a_read": 5,
+   "jersey": null,
+   "method": "none",
+   "support": 0.806,
+   "reads": 1,
+   "margin": 0.147,
+   "confidence": 0.0,
+   "why_null": "no candidate cleared the support bar",
+   "alternatives": [
+    {
+     "jersey": 83,
+     "support": 0.688,
+     "reads": 1
+    },
+    {
+     "jersey": 63,
+     "support": 0.475,
+     "reads": 1
+    },
+    {
+     "jersey": 32,
+     "support": 0.418,
+     "reads": 1
+    }
+   ]
+  },
+  {
+   "slot": "O7",
+   "team": "sol",
+   "frames_observed": 181,
+   "frames_with_a_read": 0,
+   "jersey": null,
+   "method": "none",
+   "support": 0.0,
+   "confidence": 0.0,
+   "alternatives": []
+  },
+  {
+   "slot": "D1",
+   "team": "chill",
+   "frames_observed": 256,
+   "frames_with_a_read": 15,
+   "jersey": 4,
+   "method": "ocr_vote",
+   "support": 8.244,
+   "reads": 9,
+   "margin": 0.779,
+   "confidence": 0.643,
+   "why_null": null,
+   "alternatives": [
+    {
+     "jersey": 6,
+     "support": 1.818,
+     "reads": 2
+    },
+    {
+     "jersey": 5,
+     "support": 1.769,
+     "reads": 3
+    },
+    {
+     "jersey": 2,
+     "support": 0.626,
+     "reads": 1
+    }
+   ]
+  },
+  {
+   "slot": "D2",
+   "team": "chill",
+   "frames_observed": 265,
+   "frames_with_a_read": 14,
+   "jersey": null,
+   "method": "none",
+   "support": 3.258,
+   "reads": 4,
+   "margin": 0.267,
+   "confidence": 0.0,
+   "why_null": "the top two candidates were too close to separate",
+   "alternatives": [
+    {
+     "jersey": 6,
+     "support": 2.387,
+     "reads": 4
+    },
+    {
+     "jersey": 4,
+     "support": 1.46,
+     "reads": 3
+    },
+    {
+     "jersey": 3,
+     "support": 0.666,
+     "reads": 2
+    }
+   ]
+  },
+  {
+   "slot": "D3",
+   "team": "chill",
+   "frames_observed": 107,
+   "frames_with_a_read": 1,
+   "jersey": null,
+   "method": "none",
+   "support": 0.532,
+   "reads": 1,
+   "margin": 1.0,
+   "confidence": 0.0,
+   "why_null": "no candidate cleared the support bar",
+   "alternatives": []
+  },
+  {
+   "slot": "D4",
+   "team": "chill",
+   "frames_observed": 330,
+   "frames_with_a_read": 19,
+   "jersey": 5,
+   "method": "ocr_vote",
+   "support": 14.596,
+   "reads": 18,
+   "margin": 0.967,
+   "confidence": 0.967,
+   "why_null": null,
+   "alternatives": [
+    {
+     "jersey": 6,
+     "support": 0.477,
+     "reads": 1
+    }
+   ]
+  },
+  {
+   "slot": "D5",
+   "team": "chill",
+   "frames_observed": 254,
+   "frames_with_a_read": 12,
+   "jersey": 4,
+   "method": "ocr_vote",
+   "support": 9.394,
+   "reads": 12,
+   "margin": 1.0,
+   "confidence": 0.939,
+   "why_null": null,
+   "alternatives": []
+  },
+  {
+   "slot": "D6",
+   "team": "chill",
+   "frames_observed": 195,
+   "frames_with_a_read": 2,
+   "jersey": null,
+   "method": "none",
+   "support": 1.039,
+   "reads": 2,
+   "margin": 1.0,
+   "confidence": 0.0,
+   "why_null": "no candidate cleared the support bar",
+   "alternatives": []
+  },
+  {
+   "slot": "D7",
+   "team": "chill",
+   "frames_observed": 317,
+   "frames_with_a_read": 4,
+   "jersey": null,
+   "method": "none",
+   "support": 1.201,
+   "reads": 3,
+   "margin": 0.635,
+   "confidence": 0.0,
+   "why_null": "no candidate cleared the support bar",
+   "alternatives": [
+    {
+     "jersey": 3,
+     "support": 0.438,
+     "reads": 1
+    }
+   ]
+  }
+ ]
+}

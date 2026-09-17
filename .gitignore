@@ -5,7 +5,7 @@ survey/
 # `work/` is ignored because it holds the footage: clips of somebody else's
 # broadcast, which docs/10-getting-the-footage.md says not to redistribute.
 #
-# **What a human typed is not footage.** Three files in there are pure human
+# **What a human typed is not footage.** Four files in there are pure human
 # input - field coordinates, timestamps, and which end a team attacked - and
 # every one of them is the thing this project is least able to regenerate. AD-6
 # says the correction log is the highest-value training data it can produce and
@@ -22,6 +22,7 @@ work/*/*
 !work/*/corrections.json
 !work/*/events.json
 !work/*/calibration_truth.json
+!work/*/identities.json
 .venv/
 __pycache__/
 *.pyc

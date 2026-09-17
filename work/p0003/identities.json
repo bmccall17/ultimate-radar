@@ -1,0 +1,163 @@
+{
+ "schema": "ultimate-radar/identities@2",
+ "possession_id": "p0003",
+ "note": "Jersey numbers READ OFF THE SHIRT by a human, each against the frame it was read on. A slot is a label the tracker maintains and is not a person, so this is the only referent it has. `readings` is the append-only record; `slots` is the resolution, and it resolves to null where readings disagree rather than picking one - two numbers on one slot is not a tie to break, it is proof the label moved between two people. docs/04 M5: a wrong number is worse than no number.",
+ "readings": [
+  {
+   "id": "j1",
+   "at": "2026-09-17T19:44:54.459Z",
+   "slot": "O5",
+   "f": 204,
+   "t": 13.6,
+   "jersey": 23
+  },
+  {
+   "id": "j2",
+   "at": "2026-09-17T19:45:00.139Z",
+   "slot": "O7",
+   "f": 204,
+   "t": 13.6,
+   "jersey": 50
+  },
+  {
+   "id": "j3",
+   "at": "2026-09-17T19:45:25.859Z",
+   "slot": "O3",
+   "f": 183,
+   "t": 12.2,
+   "jersey": 88
+  },
+  {
+   "id": "j4",
+   "at": "2026-09-17T19:45:31.947Z",
+   "slot": "O4",
+   "f": 183,
+   "t": 12.2,
+   "jersey": 5
+  },
+  {
+   "id": "j5",
+   "at": "2026-09-17T19:45:55.817Z",
+   "slot": "O1",
+   "f": 212,
+   "t": 14.13,
+   "jersey": 28
+  },
+  {
+   "id": "j6",
+   "at": "2026-09-17T19:46:11.801Z",
+   "slot": "O6",
+   "f": 217,
+   "t": 14.47,
+   "jersey": 3
+  },
+  {
+   "id": "j7",
+   "at": "2026-09-17T19:53:44.580Z",
+   "slot": "O2",
+   "f": 209,
+   "t": 13.93,
+   "jersey": 4
+  }
+ ],
+ "slots": [
+  {
+   "slot": "O1",
+   "jersey": 28,
+   "source": "read",
+   "readings": 1,
+   "conflict": null
+  },
+  {
+   "slot": "O2",
+   "jersey": 4,
+   "source": "read",
+   "readings": 1,
+   "conflict": null
+  },
+  {
+   "slot": "O3",
+   "jersey": 88,
+   "source": "read",
+   "readings": 1,
+   "conflict": null
+  },
+  {
+   "slot": "O4",
+   "jersey": 5,
+   "source": "read",
+   "readings": 1,
+   "conflict": null
+  },
+  {
+   "slot": "O5",
+   "jersey": 23,
+   "source": "read",
+   "readings": 1,
+   "conflict": null
+  },
+  {
+   "slot": "O6",
+   "jersey": 3,
+   "source": "read",
+   "readings": 1,
+   "conflict": null
+  },
+  {
+   "slot": "O7",
+   "jersey": 50,
+   "source": "read",
+   "readings": 1,
+   "conflict": null
+  },
+  {
+   "slot": "D1",
+   "jersey": null,
+   "source": "read",
+   "readings": 0,
+   "conflict": null
+  },
+  {
+   "slot": "D2",
+   "jersey": null,
+   "source": "read",
+   "readings": 0,
+   "conflict": null
+  },
+  {
+   "slot": "D3",
+   "jersey": null,
+   "source": "read",
+   "readings": 0,
+   "conflict": null
+  },
+  {
+   "slot": "D4",
+   "jersey": null,
+   "source": "read",
+   "readings": 0,
+   "conflict": null
+  },
+  {
+   "slot": "D5",
+   "jersey": null,
+   "source": "read",
+   "readings": 0,
+   "conflict": null
+  },
+  {
+   "slot": "D6",
+   "jersey": null,
+   "source": "read",
+   "readings": 0,
+   "conflict": null
+  },
+  {
+   "slot": "D7",
+   "jersey": null,
+   "source": "read",
+   "readings": 0,
+   "conflict": null
+  }
+ ]
+}

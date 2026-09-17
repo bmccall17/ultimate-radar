@@ -771,6 +771,51 @@ players astride a line, both far inside the 5 yd the stands gate allows, and the
 docstring now carries both possessions' figures and the observation that actually
 settles it — the frame the tool picks is identical under either rule.
 
+
+### 2.17 What a person saw that no check can: six answers from the footage
+
+**2026-09-17. `docs/32` § 11 run by hand on p0003 and p0009**, because every other
+check in this project compares the page to its own data and these are the ones
+that compare the data to the world. Two of the six are findings; the rest are the
+first evidence that the surface works on real footage.
+
+**Jerseys are legible and sparse, and the sparsity is the result.** On p0003's
+clean frame the bottom three offence shirts are clearly readable and the rest are
+not; on p0009's, four of fourteen — one offence, three defence. So `#4`'s
+referent exists, and **a roster cannot be named from one frame**. The pass has to
+walk a slot until its number turns toward the camera, which makes the unit a span
+rather than a frame for a second, independent reason: § 2.16's was that a slot is
+one label over time, this one is that a shirt is only sometimes facing you.
+Seven of p0003's offence were named this way in an earlier session and confirmed
+correct on this pass; p0009's four are in `work/p0009/identities.json`.
+
+**`D5` is on a referee, p0003 f73.** Selected on the collision frame the fixture
+named, `D5`'s marker sits on the official at the left touchline. This is `#26`'s
+case observed rather than argued, on the frame a tool picked without knowing what
+it would find, and it is what `detach` was built for. The same frame's *fixture*
+collision is `O1` against `O5`, so there are at least two bad slots on it.
+
+**Placement, marks and matchups check out.** Markers land where they are clicked
+and stay consistent; every player on the clean frames has a label and the labels
+are as good as the tracker can make them. The disc indicator is right most of the
+time and is sometimes lost — which is `#8`'s blind stretch seen rather than
+measured, and the measurement already agrees.
+
+**The goal lines come apart when the camera moves quickly, and halfway does not.**
+Field paint on a well-calibrated frame sits clean at the halfway line and jumbles
+at the goal lines under a fast pan. That is a shape, not a level: `confidence` is
+one number for a whole frame, and a fit can be good at the centre of the image
+and wrong at the edges, which is exactly what a homography estimated mostly from
+central paint would do. It also says the error is worst where the endzone is,
+which is where scoring happens and where `docs/08` #5 — the unresolved field
+length — has to be settled from.
+
+Nothing here is gateable yet and one of them may not be gateable at all. What
+they change is where to look: the calibration's *spatial* error has never been
+measured, only its per-frame confidence, and § 2.2's suggestion that the honest
+quantity is "is the halfway line in shot" now has a second half — **and are the
+goal lines still where they should be when it is**.
+
 ## 3. The gates, and which of them fail on purpose
 
 `python -m tools.gates` prints **204 rows, and only 170 of them can fail.** It
