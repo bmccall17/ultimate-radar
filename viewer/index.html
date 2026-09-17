@@ -1823,26 +1823,92 @@ function flashTag(msg){
   el.insertAdjacentHTML("afterbegin",`<div class="issue" id="tagmsg">${msg}</div>`);
   setTimeout(()=>{ const m=document.getElementById("tagmsg"); if(m) m.remove(); }, 2600);
 }
-function renderTags(){
-  const el=document.getElementById("tags");
-  if(!TAGS.length){
-    el.innerHTML=`<div class="empty">Nothing tagged yet. Press <b>t</b> on the frame
+/* The whole list, as one pure function of the two arrays behind it.
+
+   **Both arrays.** This used to render `TAGS` alone - the tags made in this
+   browser tab - and `TAGS` starts empty, so p0001, p0003 and p0009 opened
+   saying "Nothing tagged yet" while publishing 6, 14 and 12 human tags. Those
+   tags reached the metric cards through `allEvents()` and the download button
+   through `D.events`, and never the one pane whose entire job is to say what has
+   been tagged. Somebody was paid to make them and the page hid them from the
+   person they were made for, which also invited a second pass over work already
+   done.
+
+   Pure, and separate from `renderTags` below, because this is the half that can
+   be checked: `tools/tag_list.py` lifts it out of the published page and runs it
+   under node, exactly as `tools/gate_sentence.py` does with the accuracy
+   sentence and for the same reason - the data was right on all three pages and
+   only a render shows you that. The DOM write stays next door, where nothing
+   can test it and nothing needs to. */
+function tagListHtml(published, session, fps, nf){
+  // `events.json` carries `t` and no `f`; an in-session tag carries both. The
+  // frame is what a reader scrubs to, so it is worked out rather than left to
+  // print as `fundefined` - and clamped into the clip the same way every other
+  // t -> frame conversion in this file is, so the number printed beside a tag is
+  // a frame the scrub bar can actually reach.
+  const frame = t => Math.max(0, Math.min(Math.round(t*fps), nf-1));
+  const rows = published.map(g => Object.assign({}, g, {saved:true,
+      f: (g.f === undefined || g.f === null) ? frame(g.t) : g.f}))
+    .concat(session.map(g => Object.assign({}, g, {saved:false})))
+    .sort((a,b)=>a.t-b.t);
+  if(!rows.length){
+    return `<div class="empty">Nothing tagged yet. Press <b>t</b> on the frame
       the disc is released and <b>c</b> on the frame it is caught. You do not need to
       know who — the timing is the part the pipeline cannot see, and knowing it turns
       who threw to whom into a constrained problem the tracking can attempt.
       Select a player first only if you happen to be sure, and that tag becomes a
       hard constraint.</div>`;
-    return;
   }
-  const nAnon = TAGS.filter(g=>!g.player).length;
-  el.innerHTML = TAGS.map((g,i)=>`<div class="issue">
+  const nAnon = rows.filter(g=>!g.player).length;
+  const nGuess = rows.filter(g=>g.player && g.player_inferred).length;
+  const nNew = rows.length - published.length;
+  return rows.map(g=>`<div class="issue">
     <b>${g.type}</b> ${g.player || "<span class='why' style='display:inline'>whoever it was</span>"}
-    @ f${g.f} · ${g.t.toFixed(2)}s</div>`).join("")
+    @ f${g.f} · ${g.t.toFixed(2)}s${g.saved ? "" : ` · <b>this session</b>`}${
+    g.player && g.player_inferred
+      ? ` · <span class='why' style='display:inline'>by elimination</span>` : ""}</div>`).join("")
+    // Said once at the foot rather than under every row it applies to. p0003
+    // carries two, and a paragraph repeated under each reads as two separate
+    // doubts about two separate names when it is one argument covering both.
+    + (nGuess ? `<div class="why" style="display:block;margin-top:6px">${nGuess}
+        name${nGuess===1?" was":"s were"} settled by elimination, not read off a
+        jersey — the moment is somebody's and so is the reasoning, but nobody saw
+        whose jersey that was. Every card built on ${nGuess===1?"it":"them"} says so.</div>` : "")
     + (nAnon ? `<div class="why" style="display:block;margin-top:6px">${nAnon} timing-only
         tag${nAnon===1?"":"s"}. <code>ur.disc</code> works out who from the tracking and
-        reports how sure it is; where it is not sure, it asks.</div>` : "");
+        reports how sure it is; where it is not sure, it asks.</div>` : "")
+    // Which of these survive closing the tab. AD-9 means there is no server, so
+    // a tag is in a file or it is in this tab, and a reader who cannot tell them
+    // apart does not know what leaving costs.
+    + (nNew ? `<div class="why" style="display:block;margin-top:6px">${nNew}
+        tag${nNew===1?" is":"s are"} in this tab only. <b>Download events</b>
+        writes ${published.length ? "all of them, published and new, " : ""}to
+        <code>events.json</code> for the possession directory; nothing else keeps
+        them.</div>`
+      : published.length ? `<div class="why" style="display:block;margin-top:6px">From
+        <code>events.json</code>, published with this page. <b>t</b> and <b>c</b> add
+        to them; <b>Undo tag</b> takes back only what you add here.</div>` : "");
 }
-document.getElementById("tagUndo").onclick = () => { TAGS.pop(); renderTags(); draw(); };
+function renderTags(){
+  document.getElementById("tags").innerHTML =
+    tagListHtml(D.events||[], TAGS, FPS, NF);
+}
+document.getElementById("tagUndo").onclick = () => {
+  // Undo reaches this session's tags and stops. The published ones are a file's
+  // contents, not this tab's, and a button that silently deleted fourteen
+  // curated tags from the list would be offering to lose them - the list would
+  // disagree with `allEvents()`, with the cards, and with what Download writes.
+  if(!TAGS.length){
+    flashTag((D.events||[]).length
+      ? `<b>Nothing to undo in this session.</b> The tags listed below came from
+         <code>events.json</code> and are the published record. To change one,
+         edit that file in the possession directory and rebuild.`
+      : `<b>Nothing tagged yet.</b> Press <b>t</b> on a release and <b>c</b> on
+         the catch.`);
+    return;
+  }
+  TAGS.pop(); renderTags(); draw();
+};
 document.getElementById("tagDl").onclick = () => {
   // The confirmed direction rides along with the tags. It is the same kind of
   // thing - a human statement about the game - and asking for a second download

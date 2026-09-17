@@ -46,7 +46,7 @@ LICENSE files and project pages in September 2026; re-check before release, and 
 | Pipeline architecture reference | **TrackLab** — `TrackingLaboratory/tracklab` | MIT | read it, don't necessarily depend on it |
 | Ingest | **yt-dlp** — `yt-dlp/yt-dlp` | Unlicense | — |
 | Ingest | **ffmpeg / ffprobe** — gyan.dev "full" build 9.0.1 | **GPL-3.0** (that build; see note) | an LGPL build, if we ever link rather than exec |
-| Reading the published page | **Node.js** 24.13.0 — `nodejs/node` | MIT (bundled components all permissive; see note) | none: reading a rendered sentence needs a JS engine, and this is the permissive one |
+| Reading the published page | **Node.js** 24.13.0 — `nodejs/node` | MIT (bundled components all permissive; see note) | none: reading what the page actually prints — the accuracy sentence and the tag list — needs a JS engine, and this is the permissive one |
 
 ### Added in M0 (2026-09-12)
 

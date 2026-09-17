@@ -43,7 +43,7 @@ def doc(**gates) -> dict:
 
 class Extract(unittest.TestCase):
     def test_finds_the_function_in_the_viewer(self):
-        src = GS.extract(VIEWER.read_text(encoding="utf-8"))
+        src = GS.extract(VIEWER.read_text(encoding="utf-8"), GS.FUNC)
         self.assertTrue(src.startswith("function gateSentence"))
         self.assertTrue(src.rstrip().endswith("}"))
 
@@ -51,7 +51,7 @@ class Extract(unittest.TestCase):
         # audit_site turns this into one red row rather than a traceback, so it
         # has to be an exception and not a silent empty string.
         with self.assertRaises(ValueError):
-            GS.extract("<html><body>nothing here</body></html>")
+            GS.extract("<html><body>nothing here</body></html>", GS.FUNC)
 
 
 class Percentages(unittest.TestCase):

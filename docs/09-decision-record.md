@@ -111,7 +111,9 @@ names are the stable handle: AD-7 is `docs/adr/0007-*.md`, never `ADR-0007`.
     and reads what a reader gets. It runs the page's code rather than a copy of it, and
     it takes the measurement away rather than predicting the printed value. Five pages
     printed a rounded `0 %` for recall off a `null`, green through every field-side
-    check. Costs `node` on PATH. See issue #11 and `docs/30` § 2.7.
+    check. Costs `node` on PATH. Applied a second time to the tag list, which asserted
+    "Nothing tagged yet" over 6, 14 and 12 published tags — an invented absence, the same
+    act. See issues #11 and #12, and `docs/30` §§ 2.7-2.8.
 
 ## Licence position
 

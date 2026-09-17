@@ -99,6 +99,9 @@ ISSUE = {
     # The two site checks that read the rendered sentence. docs/30 § 2.7.
     "no unmeasured percentage printed": 11,
     "an unmeasured page says so": 11,
+    # The third rendered-page check, and the same shape of defect one pane over:
+    # the data carried the tags and the list never read them.
+    "published tags show on load": 12,
     "median roster in shot": 6,
     "frames with nothing at all": 6,
     "camera motion is possible": 6,

@@ -39,6 +39,7 @@ from pathlib import Path
 
 from tools import checks as C
 from tools import gate_sentence as GS
+from tools import tag_list as TL
 
 SITE = Path("docs")
 WORK = Path("work")
@@ -221,6 +222,10 @@ def audit(pid: str) -> list[dict]:
             "the site carries a page to read",
             "possession.js is published and index.html is not - the build is "
             "half-done, run tools.build_site")
+        add("published tags show on load", False, f"no {idx}",
+            "the site carries a page to read",
+            "possession.js is published and index.html is not - the build is "
+            "half-done, run tools.build_site")
     else:
         try:
             html = idx.read_text(encoding="utf-8")
@@ -258,6 +263,35 @@ def audit(pid: str) -> list[dict]:
                 "the accuracy sentence is JS, so reading it needs node on PATH "
                 "and a `gateSentence` to find - a gate that cannot run has not "
                 "passed")
+
+    # ---- C3. ...and it shows the tags somebody was paid to make --------------
+    # Same exception to the read-the-data rule, same shape of defect. p0001,
+    # p0003 and p0009 publish 6, 14 and 12 human tags, and all three pages opened
+    # saying "Nothing tagged yet": the list rendered from the in-session array,
+    # which starts empty, while `D.events` reached the metric cards and the
+    # download button and never the pane whose whole job is to say what has been
+    # tagged. B above asks whether the tags changed the artefact and was green
+    # throughout - they did, in the disc stage. This asks whether the reader can
+    # see them, and hiding finished work is also how it gets done twice. #12.
+    if idx.exists():  # the missing-page row is added above, once
+        try:
+            lst = TL.read(idx.read_text(encoding="utf-8"), doc)
+            add("published tags show on load", lst.ok,
+                f"{lst.published} published tag(s), {lst.listed} listed"
+                + lst.fault,
+                "exactly the tags it was given, before a key is pressed, and "
+                "the empty state back once they are taken away",
+                "the tags are in events.json and the reader cannot see them - the "
+                "list is seeded from the in-session array alone")
+        # Broad for the reason the block above is: every way of failing to READ
+        # the page has to land as one red row, not as a traceback that takes the
+        # other rows down with it.
+        except Exception as e:
+            add("published tags show on load", False,
+                f"{type(e).__name__}: {e}".strip()[:160],
+                "the tag list can be rendered and read",
+                "the tag list is JS, so reading it needs node on PATH and a "
+                "`tagListHtml` to find - a gate that cannot run has not passed")
 
     # ---- D. nothing is drawn from an inference that failed its gate ----------
     # Behavioural, not textual: count the frames the viewer would draw a disc

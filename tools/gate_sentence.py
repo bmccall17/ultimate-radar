@@ -20,7 +20,7 @@ formatting would agree with itself and catch nothing, and it would have to
 reproduce JS rounding (half-up) rather than Python's (half-to-even) to avoid
 disagreeing about `12.5`. Instead:
 
-- `extract` lifts `gateSentence` out of the page as source;
+- `page_js.extract` lifts `gateSentence` out of the page as source;
 - `render` executes that source under node against a possession document;
 - `invented` renders the page a second time with **every measurement removed**,
   and hands back whatever percentages survive. A number that survives having its
@@ -35,12 +35,13 @@ here the moment the code behind it would print `0 %` for a null.
 
 from __future__ import annotations
 
-import json
 import re
-import shutil
-import subprocess
-import tempfile
-from pathlib import Path
+
+# The mechanics - find the function, run it under node, strip the markup - are
+# shared with `tools/tag_list.py`, which checks the other rendered pane for the
+# same shape of defect. `extract` and `node` stay reachable as `GS.extract` and
+# `GS.node` because that is what this module's callers already say.
+from tools.page_js import NoNode, extract, node, run, strip_markup  # noqa: F401
 
 FUNC = "gateSentence"
 
@@ -55,43 +56,6 @@ MEASURED_FIELDS = ("per_player_recall", "sigma_containment")
 UNMEASURED = "unmeasured"
 
 _PCT = re.compile(r"(-?\d+(?:\.\d+)?)\s*%")
-_TAG = re.compile(r"<[^>]*>")
-
-
-class NoNode(RuntimeError):
-    """No JS engine, so the sentence cannot be rendered and nothing is proven."""
-
-
-def node() -> str | None:
-    """The node executable, or None. Callers decide what an absence means."""
-    return shutil.which("node")
-
-
-def extract(html: str, name: str = FUNC) -> str:
-    """The source of `function <name>(...)`, brace-matched out of the page.
-
-    Brace counting is naive: a `{` or `}` inside a string literal in the body
-    would throw it off. `gateSentence` has none, and the template literals it
-    does have are balanced. If that ever stops being true the extraction fails
-    loudly here rather than rendering something half-correct - and `audit_site`
-    turns the failure into one red row rather than a traceback.
-    """
-    i = html.find(f"function {name}")
-    if i < 0:
-        raise ValueError(f"no `function {name}` in the page - the viewer's "
-                         "accuracy sentence has been renamed or removed")
-    j = html.find("{", i)
-    if j < 0:
-        raise ValueError(f"`function {name}` has no body")
-    depth = 0
-    for k in range(j, len(html)):
-        if html[k] == "{":
-            depth += 1
-        elif html[k] == "}":
-            depth -= 1
-            if depth == 0:
-                return html[i:k + 1]
-    raise ValueError(f"`function {name}` is never closed")
 
 
 # `window.POSSESSION` is what the published possession.js assigns and what the
@@ -111,20 +75,7 @@ process.stdout.write(
 
 def render(page_html: str, doc: dict) -> str:
     """Run the page's own accuracy sentence against `doc`, return its HTML."""
-    exe = node()
-    if exe is None:
-        raise NoNode("node is not on PATH")
-    src = _HARNESS.replace("__FN__", extract(page_html))
-    with tempfile.TemporaryDirectory() as d:
-        tmp = Path(d)
-        (tmp / "render.js").write_text(src, encoding="utf-8")
-        (tmp / "doc.json").write_text(json.dumps(doc), encoding="utf-8")
-        r = subprocess.run([exe, str(tmp / "render.js"), str(tmp / "doc.json")],
-                           capture_output=True, text=True, encoding="utf-8")
-    if r.returncode:
-        raise RuntimeError("node could not render the sentence: "
-                           + (r.stderr or "").strip()[-400:])
-    return r.stdout
+    return run(page_html, FUNC, _HARNESS, doc)
 
 
 def blanked(doc: dict) -> dict:
@@ -144,7 +95,7 @@ def measured(doc: dict) -> list[str]:
 
 def percentages(sentence: str) -> list[str]:
     """Every percentage a reader can see, in order, with markup stripped."""
-    return _PCT.findall(_TAG.sub("", sentence))
+    return _PCT.findall(strip_markup(sentence))
 
 
 def invented(page_html: str, doc: dict) -> list[str]:

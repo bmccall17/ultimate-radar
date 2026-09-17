@@ -251,15 +251,60 @@ position to the page with its evidence state attached, and then one `Math.round`
 threw the state away. Anywhere a null, a NaN or an empty list passes through
 arithmetic on its way to a reader, the number that lands is a claim nobody made.
 
+### 2.8 The page hid the work somebody was paid to do
+
+p0001, p0003 and p0009 publish 6, 14 and 12 human tags. All three pages opened
+saying **"Nothing tagged yet"**, on a possession somebody had already sat and
+tagged.
+
+The tag list rendered from `TAGS`, the array of tags made in this browser tab,
+which starts empty on every load. The published tags reached the metric cards
+through `allEvents()`, and reached the download button through `D.events`, and
+never reached the one pane whose entire job is to say what has been tagged. The
+data was right on all three pages, every data-side check was green, and § 2.7's
+two rendered-sentence checks were looking at a different pane.
+
+It is the same shape as § 2.7 one pane over — a correct file, a lying render —
+so it gets the same treatment rather than a new one. `tagListHtml(published,
+session, fps, nf)` is now a pure function of its arguments, `tools/tag_list.py`
+lifts it out of the published page and runs it under node, and `published tags
+show on load` counts the rows against the events the page was given. The
+mechanics the two checks share — find the function, run it, strip the markup —
+came out into `tools/page_js.py` at that point, because a second copy of the
+subprocess boilerplate is how the two drift apart.
+
+The gate renders **twice**, and the second render is the half that cannot be
+faked: hand the page the same document with `events` emptied and it has to fall
+back to the empty state. Counting rows alone would pass a page that hardcoded
+the right number of them. And it fails in both directions — a page listing
+*more* rows than it was given is a tag counted twice, which is exactly what
+seeding the in-session array from `D.events` instead of seeding the render would
+do, and is the obvious next way to break this.
+
+One thing the render taught about reading a render. Markup is a **separator**:
+stripping tags to nothing glued `8.47s</div>` and `<div>From` into `8.47sFrom`
+and lost a row the page had rendered correctly and put on the screen. A check
+that reads a page has to read it the way the page is laid out, not the way its
+source happens to concatenate.
+
+Two things beyond the bug. The first is why it matters more than a cosmetic
+miss: tagging is the one part of this project that costs a person's attention,
+and a page that shows no sign of the last pass invites a second one over the same
+possession. The second is the shape of the rule — **evidence that is used is not
+the same as evidence that is shown.** `published tags are used` has been green
+since the day it was written and asks only whether the tags changed the artefact.
+They did, in the disc stage, invisibly. Whether the reader can *see* the work is
+a separate question and now has a separate row. #12.
+
 ---
 
 ## 3. The gates, and which of them fail on purpose
 
-`python -m tools.gates` prints **149 rows, and only 125 of them can fail.** It
+`python -m tools.gates` prints **155 rows, and only 131 of them can fail.** It
 ends on two totals, and they are not the same kind of number:
 
 ```
-111 of 125 failable check(s) pass, 14 failing.
+117 of 131 failable check(s) pass, 14 failing.
 24 informational row(s) report a measurement and no verdict.
 ```
 
@@ -315,7 +360,7 @@ counted as a passing check.
 and on camera motion — they have not been through the impossible-motion check and
 are not published.
 
-### The published site — 62 rows, 59 of them failable, all passing
+### The published site — 68 rows, 65 of them failable, all passing
 
 `tools/audit_site.py`, folded into `python -m tools.gates`. Every other gate in
 this document reads `work/`; these read `docs/`, which is the only thing anybody
@@ -329,6 +374,7 @@ defects that the whole suite was green through.
 | no borrowed gate numbers | numeric gates only on the possession they were measured on | every page shipped p0001's `per_player_recall: 0.9744` in its data. `measured_on` labelled it honestly, but anything reading `possession.js` still got p0001's recall for p0003. The numbers now travel only with their own possession |
 | no unmeasured percentage printed | render the page a second time with **every measurement removed**; no percentage may survive | § 2.7. Five pages printed a rounded `0 %` for recall and sigma containment off `null` fields. These two are the only checks here that read the **rendered sentence** rather than the data behind it, because the data was right and the sentence was not — they run the viewer's own `gateSentence` under node (`tools/gate_sentence.py`), which is why `node` has a row in `docs/07`. Taking the measurement away rather than comparing against an expected value is what makes it catch the bug on p0001 too, where it was latent behind a real 97 %. #11 |
 | an unmeasured page says so | the word `unmeasured` appears in the sentence, on a page with no measurement of its own | § 2.7, the other half. Printing no number is not the same as saying there is none: a gap where a figure would go reads as "fine". Only the five pages with nothing measured carry this row; p0001 has numbers and says so. #11 |
+| published tags show on load | the page lists exactly the tags it was given before a key is pressed, the empty state appears only where there is nothing, and the list falls back to it once those tags are taken away | § 2.8. Three pages published 6, 14 and 12 human tags and all three opened saying "Nothing tagged yet", because the list was seeded from the in-session array alone. The third check here that reads the **rendered page** rather than the data: `tools/tag_list.py` runs the viewer's own `tagListHtml` under node, twice. Four ways to fail — dropping a tag, listing one twice, claiming emptiness over tags that exist, and printing rows that survive having the tags removed. #12 |
 | no disc drawn from the failed inference | every drawn frame rests on a human tag | already true, now locked in — the viewer correctly suppressed all 385 `predicted` frames on p0009 |
 | no disc drawn on a guessed position | the holder's own position is `observed`/`confirmed` on every drawn frame | the check above asks WHO, this asks WHERE, and they are two facts about one frame. p0003 published the disc on a match official at `confirmed`: the tracker lost O2, re-acquired 26.9 yd away over the sideline, and a correct tag about the catch carried the disc there. 3 frames → 0. The tracker's own error is #4; this is the stage that was publishing it |
 | no confirmed disc from an inferred name | no frame renders a `confirmed` disc state from a tag carrying `player_inferred` | the third way a tag is weaker than it looks, after WHO and WHERE: **how the person arrived at the name**. p0003's 21.27–26.33 s holder was settled by elimination, not read off a jersey (§ 2.5 and `docs/27`), and part of that argument is which slots the tracker loses, so `span identity accuracy` already refuses to grade against it. The flag stopped at span resolution. The disc stage saw a human tag and observed coordinates and emitted `confirmed`, so the Mark card said MEASURED about a holder nobody named. 6 frames → 0. The span still draws, at `predicted`, on exactly the frames it drew on before, and every card built on it says the name was inferred. Suppressing it would reopen the display hole that naming it closed. #15 |
