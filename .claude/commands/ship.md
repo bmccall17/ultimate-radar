@@ -52,20 +52,33 @@ contradict it?
 Done when every ADR is accounted for: current, withdrawn with its replacement named, or
 newly written.
 
-## 3. The milestone carries the orchestrator view
+## 3. The plan issue carries the orchestrator view
 
-The open milestone's description is the single page somebody reads to know where the
-sprint stands. Rewrite it from what steps 1 and 2 found, holding, in this order:
+The **board** is the glance surface: who is done, what can be picked up now, what is
+waiting and on what. It lives at the top of the parent plan issue the tickets were cut
+from, between the `ship:board` markers, because that is the one page somebody opens
+when they want to know where the sprint stands. Rewrite everything between those
+markers from what steps 1 and 2 found; leave the plan below the rule alone.
 
-- One sentence on what the sprint is for and the one outcome it is measured by.
-- The **frontier**: every open ticket with no open blocker, by number and title. These
-  can be picked up now.
-- What is blocked, each with the ticket it waits on.
-- What closed since the last `/ship`, each with the gate that closed it.
-- The failable gate total from step 1.
+The board holds, in this order:
+
+- A heading counting done against total, and one line: the gate totals from step 1, and
+  whether the site is live and current.
+- **Done**, each with the outcome it served.
+- **Ready now**: every open ticket with no open blocker. Mark the one on the critical
+  path and the ones that block the sprint outcome.
+- **Blocked**, each with the tickets it waits on, the sprint outcome last.
+- The chains, in one short paragraph: which is the critical path, and which is merely
+  long.
 
 `gh api repos/:owner/:repo/issues/<n> --jq .issue_dependencies_summary.blocked_by`
-gives the live blocker count; an open ticket reading `0` is on the frontier.
+gives the live blocker count; an open ticket reading `0` is ready now. Query every
+ticket rather than reasoning from the last run's board — tickets close between runs,
+and a blocker count is the only thing that knows it.
+
+The milestone description **points at the board and does not copy it**. One sentence on
+what the sprint is for, one on the outcome it is measured by, and a link. Two copies of
+a board means one of them is wrong and no way to tell which.
 
 ### A triage label names a call that has not been made yet
 
@@ -85,12 +98,9 @@ Clear those, and say what the call produced:
 - `ready-for-implement` and `ready-for-human` stay until the work lands, because the
   call they name is the work itself.
 
-Leave the **body** of a parent plan issue as it stands: its labels describe what to do
-next, and only those are this step's business.
-
-Done when the description names every open ticket in the milestone exactly once, every
-triage label in the milestone names a call still waiting to be made, and a reader who
-saw none of this session can tell what to pick up.
+Done when the board names every ticket in the milestone exactly once under the right
+heading, every triage label in the milestone names a call still waiting to be made, and
+a reader who saw none of this session can tell what to pick up from the board alone.
 
 ## 4. The next immediate steps
 
