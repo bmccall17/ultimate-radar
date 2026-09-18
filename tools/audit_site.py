@@ -48,6 +48,7 @@ import sys
 from pathlib import Path
 
 from tools import checks as C
+from tools import field_length as FLEN
 from tools import gate_sentence as GS
 from tools import openness as OP
 from tools import tag_guard as TG
@@ -421,6 +422,23 @@ def audit(pid: str) -> list[dict]:
                 "the openness claim can be rendered and read",
                 "the claim is JS, so reading it needs node on PATH and an "
                 "`opennessClaim` to find - a gate that cannot run has not passed")
+
+    # ---- C3c. ...and the lines across the field say who drew them ----------
+    # #7. The yard comes from the soccer centre circle, so separations, speeds
+    # and every relative shape hold whatever the field's length is. What the
+    # length decides is where the goal lines and the brick sit, and therefore
+    # every claim measured against an endzone. Across thirteen cuts no
+    # possession's paint shows a line within a yard of where either hypothesis
+    # would put a goal line, so the lines on the page are DECLARED - and a page
+    # that draws one and says nothing is asserting an observation nobody made,
+    # which is AGENTS rule 3 about a line instead of a position.
+    #
+    # The fifth check to read the rendered page rather than the data behind it,
+    # and for the reason the other four do: the field block can be right and the
+    # page silent about it. The ablation is what stops the row passing on prose
+    # somebody typed - take `length_source` away and the sentence has to go.
+    out += FLEN.rows(pid, doc.get("field"),
+                     idx.read_text(encoding="utf-8") if idx.exists() else None)
 
     # ---- C4. ...and it refuses a tag nobody could have made -----------------
     # The other half of the tagging pane, and the only check here that is about

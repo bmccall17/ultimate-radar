@@ -138,6 +138,40 @@ def _bounded(work: Path, doc: dict) -> None:
         _say(f"[make_view] + gates are not bounded: {on} is 0.0% hand-placed")
 
 
+def _field_provenance(work: Path, doc: dict) -> None:
+    """Say whether this page's goal lines were observed or declared. #7.
+
+    `ur/calibrate/world.py` registers to the soccer centre circle and the
+    halfway line, so the yard does not come from the ultimate field's length.
+    What `length_yd` decides is where the goal lines sit inside that frame, and
+    every `calibration.json` already carries a verdict on it that nothing ever
+    read. The page draws those lines, so the page has to say which of two things
+    they are.
+
+    Baked in here for the same reason the attacking direction and the bounded
+    flag are: it is a fact about the calibration rather than about the possession
+    document, and the viewer is a single page with no siblings to read (AD-9).
+
+    A working directory with no calibration leaves the field alone rather than
+    asserting `declared`, because "nobody has looked" and "somebody looked and
+    found nothing" are different statements and this is the first one.
+    """
+    from tools import field_length as FLEN
+
+    cal = FLEN.read(work)
+    if cal is None:
+        _say("[make_view] - no calibration.json; the page cannot say whether its "
+             "goal lines were observed")
+        return
+    fld = doc.get("field") or {}
+    fld["length_source"] = FLEN.provenance(cal)
+    fld["length_evidence"] = FLEN.evidence(cal)
+    doc["field"] = fld
+    n = len(fld["length_evidence"]["peaks"])
+    _say(f"[make_view] + goal lines are {fld['length_source'].upper()}: "
+         f"{fld['length_evidence']['verdict']}, {n} x peak(s) in the paint")
+
+
 def compose(work: Path, *, quiet: bool = False) -> tuple[dict, dict | None, dict | None]:
     """Build the page document from `work/`, without deciding where it goes.
 
@@ -219,6 +253,7 @@ def _compose(work: Path) -> tuple[dict, dict | None, dict | None]:
             doc["events_note"] = ev["note"]
 
     _attacking_direction(work, doc)
+    _field_provenance(work, doc)
     _bounded(work, doc)
 
     issues = _maybe(work, "issues.json")

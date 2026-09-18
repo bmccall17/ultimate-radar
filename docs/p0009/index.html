@@ -431,6 +431,17 @@ if (!D) { document.body.innerHTML =
 
 const FPS = D.possession.fps, NF = D.possession.frames;
 const FL = D.field.length_yd, FW = D.field.width_yd, EZ = D.field.endzone_yd;
+// #7. The yard comes from the soccer centre circle, not from the ultimate
+// field's length - so separations, speeds and every relative shape hold whatever
+// the answer is. What FL decides is where the goal lines and the brick sit, and
+// no possession's paint has ever shown a line within a yard of either
+// hypothesis (docs/30 section 2.21). So the lines running across the field are
+// DECLARED from the UFA rulebook, and docs/05 already has a way to draw
+// something nobody saw: dashed. `length_source` is baked in at build time by
+// tools/make_view.py; a page that predates it says nothing and draws solid,
+// which is the old behaviour and not a claim this code invented.
+const GOAL_LINES_OBSERVED = D.field.length_source === "observed";
+const DECLARED_DASH = D.field.length_source === "declared";
 const OFF = D.possession.offense, DEF = D.possession.defense;
 const PL = D.players, BY = Object.fromEntries(PL.map(p => [p.id, p]));
 const IW = D.camera.image_w, IH = D.camera.image_h;
@@ -1187,19 +1198,26 @@ function drawSyntheticScene(P,s){
   // line actually is rather than scaling by depth: project a 4" offset at the midpoint
   // and use the distance. A far line then thins the way a real one does.
   const YD_4IN = 4/36;
-  const line=(a,b)=>{ const p=gp(a[0],a[1]), q=gp(b[0],b[1]); if(!p||!q) return;
+  const line=(a,b,dash)=>{ const p=gp(a[0],a[1]), q=gp(b[0],b[1]); if(!p||!q) return;
     const mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2;
     const dx=b[0]-a[0], dy=b[1]-a[1], L=Math.hypot(dx,dy)||1;
     const n=[-dy/L*YD_4IN, dx/L*YD_4IN];
     const m0=gp(mx,my), m1=gp(mx+n[0],my+n[1]);
     const wpx=(m0&&m1)?Math.hypot(m1[0]-m0[0],m1[1]-m0[1]):1;
+    const w=Math.max(1, Math.min(wpx, 14*s));
     g.beginPath(); g.moveTo(p[0],p[1]); g.lineTo(q[0],q[1]);
     g.strokeStyle="rgba(240,244,238,.86)";
-    g.lineWidth=Math.max(1, Math.min(wpx, 14*s)); g.stroke(); };
+    // Scaled off the drawn width, so a line in the distance dashes at the same
+    // rhythm as one in the foreground instead of turning into a dotted smudge.
+    if(dash) g.setLineDash([Math.max(4, w*5), Math.max(3, w*4)]);
+    g.lineWidth=w; g.stroke(); g.setLineDash([]); };
+  // The sidelines stay solid: the across-pitch half of the venue transform IS
+  // measured, one ultimate sideline at soccer y = -25.95 (docs/08 open question
+  // 5). It is the along-pitch half that is an assumption.
   line([0,0],[FL,0]); line([0,FW],[FL,FW]);
-  [0,EZ,FL-EZ,FL].forEach(x=>line([x,0],[x,FW]));
-  [BRICK,FL-BRICK].forEach(x=>{ line([x-0.7,FW/2],[x+0.7,FW/2]);
-                                line([x,FW/2-0.7],[x,FW/2+0.7]); });
+  [0,EZ,FL-EZ,FL].forEach(x=>line([x,0],[x,FW],DECLARED_DASH));
+  [BRICK,FL-BRICK].forEach(x=>{ line([x-0.7,FW/2],[x+0.7,FW/2],DECLARED_DASH);
+                                line([x,FW/2-0.7],[x,FW/2+0.7],DECLARED_DASH); });
   g.globalAlpha=.4;
   for(let x=EZ+10;x<FL-EZ;x+=10){ line([x,0],[x,0.9]); line([x,FW-0.9],[x,FW]); }
   g.globalAlpha=1;
@@ -1485,8 +1503,11 @@ function drawRadar(){
   }
 
   rctx.strokeStyle=css("--field-line"); rctx.lineWidth=1*RK;
-  for(let x=10;x<FL;x+=10){ rctx.globalAlpha=(x===EZ||x===FL-EZ)?.95:.35;
-    rctx.beginPath(); rctx.moveTo(rx(x),ry(0)); rctx.lineTo(rx(x),ry(FW)); rctx.stroke(); }
+  for(let x=10;x<FL;x+=10){ const goal=(x===EZ||x===FL-EZ);
+    rctx.globalAlpha=goal?.95:.35;
+    if(goal&&DECLARED_DASH) rctx.setLineDash([5*RK,4*RK]);
+    rctx.beginPath(); rctx.moveTo(rx(x),ry(0)); rctx.lineTo(rx(x),ry(FW)); rctx.stroke();
+    rctx.setLineDash([]); }
   rctx.globalAlpha=1;
   rctx.strokeRect(rx(0),ry(0),rx(FL)-rx(0),ry(FW)-ry(0));
   rctx.fillStyle=css("--dim");
@@ -1494,11 +1515,15 @@ function drawRadar(){
   const brick = D.field.brick_yd;
   if(brick){
     rctx.lineWidth=1.2*RK;
+    // The brick is EZ + 20 from a back line nobody has seen, so it moves with
+    // the goal lines and is drawn the same way they are.
+    if(DECLARED_DASH) rctx.setLineDash([2*RK,2*RK]);
     for(const bx of [EZ+brick, FL-EZ-brick]){
       const cx=rx(bx), cy=ry(FW/2), a=3*RK;
       rctx.beginPath(); rctx.moveTo(cx-a,cy); rctx.lineTo(cx+a,cy);
       rctx.moveTo(cx,cy-a); rctx.lineTo(cx,cy+a); rctx.stroke();
     }
+    rctx.setLineDash([]);
   }
   // Which way the offence is going, and where that came from. This started as a
   // hardcoded "attacking →" pointing right on every possession, which was wrong
@@ -3594,6 +3619,40 @@ function provenance(){
                `do not exist for this one, and those numbers are not carried onto ` +
                `this page.`) + `${sw} `;
   }
+  // #7, and it is a smaller claim than it looks. `ur/calibrate/world.py`
+  // registers to the soccer centre circle (a FIFA dimension) and the halfway
+  // line, so the length of a yard does not depend on how long the ultimate
+  // field is. What the length decides is where the goal lines and the brick sit
+  // inside that frame, and therefore every claim measured against an endzone.
+  //
+  // Lifted out as a function so `tools/field_length.py` can run it under node
+  // and read what it says, for the same reason `gateSentence` is one: the
+  // sentence is where a page can be wrong about a field that is right.
+  function fieldSentence(fld){
+    const src = fld.length_source;
+    if(!src) return "";
+    const ev = fld.length_evidence || {};
+    const s = ev.sample || {};
+    if(src === "observed")
+      return `<b>Goal lines observed.</b> ${fld.length_yd} yd field, measured ` +
+             `from the paint in this possession (${ev.why||""}). `;
+    // How much looking produced nothing is the other half of the statement. A
+    // reader told "nobody saw a goal line" with no sample cannot tell one frame
+    // from four hundred. #7's caution, and AD-13's argument about denominators.
+    const n = (ev.peaks||[]).length;
+    const looked = s.recorded
+      ? `${s.frames} frame(s) of paint`
+      : `at most ${s.upper_bound_frames} frame(s) of paint (the map's own count ` +
+        `was not recorded on this calibration)`;
+    return `<b>Goal lines declared, not observed.</b> The lines across the field ` +
+           `are drawn dashed because nobody has seen them: the ${fld.length_yd} yd ` +
+           `length comes from the UFA rulebook, and pooling ${looked} here found ` +
+           `${n} line${n===1?"":"s"} of constant x, none within ` +
+           `${ev.tolerance_yd} yd of where either a 120 yd or a 110 yd field ` +
+           `would put one (docs/30 section 2.21). Separations, speeds and ` +
+           `spacing do not depend on it. Anything measured against an endzone ` +
+           `does. `;
+  }
   // which is the same rule ur/resolve.py::active() uses.
   const undone = new Set(LOG.filter(c=>c.op==="revert").map(c=>c.target));
   const corrected = LOG.filter(c=>c.op!=="revert" && !undone.has(c.id)).length;
@@ -3613,7 +3672,7 @@ function provenance(){
           "you quote a number. "
         : D.gates
           ? gateSentence(D.gates, D.possession.id)
-          : "") + human;
+          : "") + fieldSentence(D.field) + human;
   }
 }
 provenance();

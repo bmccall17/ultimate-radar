@@ -257,3 +257,12 @@ contradiction instead of becoming a value somebody had to pick between.
 goal lines at 20 and 100, `y` 0–53⅓ across. Shared by every possession: the same
 `venue_transform` everywhere, so an `x` in one possession means the same place as
 an `x` in another.
+
+**Declared, not observed** — the 120 and therefore the goal lines at 20 and 100
+come from the UFA rulebook. No possession's paint has ever shown a line within a
+yard of where either a 120 yd or a 110 yd field would put a goal line (`docs/30`
+§ 2.21), so `field.length_source` is `declared` on every published page and the
+lines are drawn dashed. The *yard itself* is measured: M1 registers to the soccer
+centre circle, so separations, speeds and every relative shape hold whichever
+answer is right. What rests on the assumption is anything measured against an
+endzone.

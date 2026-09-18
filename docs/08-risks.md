@@ -156,8 +156,21 @@ by face or name; any tactical judgement the tool would be asserting rather than 
    moving from 20 yd to 15 yd. Breese Stevens is a soccer pitch, and soccer pitches run
    110–120 yd, so this is a live possibility rather than a technicality. The broadcast camera
    never frames both endzones at once, and the venue publishes no dimensions.
-   **This is now the highest-leverage unknown in the project: every field coordinate depends
-   on it.**
+   **Still open, and smaller than this entry claimed. Rescoped 2026-09-18 under #7;
+   `docs/30` § 2.21 has the measurement.** The line above used to read "every field
+   coordinate depends on it", and that is wrong. M1 registers to the soccer centre circle
+   (`CENTRE_CIRCLE_R = 10.0066 yd`, a FIFA dimension) and the halfway line, so **the length
+   of a yard comes from the circle**, not from the ultimate field. A 110 yd answer leaves
+   separations, speeds, spacing and every relative shape exactly where they are. What it
+   moves is where `goal_lines` puts the goal lines inside that frame, and therefore every
+   claim measured against an endzone: deep and goal-side, the brick, distance to score,
+   a throw quoted as ground gained.
+   **Run across all thirteen cuts, nothing resolves it**, so the published goal lines are
+   **declared** from the rulebook. Every page now says so, in those words, and draws them
+   dashed. Two lines of constant x do recur in the paint, at |x| ≈ 38.0 and ≈ 42.7, in eight
+   and six possessions — neither within a yard of either hypothesis, and most likely the
+   soccer penalty area and its arc. § 2.21 carries the argument and the 0.6 yd it does not
+   explain.
    **M1 attempted it and could not settle it — see `docs/12-m1-calibration.md`.** With every
    frame calibrated to 0.15 yd, all the paint in the possession was back-projected into one
    pooled map (413 529 pixels from 169 frames). Its x marginal is a single spike at the
@@ -167,9 +180,9 @@ by face or name; any tactical judgement the tool would be asserting rather than 
    where a 120 yd field's goal line would be, against a calibration good to 0.15 yd — so
    they are noise, and the decision tolerance was tightened so they cannot vote.
    **Next step: calibrate a second possession framed near an endzone**;
-   `survey/random/010_t1615.7.png` is such a shot. Until then `clip.json` carries the
-   rulebook default, 120 yd, which may be wrong, and the *along-pitch* half of the venue
-   transform is an assumption. The *across-pitch* half is now measured: one ultimate
+   `survey/random/010_t1615.7.png` is such a shot, and is still not cut. Until then
+   `clip.json` carries the rulebook default, 120 yd, which may be wrong, and the
+   *along-pitch* half of the venue transform is an assumption the pages now admit to. The *across-pitch* half is now measured: one ultimate
    sideline at soccer y = −25.95 yd, 0.72 yd off centred.
 6. **Is the field frame possession-relative or venue-fixed?** `calibration.json` stores a
    homography into "field yards", but the field frame's origin and `+x` are defined by the

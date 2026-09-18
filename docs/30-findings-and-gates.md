@@ -999,23 +999,128 @@ if the row ever changes again. The no-op case is tested first and deliberately:
 all six published pages pass unchanged, which is what stops this being a tripwire
 somebody turns off.
 
+### 2.21 The goal lines are declared, and two lines nobody identified keep turning up
+
+**2026-09-18, #7.** `docs/08` open question 5 has stood since M0: is Breese
+Stevens a 120 yd field or the 110 yd venue exception, with the note that **every
+field coordinate depends on the answer**. That note is wrong, and
+`ur/calibrate/world.py` says why. M1 registers to the **soccer centre circle**,
+`CENTRE_CIRCLE_R = m(9.15) = 10.0066 yd`, and the halfway line. Both are FIFA
+dimensions. So the length of a yard comes from the circle, and a 110 yd answer
+does not change how long a yard is.
+
+**What the answer does move**, and it is a short list. `goal_lines` returns
+`(20, length - 20)`, so the answer decides where the ultimate goal lines and the
+brick sit inside a frame that is already right. Separation, speed, spacing and
+every relative shape are untouched, and those are what the project is looking
+for. Anything measured against an endzone is not: deep and goal-side, the brick,
+how far a receiver is from scoring, a throw quoted as ground gained.
+
+**The machinery to settle it already existed and nobody had read its answer.**
+`venue.decide_field_length` pools every paint pixel in a possession into one
+ground-plane map and looks for lines of constant x. A goal line should sit
+40 yd from the halfway line on a 120 yd field and 35 on a 110, and the tolerance
+is 1 yd because the per-frame calibration residual is 0.15. Every
+`calibration.json` has carried a verdict since M1. Nothing read them together,
+and nothing put the answer on a page.
+
+**Run across every calibrated working directory: not one resolves.** That is
+thirteen cuts and one superseded copy of p0003, and every one says
+`unresolved`. So **the published goal lines are declared from the UFA rulebook,
+not observed off the grass**, and until 2026-09-18 six published pages drew them
+as though somebody had seen them.
+
+**And the paint is not empty, which is the part worth keeping.** Two lines of
+constant x recur across the cuts:
+
+| possession | confident frames | x peaks near a goal line (yd from halfway) |
+|---|---|---|
+| p0001 | 345 | +38.15, +43.15 |
+| p0003 | 398 | −38.05, −42.45 |
+| p0004 | 292 | −37.75 |
+| p0009 | 388 | +37.65, +42.85 |
+| p0010 | 123 | +38.35 |
+| p0014 | 158 | −37.85, −42.55 |
+| p0015 | 279 | −37.95, −42.55, +38.05, +42.45 |
+| p0016 | 55 | −37.75, −41.75, +38.65 |
+
+Eight of the thirteen live cuts find a line at |x| ≈ **38.0**, ten readings
+spread 37.65 to 38.65. Six find a second at |x| ≈ **42.7**, seven readings spread
+41.75 to 43.15. p0015 finds both, on both sides, symmetric about the halfway line
+to within 0.1 yd. Independent possessions, independent pooled maps, the same two
+distances: that is not noise, whatever it is.
+
+**Neither is a goal line under either hypothesis.** 38.0 is 2.0 yd from where a
+120 yd field puts one and 3.0 from a 110, against a calibration good to 0.15.
+42.7 is 2.7 and 7.7. The existing rule rejects them twice over — outside the 1 yd
+tolerance, and under 5 % of the halfway line's support — and it is right both
+times.
+
+**The likeliest explanation is that they are soccer paint, and it does not quite
+fit.** A FIFA penalty area is 16.5 m = 18.04 yd from the goal line and the
+penalty arc's apex is 11 m + 9.15 m = 22.04 yd from it, so on a pitch whose half
+length is L/2 they appear at L/2 − 18.04 and L/2 − 22.04: a pair of lines
+**3.99 yd apart**, symmetric about halfway, which is the shape observed. The
+observed separation is **4.61 yd**, mean over the seven pairs in the six
+possessions that see both, and it ranges 4.00 to 5.20. 0.6 yd is four times the
+calibration residual, so this is a hypothesis carrying an error it does not
+explain, not an identification. It is written down because
+the next person to look at these peaks should start from it and not from
+scratch.
+
+**What that says about `decide_field_length`.** It excludes the centre circle
+from both marginals and nothing else. Every other line on a shared venue is
+soccer paint, and the function has no way to say "that is a penalty area, not a
+goal line" — it can only reject on distance and support. On this footage the
+rejection happens to be right. On a venue where a soccer line fell within a yard
+of 40, it would resolve open question 5 confidently and wrongly.
+
+**What is published instead.** `tools/make_view.py` bakes
+`field.length_source` and the whole evidence block into every page at build
+time, the same way the attacking direction and the bounded flag are baked in
+(AD-9). The viewer draws the goal lines, the back lines and the brick **dashed**
+where the source is `declared`, which is the convention the page's own legend
+already carries: solid is observed, dashed is an estimate. And `fieldSentence`
+prints the claim in as many words, with the sample it rests on.
+
+**The caution #7 raised, honoured and then found to be unmeetable.** The ticket
+asked that any measurement here report how many frames it rests on.
+`decide_field_length` never recorded that, so the six published calibrations
+carry a verdict and no sample. It records `frames` and `paint_points` from
+2026-09-18, and until a possession is recalibrated the page says **at most N
+frames** off the confident-frame count and says plainly that the map's own count
+was not recorded. An upper bound labelled as one is worth more than a number
+that looks measured.
+
+**Three rows, and the gate is about honesty rather than about the answer.**
+Nobody has the answer and no gate should demand it. `goal lines say which they
+are` requires every published page to carry `observed` or `declared`, and
+refuses `observed` from a page with no measurement behind it — the one way to
+cheat a label is to type the stronger word. `the page says which they are` runs
+the page's own `fieldSentence` under node, the fifth check to read a rendered
+page rather than the data behind it, because the field block can be right and
+the page silent; the ablation is what makes it a test, since a sentence that
+survives `length_source` being taken away is prose somebody typed that happens
+to be true today. `...goal lines found in the paint` reports and judges nothing.
+
+---
+
 ---
 
 ## 3. The gates, and which of them fail on purpose
 
-`python -m tools.gates` prints **214 rows, and only 179 of them can fail.** It
+`python -m tools.gates` prints **232 rows, and only 191 of them can fail.** It
 ends on two totals, and they are not the same kind of number:
 
 ```
-165 of 179 failable check(s) pass, 14 failing.
-35 informational row(s) report a measurement and no verdict.
+177 of 191 failable check(s) pass, 14 failing.
+41 informational row(s) report a measurement and no verdict.
 ```
 
 The fourteen failures are every one either a known-unpublished possession or a
-documented open problem, and the tables below say which. The twenty-four
-informational rows are **measurements** — numbers with no threshold to hold them
-to — and the first table below names all twenty-four and what each is waiting
-for.
+documented open problem, and the tables below say which. The informational rows
+are **measurements** — numbers with no threshold to hold them
+to — and the first table below names each kind and what it is waiting for.
 
 Until 2026-09-16 those twenty-four were built as gates with an unconditional
 pass. They printed `[PASS]`, they counted into one total of 132, and that total
@@ -1029,8 +1134,8 @@ where a new check picks its kind.
 
 ### The rows that cannot fail, and what each is waiting for
 
-Twenty-four rows, four kinds. Each reports a number the run is better for
-carrying, and none of them can be a gate today. What is in the last column is
+Five kinds. Each reports a number the run is better for carrying, and none of
+them can be a gate today. What is in the last column is
 what would make one failable — and until that exists, a threshold on it would be
 a number chosen to make current output pass, which is the first of the three
 things the brief asks not to happen.
@@ -1042,6 +1147,7 @@ things the brief asks not to happen.
 | `...quarters confirmed` | 1 | how many quarters have a human-confirmed attacking direction — today **0 of 4** | an unconfirmed quarter claims nothing, so there is nothing to contradict. Gating it would fail every possession cut before somebody got round to watching it, and a queue is not a defect | confirming becoming part of cutting a possession rather than a backlog. Then `0 of 4` **is** a defect, the threshold is *all of them*, and it moves to the failable total under #5 |
 | `...slots on somebody off the field` | 10, one per possession | the share of matched slot-frames whose detection sits outside the lines — p0003 **7 %**, p0001 and p0005 **0 %** | AD-3 puts a two-yard margin outside the sidelines on purpose: a thrower plants a pivot foot on the line. So "outside" is not by itself wrong and no fraction of it is defensibly the limit. The row exists to stop `coverage` being believed — p0003 at 28.67 s reads `14/14` over a frame with ten players on it, because the bench and the camera crew stand inside that margin | #29. Probably arithmetic rather than tolerance: at most fourteen people can be on the field, so a two-yard band holding twenty-six detections is a crowd by counting. That needs measuring across possessions before it is a threshold |
 | `...longest blind stretch` | 3, the published possessions carrying human tags | the longest stretch inside the tagged region where a reader sees no disc at all | still no principled threshold, and **two candidates were tried and rejected on 2026-09-17** — see below. A number picked because it happened to fail p0003 is tuning a constant to produce a verdict, backwards | a tolerance somebody decides and can defend, or a full repair pass becoming part of publishing a possession. #8 supplied the *remedy* and not the threshold |
+| `...goal lines found in the paint` | 6, one per published page | how many lines of constant x the possession's pooled paint put within 1 yd of a goal line under either hypothesis, and the paint sample it rests on — today **0** on every one | there is no count that makes a possession wrong. The camera never frames an endzone and the halfway line together, so demanding a goal line demands footage that does not exist. § 2.21 | a cut whose paint shows one. `survey/random/010_t1615.7.png` is such a shot and is not cut. Then the threshold is *at least one*, and it moves under #7 |
 
 The count moves with the work: ten possessions in `work/`, so ten of each
 per-possession row, and a fourth published possession with tags adds a fourth
@@ -1102,7 +1208,7 @@ p0006, p0007, p0008 and p0010 on coverage
 and on camera motion — they have not been through the impossible-motion check and
 are not published.
 
-### The published site — 92 rows, 89 of them failable, all passing
+### The published site — 110 rows, 101 of them failable, all passing
 
 `tools/audit_site.py`, folded into `python -m tools.gates`. Every other gate in
 this document reads `work/`; these read `docs/`, which is the only thing anybody
@@ -1118,6 +1224,8 @@ defects that the whole suite was green through.
 | an unmeasured page says so | the word `unmeasured` appears in the sentence, on a page with no measurement of its own | § 2.7, the other half. Printing no number is not the same as saying there is none: a gap where a figure would go reads as "fine". Only the five pages with nothing measured carry this row; p0001 has numbers and says so. #11 |
 | published tags show on load | the page lists exactly the tags it was given before a key is pressed, the empty state appears only where there is nothing, and the list falls back to it once those tags are taken away | § 2.8. Three pages published 6, 14 and 12 human tags and all three opened saying "Nothing tagged yet", because the list was seeded from the in-session array alone. The third check here that reads the **rendered page** rather than the data: `tools/tag_list.py` runs the viewer's own `tagListHtml` under node, twice. Four ways to fail — dropping a tag, listing one twice, claiming emptiness over tags that exist, and printing rows that survive having the tags removed. #12 |
 | a self-pass is always refused | the page's own guard refuses a catch naming the player of the preceding throw, whether that throw is published or made in this session, and still takes a catch naming anybody else | § 2.9. The guard read only the tags made in the current browser tab, so a throw in `events.json` was invisible to it, and § 2.8 is what made that reachable. The fourth check to read the published page, and the only one about what the page **refuses** rather than what it says. It has to construct its own failure — every `events.json` in `work/` is correct — so it runs four invented scenarios off the page's own roster, two of which exist to stop a guard that refuses everything, or refuses regardless of its input, from passing. #25 |
+| goal lines say which they are | every published page carries `field.length_source`, `observed` or `declared`, and `observed` only where the calibration measured a line | § 2.21. Thirteen cuts, no verdict on any of them, and six pages drawing a goal line as though somebody had seen it. The yard comes from the soccer centre circle so separations and speeds hold either way; what a declared length moves is every claim measured against an endzone. The gate refuses `observed` without the measurement because the one way to cheat a label is to type the stronger word. #7 |
+| the page says which they are | the page's own `fieldSentence` prints the source, and prints nothing once `length_source` is taken away | § 2.21, and the fifth check here to read the **rendered page** rather than the data behind it. The field block can be right and the page silent, which is § 2.7 from the other side. The ablation is the test: a sentence that survives its data being removed is prose somebody typed that happens to be true today. #7 |
 | no measured claim over an unseen defender | no openness claim badges `measured` while any defender is outside `observed`/`confirmed`; a defence the page can see whole reaches a measured badge, and blinding one slot takes every measured badge away | § 2.19. p0001 at 15.867 s printed 5.1 yd as MEASURED with D5 dead-reckoned and unnamed. A nearest-defender number is a **minimum over the defensive set**, so the badge rests on all seven and the missing ones are named as people. The fifth check to read the **rendered page**: `tools/openness.py` runs the viewer's own `opennessCard` — the strings, not the numbers under them — over every frame and every attacker, and asserts both promises, the badge and the naming. Three scenarios, because the published page passing proves only that it makes no such claim today — and the positive one is constructed, since p0005 makes no measured claim at all on any of its 450 frames. #14 |
 | no disc drawn from the failed inference | every drawn frame rests on a human tag | already true, now locked in — the viewer correctly suppressed all 385 `predicted` frames on p0009 |
 | no disc drawn on a guessed position | the holder's own position is `observed`/`confirmed` on every drawn frame | the check above asks WHO, this asks WHERE, and they are two facts about one frame. p0003 published the disc on a match official at `confirmed`: the tracker lost O2, re-acquired 26.9 yd away over the sideline, and a correct tag about the catch carried the disc there. 3 frames → 0. The tracker's own error is #4; this is the stage that was publishing it |

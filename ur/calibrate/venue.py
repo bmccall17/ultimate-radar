@@ -164,6 +164,14 @@ def decide_field_length(pm: PaintMap) -> dict:
     answer["all_x_peaks"] = [{"x_yd": round(p["x_yd"], 3),
                               "count": round(p["count"], 1),
                               "prominence": round(p["prominence"], 2)} for p in peaks]
+    # The denominator, recorded rather than left to be inferred. #7's caution is
+    # that the endzone-framed footage is the footage where the calibration is
+    # weakest, so a verdict here means nothing without the sample it rests on -
+    # and every calibration written before 2026-09-18 carries the verdict and
+    # not the sample, which is why `tools/field_length.py` has to say "not
+    # recorded" for six published possessions.
+    answer["sample"] = {"frames": pm.n_frames, "paint_points": pm.n_points,
+                        "bin_yd": BIN_YD}
     return answer
 
 

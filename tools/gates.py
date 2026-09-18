@@ -127,6 +127,12 @@ ISSUE = {
     "...slots on somebody off the field": 29,
     # The first calibration ground truth this project has ever had.
     "...paint is where the model says": 30,
+    # #7. Neither can fail while the goal lines are honest about being declared;
+    # they are mapped so that a page that starts claiming an observation, or
+    # stops saying anything at all, lands on the ticket that argued it out.
+    "goal lines say which they are": 7,
+    "the page says which they are": 7,
+    "...goal lines found in the paint": 7,
     # Counting events, frames and a direction could not see a value change, and
     # the audit walked a doctored page past all eight site checks. #13 gave the
     # row a content digest; mapped so the next drift has a ticket to land on.
