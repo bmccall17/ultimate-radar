@@ -1105,15 +1105,135 @@ to be true today. `...goal lines found in the paint` reports and judges nothing.
 
 ---
 
+### 2.22 The page said nobody had touched it, over 181 hand-placed positions
+
+**2026-09-18, #31, found while writing down what a stranger would see on p0003
+for #24.** That page carries **15 applied corrections** placing **181 positions
+across 165 of its 555 frames**, 30 % of the possession. It printed:
+
+> 0 human corrections applied.
+
+`const LOG = []` starts empty in the browser and nothing ever seeded it from
+`D.corrections_applied`, so the line counted this session's edits and nothing
+else. Five of the six published pages have no corrections, so five of them said
+zero and were right, and the sixth said zero and was not.
+
+**It is § 2.8 one pane over, and worse in the direction that matters.** There the
+tag list rendered from the in-session array and said "Nothing tagged yet" over
+fourteen published tags. Same root cause, same shape. But hiding tags only wastes
+work somebody was paid for, and hiding corrections **overstates the machine**: a
+reader was told the tracker produced something a person had placed a third of.
+And it landed on the one page the sprint's cold read is about, where question 5
+asks a stranger which parts the tool told them it was guessing at.
+
+**Why no gate saw it, and the distinction is the useful part.**
+`corrections reached the page` has been green throughout and is correct: it
+compares `corrections.json` against `possession.json`, asking whether the
+pipeline replayed the log. Whether the **reader** is told is a different
+question, and only the rendered string answers it. That is now six checks reading
+the rendered page rather than the data behind it, and every one of them was the
+same discovery: a correct file, and a page saying something the file does not
+support.
+
+**Two numbers, because they are two facts.** `ur/human.py::count` counts
+(slot, frame) cells, which is what AD-13 excludes from a grading sample. How much
+of the *clip* a hand reached is the union of those frames, which is what a reader
+is asking. Two markers moved on one frame is two cells and one frame, and quoting
+either alone reads as the other, so the page prints both: **15 corrections,
+placing 181 positions across 165 of 555 frames (30 %)**. Operations would have
+been the third and worst choice - one anchor moves every frame between the
+bracketing observations (`docs/05`'s ramp), so "15" understates it by an order of
+magnitude.
+
+**The first version of `tools/cold_read.py` reproduced the bug it was written to
+expose.** It read `disc_meta.human` alone and reported `0 hand-placed frames` over
+the same possession. The count now goes through `tools/corrections_line.py`, which
+is the module the check uses, so there is one answer rather than two.
+
+**The row, and the ablation that makes it a test.** `the page counts the hand in
+it` renders the page's own `correctionsLine` twice: once as published, and once
+with every correction and every hand-placed frame taken away. A sentence that says
+the same thing both times is a sentence nobody seeded, which is AD-11 in the
+costume `tools/openness.py` names. Three faults are separable - the correction
+count missing, the frame count missing, the position count missing - so the row
+says which.
+
+---
+
+### 2.23 What p0003 looked like on the day nobody had read it
+
+**2026-09-18, for #24.** The ticket was amended on 2026-09-17 to read the page
+**unrepaired**, and that amendment is what makes this section necessary. A
+stranger reading a page somebody spent hours hand-placing tells you what a person
+can make the pipeline look like. A stranger reading the page as it stands tells
+you what the pipeline produces with its gaps showing, and that only stays a fact
+if the gaps are written down **before** the read - afterwards, every answer
+invites an argument about whether the page was showing that at the time.
+
+`python -m tools.cold_read p0003` produced this, at the commit that carries it:
+
+**p0003 as it stands.** 555 frames at 15 fps (37.0 s), 14 published tags, **15 human corrections placing 181 positions across 165 of 555 frames** (30 %). **#24's first acceptance criterion asks for a page with no repair pass, and this is not one.**
+
+**The disc.** Drawn on 184 of 555 frames. 15 stretch(es) with no disc at all, the longest 7.87 s. A reader asked about the last throw is reading the video through those.
+
+| from | to | length |
+|---|---|---|
+| 0.0 s | 5.67 s | 5.67 s |
+| 5.73 s | 6.53 s | 0.8 s |
+| 6.6 s | 6.93 s | 0.33 s |
+| 7.0 s | 7.33 s | 0.33 s |
+| 7.4 s | 7.73 s | 0.33 s |
+| 7.8 s | 8.13 s | 0.33 s |
+| 8.2 s | 8.53 s | 0.33 s |
+| 8.6 s | 10.4 s | 1.8 s |
+| 16.13 s | 16.87 s | 0.73 s |
+| 18.13 s | 18.4 s | 0.27 s |
+| 19.27 s | 27.13 s | 7.87 s |
+| 30.13 s | 31.47 s | 1.33 s |
+| 31.53 s | 31.67 s | 0.13 s |
+| 32.07 s | 32.33 s | 0.27 s |
+| 32.8 s | 37.0 s | 4.2 s |
+
+**What the cards admit.** 268 of 2771 openness claims reach a measured badge; the other 2503 say inferred and name the slot they could not see (AD-15). Question 5 is about whether that is believed.
+
+**The repair queue, unopened: 91 items.** 48 x `unverified_stretch`, 24 x `long_blind_stretch`, 18 x `reacquire_surprise`, 1 x `cold_start`.
+
+**Jerseys.** 7 of 14 slots carry a number read off a shirt (O1, O2, O3, O4, O5, O6, O7), 0 a voted one, 7 none at all. Not a blocker: the brief's non-goals put the tactical meaning on the slot, so `D3` answers question 2.
+
+**What the page says about itself.** Attacking direction **unverified**. Accuracy measured on `p0001` and **unmeasured here**. Goal lines **declared**.
+
+**And the first acceptance criterion is not met.** "p0003 is published as the
+pipeline produces it, with no repair pass." It is not: a repair pass ran on
+2026-09-17 and placed 181 positions across 30 % of the possession. Whoever runs
+the read has two honest options and this document does not choose between them:
+
+1. **Revert and republish.** `ur/resolve.py --verify-revert` reproduces the
+   uncorrected output byte for byte, so the repairs can come out and go back.
+   The read then measures the pipeline, which is what the amendment asked for,
+   and the preparation hours are close to zero as the ticket predicts.
+2. **Read it as it stands and say so.** The numbers then describe a
+   *hand-corrected* page, the preparation hours are whatever that pass cost, and
+   the result answers the pre-amendment question instead. Still worth having;
+   just not the same finding.
+
+What is not an option is reading it as it stands and reporting it as unrepaired,
+which is what would have happened had the page kept saying zero.
+
+**The answers go here when the read happens**, verbatim, including the wrong
+ones, with the reader named and the preparation hours beside them. § 2.17 is the
+format: six answers from the footage, written down as given.
+
+---
+
 ---
 
 ## 3. The gates, and which of them fail on purpose
 
-`python -m tools.gates` prints **232 rows, and only 191 of them can fail.** It
+`python -m tools.gates` prints **238 rows, and only 197 of them can fail.** It
 ends on two totals, and they are not the same kind of number:
 
 ```
-177 of 191 failable check(s) pass, 14 failing.
+183 of 197 failable check(s) pass, 14 failing.
 41 informational row(s) report a measurement and no verdict.
 ```
 
@@ -1208,7 +1328,7 @@ p0006, p0007, p0008 and p0010 on coverage
 and on camera motion — they have not been through the impossible-motion check and
 are not published.
 
-### The published site — 110 rows, 101 of them failable, all passing
+### The published site — 116 rows, 107 of them failable, all passing
 
 `tools/audit_site.py`, folded into `python -m tools.gates`. Every other gate in
 this document reads `work/`; these read `docs/`, which is the only thing anybody
@@ -1224,6 +1344,7 @@ defects that the whole suite was green through.
 | an unmeasured page says so | the word `unmeasured` appears in the sentence, on a page with no measurement of its own | § 2.7, the other half. Printing no number is not the same as saying there is none: a gap where a figure would go reads as "fine". Only the five pages with nothing measured carry this row; p0001 has numbers and says so. #11 |
 | published tags show on load | the page lists exactly the tags it was given before a key is pressed, the empty state appears only where there is nothing, and the list falls back to it once those tags are taken away | § 2.8. Three pages published 6, 14 and 12 human tags and all three opened saying "Nothing tagged yet", because the list was seeded from the in-session array alone. The third check here that reads the **rendered page** rather than the data: `tools/tag_list.py` runs the viewer's own `tagListHtml` under node, twice. Four ways to fail — dropping a tag, listing one twice, claiming emptiness over tags that exist, and printing rows that survive having the tags removed. #12 |
 | a self-pass is always refused | the page's own guard refuses a catch naming the player of the preceding throw, whether that throw is published or made in this session, and still takes a catch naming anybody else | § 2.9. The guard read only the tags made in the current browser tab, so a throw in `events.json` was invisible to it, and § 2.8 is what made that reachable. The fourth check to read the published page, and the only one about what the page **refuses** rather than what it says. It has to construct its own failure — every `events.json` in `work/` is correct — so it runs four invented scenarios off the page's own roster, two of which exist to stop a guard that refuses everything, or refuses regardless of its input, from passing. #25 |
+| the page counts the hand in it | the sentence names the corrections the file carries and the positions and frames they placed, and says none over a document with none | § 2.22. p0003 printed `0 human corrections applied` over 15 applied corrections and 181 hand-placed positions, because `LOG` starts empty in the browser and nothing seeded it. § 2.8 one pane over, and worse: hiding tags wastes work, hiding corrections overstates the machine. The sixth check here to read the **rendered page**. `corrections reached the page` in the pipeline suite was green throughout and is right to be — it asks whether `possession.json` replayed the log, which is a different question from whether the reader is told. #31 |
 | goal lines say which they are | every published page carries `field.length_source`, `observed` or `declared`, and `observed` only where the calibration measured a line | § 2.21. Thirteen cuts, no verdict on any of them, and six pages drawing a goal line as though somebody had seen it. The yard comes from the soccer centre circle so separations and speeds hold either way; what a declared length moves is every claim measured against an endzone. The gate refuses `observed` without the measurement because the one way to cheat a label is to type the stronger word. #7 |
 | the page says which they are | the page's own `fieldSentence` prints the source, and prints nothing once `length_source` is taken away | § 2.21, and the fifth check here to read the **rendered page** rather than the data behind it. The field block can be right and the page silent, which is § 2.7 from the other side. The ablation is the test: a sentence that survives its data being removed is prose somebody typed that happens to be true today. #7 |
 | no measured claim over an unseen defender | no openness claim badges `measured` while any defender is outside `observed`/`confirmed`; a defence the page can see whole reaches a measured badge, and blinding one slot takes every measured badge away | § 2.19. p0001 at 15.867 s printed 5.1 yd as MEASURED with D5 dead-reckoned and unnamed. A nearest-defender number is a **minimum over the defensive set**, so the badge rests on all seven and the missing ones are named as people. The fifth check to read the **rendered page**: `tools/openness.py` runs the viewer's own `opennessCard` — the strings, not the numbers under them — over every frame and every attacker, and asserts both promises, the badge and the naming. Three scenarios, because the published page passing proves only that it makes no such claim today — and the positive one is constructed, since p0005 makes no measured claim at all on any of its 450 frames. #14 |

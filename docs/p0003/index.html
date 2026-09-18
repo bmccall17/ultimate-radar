@@ -3653,10 +3653,51 @@ function provenance(){
            `spacing do not depend on it. Anything measured against an endzone ` +
            `does. `;
   }
+  // Lifted out for the reason `gateSentence` and `fieldSentence` are: this is
+  // the sentence that was wrong while every field behind it was right, so the
+  // check has to read what it prints rather than a Python copy of the rule.
+  //
+  // Frames, not operations, and that is the number that matters. One anchor
+  // moves every frame between the bracketing observations (docs/05's ramp, and
+  // `ur/human.py` on why the mark is per frame), so "15 corrections" understates
+  // a third of the possession. AD-13 excludes those frames from every grading
+  // sample; a reader deciding how much of what they are looking at is a person's
+  // work needs the same count.
+  function correctionsLine(published, session, players, frames, discMeta){
+    const undone = new Set(session.filter(c=>c.op==="revert").map(c=>c.target));
+    const live = session.filter(c=>c.op!=="revert" && !undone.has(c.id));
+    const n = (published||[]).length + live.length;
+    // Two numbers, because they are two facts and `ur/human.py::count` keeps
+    // them apart for the same reason. `cells` is (slot, frame) pairs, which is
+    // what AD-13 excludes from a sample. `on` is how much of the CLIP a hand
+    // reached, which is what a reader is asking when they want to know how much
+    // of this is a person's work. Two markers moved on one frame is two cells
+    // and one frame, and quoting either alone reads as the other.
+    const on = new Set();
+    let cells = 0;
+    for(const p of (players||[])){ const h=p.human||[];
+      cells += h.length; for(const f of h) on.add(f); }
+    const dh = (discMeta&&discMeta.human)||[];
+    cells += dh.length; for(const f of dh) on.add(f);
+    const word = `${n} human correction${n===1?"":"s"} applied`;
+    if(!cells) return word + ".";
+    const pct = frames ? Math.round(on.size/frames*100) : null;
+    return word + `, placing ${cells} position${cells===1?"":"s"} across ` +
+           `${on.size} of ${frames} frame${frames===1?"":"s"}` +
+           (pct===null ? "" : ` (${pct} %)`) +
+           ". Those are outside every accuracy sample on this page (AD-13).";
+  }
   // which is the same rule ur/resolve.py::active() uses.
-  const undone = new Set(LOG.filter(c=>c.op==="revert").map(c=>c.target));
-  const corrected = LOG.filter(c=>c.op!=="revert" && !undone.has(c.id)).length;
-  const human = `${corrected} human correction${corrected===1?"":"s"} applied.`;
+  //
+  // Published FIRST, this session SECOND, because they are two different things
+  // and only the second used to be counted. p0003 ships fifteen applied
+  // corrections and 181 hand-placed frames, and every reader of that page was
+  // told "0 human corrections applied": LOG starts empty in the browser and
+  // nothing seeded it from the file. That is docs/30 section 2.8 exactly, one
+  // pane over - the data was right, the pane read the in-session array, and the
+  // work somebody was paid to do was invisible.
+  const human = correctionsLine(D.corrections_applied, LOG, D.players,
+                                D.possession.frames, D.disc_meta);
   if(D.synthetic){
     prov.innerHTML = "<b>Synthetic demo data.</b> " + (D.notice||"") +
       " Nothing here was measured from video. " + human;

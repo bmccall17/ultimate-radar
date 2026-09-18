@@ -127,6 +127,10 @@ ISSUE = {
     "...slots on somebody off the field": 29,
     # The first calibration ground truth this project has ever had.
     "...paint is where the model says": 30,
+    # The sixth rendered-page check. `corrections reached the page` above asks
+    # whether possession.json replayed the log; this asks whether the reader is
+    # told, and p0003 said "0" over 181 hand-placed positions. docs/30 s 2.22.
+    "the page counts the hand in it": 31,
     # #7. Neither can fail while the goal lines are honest about being declared;
     # they are mapped so that a page that starts claiming an observation, or
     # stops saying anything at all, lands on the ticket that argued it out.

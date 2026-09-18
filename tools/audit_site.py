@@ -48,6 +48,7 @@ import sys
 from pathlib import Path
 
 from tools import checks as C
+from tools import corrections_line as CL
 from tools import field_length as FLEN
 from tools import gate_sentence as GS
 from tools import openness as OP
@@ -422,6 +423,38 @@ def audit(pid: str) -> list[dict]:
                 "the openness claim can be rendered and read",
                 "the claim is JS, so reading it needs node on PATH and an "
                 "`opennessClaim` to find - a gate that cannot run has not passed")
+
+    # ---- C3b2. ...and the page counts the hand that was in it ---------------
+    # Found on 2026-09-18 writing down what a stranger would see on p0003 for
+    # #24. That page carries fifteen applied corrections and 181 hand-placed
+    # positions across 165 of its 555 frames, and it printed "0 human
+    # corrections applied". `LOG` starts empty in the browser and nothing ever
+    # seeded it from `D.corrections_applied`.
+    #
+    # § 2.8 one pane over, and worse in the direction that matters: hiding tags
+    # wastes work, hiding corrections OVERSTATES THE MACHINE. `tools/gates.py`
+    # has `corrections reached the page` and it was green throughout, correctly
+    # - it asks whether `possession.json` replayed the log, which is a question
+    # about the pipeline. Whether the reader is told is a different one.
+    if idx.exists():  # the missing-page row is added above, once
+        try:
+            v = CL.read(idx.read_text(encoding="utf-8"), doc)
+            add("the page counts the hand in it", v.ok,
+                f"{v.published} published correction(s), "
+                f"{CL.cells(doc)} placed position(s) over {v.frames} frame(s)"
+                + v.fault,
+                "the sentence names what a person supplied, and says none when "
+                "there is none",
+                "a page understating its own repairs is the one thing docs/05 "
+                "says it must never do, pointed the other way")
+        # Broad for the reason the blocks above are: a failure to READ the page
+        # is one red row, not a traceback that takes the other rows with it.
+        except Exception as e:
+            add("the page counts the hand in it", False,
+                f"{type(e).__name__}: {e}".strip()[:160],
+                "the sentence can be rendered and read",
+                "the line is JS, so reading it needs node on PATH and a "
+                "`correctionsLine` to find - a gate that cannot run has not passed")
 
     # ---- C3c. ...and the lines across the field say who drew them ----------
     # #7. The yard comes from the soccer centre circle, so separations, speeds
