@@ -1339,7 +1339,7 @@ function drawCamera(){
       octx.arc(u,v,5.6*k,0,7); octx.stroke(); octx.setLineDash([]); }
     // Labels only for the selected player, their matchup, and the disc holder.
     if(p.id===sel||p.id===selMark||p.id===holder){
-      const t=p.jersey?`${p.id} #${p.jersey}`:p.id;
+      const t=slotLabel(p);
       octx.font=`600 ${13*k}px ui-sans-serif,system-ui`;
       octx.lineWidth=3.5*k; octx.strokeStyle=HALO;
       octx.strokeText(t,u+10*k,v-10*k); octx.fillStyle=col;
@@ -1742,16 +1742,15 @@ function drawStrip(){
    printing that bare inside the sentence that exists to stop overstatement would
    be the same overstatement one line further down. */
 function unseenName(u){
-  const j = jerseyOf(u.slot);
-  // A slot read as two different numbers has NO jersey - that is `jerseyOf`'s
-  // whole refusal, and falling through to the published number here would
-  // resolve by borrowing what the rail declines to pick. The conflict is the
-  // finding, so it is what gets said.
-  if(j.conflict) return `${u.slot}, read as two different jerseys`;
-  if(j.jersey !== null) return `${u.slot} #${j.jersey}`;
-  if(u.jersey === null || u.jersey === undefined) return u.slot;
-  return u.jersey_source === "read" ? `${u.slot} #${u.jersey}`
-                                    : `${u.slot} #${u.jersey} by vote`;
+  const j = jerseyFact(u.slot, u);
+  // Prose has no weights, so the vote says so in words, and a conflict names
+  // itself rather than borrowing one of the two numbers it could not choose
+  // between. The rail shows both numbers here because it has the width; this
+  // sentence is already long.
+  if(j.kind === "conflict") return `${u.slot}, read as two different jerseys`;
+  if(j.kind === "none") return u.slot;
+  return j.kind === "read" ? `${u.slot} #${j.number}`
+                           : `${u.slot} #${j.number} by vote`;
 }
 // The slots alone, for the line a reader scans.
 function unseenTail(unseen){
@@ -2211,6 +2210,62 @@ function jerseyOf(id){
     ? {jersey: nums[0], conflict: null}
     : {jersey: null, conflict: rs};
 }
+/* What is known about a slot's number, and how well. ONE decision, three
+   presentations: the rail has five characters of column, the hover has a
+   sentence, and the openness cards have prose. What must never differ between
+   them is which of the four answers is right, and it was written out three
+   times - `railJersey`, `railTitle`, `unseenName` - until #22 made that a
+   liability. That ticket adds a FOURTH source, the line recorded in the sitting,
+   to a rule kept in step by hand across three copies, and its own acceptance
+   criteria are the rule: a jersey or an explicit unknown for every slot, and
+   never a number nobody read.
+
+   `kind` is one of:
+
+     conflict  read as two different numbers, so the slot has NO jersey and no
+               caller may print one. `numbers` carries them for a caller with the
+               room to show the finding rather than hide it.
+     read      somebody read it off a shirt - this session, or in the file.
+     voted     an OCR vote over the tracklet proposed it. p0001's are that, on
+               crops single-frame OCR read at 18.8 % accuracy.
+     none      nothing at all. Never a dash, never a zero (docs/04 M5: a wrong
+               number is worse than no number).
+
+   The three kinds that carry a number are also the three CSS classes the rail
+   draws them in, which is the check on this abstraction rather than a
+   coincidence: if the presentations needed a distinction `kind` cannot make,
+   they would not have been sharing a cascade in the first place.
+
+   `published` is whatever object carries `jersey` and `jersey_source` - a player
+   for the rail, an unseen entry for the cards. Jersey 0 is a legal number, so
+   every test here is against null and undefined and never against falsiness. */
+/* `D5 #4`, or `D5` where no number has ever been attached. Four places built
+   this string by hand - the overlay label, the relabel dropdown, the Selected
+   Player header and the rail's hover - and all four tested the number for
+   truthiness, which is false for **0**. A jersey 0 is legal and so is 00, so
+   each of them would have printed a bare slot over a real shirt. No published
+   possession carries a 0 today, which is why nobody had seen it; #22 is what
+   makes jerseys something the pipeline populates rather than a field that is
+   null fourteen times. The roster table two hundred lines up had it right the
+   whole time, with `??`.
+
+   This shows the PUBLISHED number as an identifier, not a claim about
+   provenance - `jerseyFact` is the one that says how well a number is known,
+   and whether these four should be consulting it instead is a question for #22
+   rather than for a cleanup. */
+function slotLabel(p){
+  return p.jersey === null || p.jersey === undefined ? p.id
+                                                     : `${p.id} #${p.jersey}`;
+}
+function jerseyFact(slot, published){
+  const j = jerseyOf(slot);
+  if(j.conflict)
+    return {kind:"conflict", numbers:[...new Set(j.conflict.map(r => r.jersey))]};
+  if(j.jersey !== null) return {kind:"read", number:j.jersey};
+  const n = published ? published.jersey : null;
+  if(n === null || n === undefined) return {kind:"none"};
+  return {kind: published.jersey_source === "read" ? "read" : "voted", number:n};
+}
 function recordJersey(id, n, f){
   // Same slot, same frame, read twice is a correction of the first, not a
   // second observation - nobody saw two numbers on one shirt at one moment.
@@ -2245,13 +2300,13 @@ function renderRelabel(){
   const p=BY[S.sel], f=S.f;
   const end=relabelEnd(S.sel, f);
   const same=PL.filter(q=>q.team===p.team && q.id!==p.id)
-               .map(q=>`<option value="${q.id}">${q.id}${q.jersey?" #"+q.jersey:""}</option>`).join("");
+               .map(q=>`<option value="${q.id}">${slotLabel(q)}</option>`).join("");
   const until = end ? `${(end.f/FPS).toFixed(1)}s, where ${end.why}`
                     : `the end of the possession — it neither leaves the camera nor re-acquires after this`;
   const clash = collidesWith(S.sel, f);
   const canDetach = !ANCHORED.has(p.state[f]) && !!at(p, f);
   el.innerHTML = `<div class="issue">
-      <b>${p.id}${p.jersey?" #"+p.jersey:""}</b> · ${p.team===OFF?"offence":"defence"}
+      <b>${slotLabel(p)}</b> · ${p.team===OFF?"offence":"defence"}
       · ${p.state[f]} at ${(f/FPS).toFixed(2)}s
       ${clash ? `<div class="why" style="display:block;margin-top:5px">
         <b style="color:var(--warn)">${clash.other} is ${clash.yd.toFixed(1)} yd away —
@@ -3249,30 +3304,28 @@ function railState(p, f){
    solid number means this slot can anchor a span and a faint one means it
    cannot, and the rail is the tagger's map of which is which. */
 function railJersey(p){
-  const j = jerseyOf(p.id);
-  if(j.conflict){
+  const j = jerseyFact(p.id, p);
+  if(j.kind === "conflict"){
     // No `#`, because this is not a jersey - it is two of them, and the slot
     // has none. It also has to FIT: an ellipsis here would turn `28/77` into
     // `28/7`, and a conflict that renders as a number is the one reading of it
     // that must never happen. Two of them fit the column; more than that become
     // a count, which cannot be mistaken for a jersey either way. The numbers
     // themselves are on the hover and in Selected Player.
-    const nums = [...new Set(j.conflict.map(r => r.jersey))];
-    const both = nums.join("/");
-    return {text: both.length <= 5 ? both : "×" + nums.length,
+    const both = j.numbers.join("/");
+    return {text: both.length <= 5 ? both : "×" + j.numbers.length,
             cls:"conflict"};
   }
-  if(j.jersey !== null) return {text:"#" + j.jersey, cls:"read"};
-  if(p.jersey === null || p.jersey === undefined) return null;
-  // A number with no reading behind it. p0001's are an OCR vote over a
-  // tracklet, and the file that holds them says single-frame OCR was 18.8 %
-  // accurate on crops a human had already read.
-  return {text:"#" + p.jersey,
-          cls: p.jersey_source === "read" ? "read" : "voted"};
+  if(j.kind === "none") return null;
+  // `read` and `voted` are the classes as well as the kinds: solid for a number
+  // somebody read off a shirt, faint for one an OCR vote proposed over the
+  // tracklet - and p0001's are the latter, on crops single-frame OCR read at
+  // 18.8 % accuracy.
+  return {text:"#" + j.number, cls: j.kind};
 }
 function railTitle(p, f){
   const st = p.state[f], xy = at(p, f);
-  const bits = [`${p.id}${p.jersey ? " #" + p.jersey : ""} — ` +
+  const bits = [`${slotLabel(p)} — ` +
                 `${p.team === OFF ? "offence" : "defence"}, ${st}`];
   const det = p.det && p.det[f];
   bits.push(det !== null && det !== undefined
@@ -3288,15 +3341,14 @@ function railTitle(p, f){
   const h = HUMAN.get(p.id);
   if(h && h.has(f)) bits.push("this frame was placed by hand — excluded from "
                               + "every metric (tools/human_positions.py)");
-  const j = jerseyOf(p.id);
-  if(j.conflict) bits.push("read as two different jerseys — this label is on two "
-                           + "people and the stretch between needs splitting");
-  else if(j.jersey !== null) bits.push(`read as #${j.jersey}`);
-  else if(p.jersey !== null && p.jersey !== undefined)
-    bits.push(p.jersey_source === "read"
-      ? `read as #${p.jersey}`
-      : `#${p.jersey} is a vote over the tracklet, not a reading off a shirt — `
-        + `a tag named from it cannot be graded (ur/provenance.py)`);
+  const j = jerseyFact(p.id, p);
+  if(j.kind === "conflict")
+    bits.push("read as two different jerseys — this label is on two "
+              + "people and the stretch between needs splitting");
+  else if(j.kind === "read") bits.push(`read as #${j.number}`);
+  else if(j.kind === "voted")
+    bits.push(`#${j.number} is a vote over the tracklet, not a reading off a `
+      + `shirt — a tag named from it cannot be graded (ur/provenance.py)`);
   if(p.state[f] === "provisional")
     bits.push("re-acquired after a gap and never reviewed — it may be a "
               + "different person (docs/25 R4)");

@@ -61,8 +61,8 @@ FUNC = "opennessCard"
 # here would pass forever while the page moved underneath.
 CONSTS = ("ANCHORED", "MEASURABLE")
 FUNCS = ("at", "dist", "coverage", "evidence", "seenDefenders", "opennessClaim",
-         "readingsFor", "jerseyOf", "unseenName", "unseenTail", "unseenSentence",
-         FUNC)
+         "readingsFor", "jerseyOf", "jerseyFact", "unseenName", "unseenTail",
+         "unseenSentence", FUNC)
 
 # `window.POSSESSION` and the names the page binds off it at load. These are
 # viewer/index.html's own lines - the roster at 393-394, and the jersey store
