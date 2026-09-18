@@ -19,13 +19,24 @@ the problems; a string match against rendered HTML is not the test, because the
 first version of that flagged the phrase "the huck is on" as a live claim when it
 survived only inside a code comment. What a page *asserts* lives in its data.
 
-**One check breaks that rule, and it had to.** Five pages printed `Recall 0 %
+**Some checks break that rule, and each had to.** Five pages printed `Recall 0 %
 and sigma containment 0 %` off fields that were `null`, because
 `Math.round(null * 100)` is `0`. The data was right and said "unmeasured"; the
 rendering invented the zero. No amount of reading the fields can see that, so
 `no unmeasured percentage printed` runs the page's own sentence under node and
 reads the string it produces - not a Python copy of the formatting, which would
 only ever agree with itself. `tools/gate_sentence.py` carries the machinery.
+
+The same shape three times more, and `tools/page_js.py` holds what the four
+share. `published tags show on load` (`tools/tag_list.py`) renders the tagging
+pane, which printed "Nothing tagged yet" over fourteen published tags. `a
+self-pass is always refused` (`tools/tag_guard.py`) runs the guard, which read
+only this session's tags. `no measured claim over an unseen defender`
+(`tools/openness.py`) runs the separation claim, which printed 5.1 yd and badged
+it `measured` with a defender dead-reckoned and unnamed. Every one is a correct
+file and a page saying something the file does not support - three of them
+printing a claim, one failing to print a refusal - and that is the one thing
+reading the file cannot show you.
 """
 
 from __future__ import annotations
@@ -39,6 +50,7 @@ from pathlib import Path
 
 from tools import checks as C
 from tools import gate_sentence as GS
+from tools import openness as OP
 from tools import tag_guard as TG
 from tools import tag_list as TL
 
@@ -354,6 +366,64 @@ def audit(pid: str) -> list[dict]:
                 "the tag list can be rendered and read",
                 "the tag list is JS, so reading it needs node on PATH and a "
                 "`tagListHtml` to find - a gate that cannot run has not passed")
+
+    # ---- C3b. ...and no openness claim is stronger than what it saw ---------
+    # The fourth exception to the read-the-data rule, and the same shape as the
+    # three above: the data is right and the claim built on it was not. On p0001 at
+    # 15.867 s the separation card printed 5.1 yd and badged it `measured` while
+    # D5 sat `predicted` - honestly recorded, correctly published, and left out
+    # of both the search and the sentence. A nearest-defender number is a MINIMUM
+    # OVER THE DEFENSIVE SET: D5 could have been nearer and nothing on that card
+    # would have shown it. #14, desired outcome 8 of #9.
+    #
+    # Three scenarios, per AD-12, because the published page passing proves only
+    # that it has no such claim today. `sighted` hands the page a defence it can
+    # see whole and a measured badge has to appear; `blinded` takes one slot back
+    # out of sight and every measured claim has to go. The positive half is
+    # CONSTRUCTED rather than taken from the possession because p0005 makes no
+    # measured claim on any of its 450 frames, and an ablation that takes away
+    # nothing from nothing is a row that passes having covered nothing (AD-11).
+    #
+    # It sweeps `opennessCard`, not `opennessClaim`: the STRINGS a reader gets.
+    # A check one layer down stays green over a card that keeps the downgrade and
+    # deletes the naming, which tells a reader the number is weak and never who
+    # made it weak. The one hop left uncovered is `renderCards` pasting those
+    # strings into `card()` - docs/30 § 2.19 says so.
+    if idx.exists():  # the missing-page row is added above, once
+        try:
+            page = idx.read_text(encoding="utf-8")
+            seen = OP.scan(page, doc)
+            whole = OP.sighted(doc)
+            slot = OP.a_seen_defender(whole)
+            probe = OP.scan(page, whole)
+            blind = OP.scan(page, OP.blinded(whole, slot)) if slot else None
+            why = ("" if probe.measured else
+                   "; a defence seen whole still reaches no measured badge, so "
+                   "the blinding proves nothing")
+            if blind is None:
+                why += "; no defence slot to blind"
+            elif blind.measured:
+                why += (f"; blinding {slot} leaves {blind.measured} claim(s) still "
+                        "measured, so the badge is not reading the whole defence")
+            add("no measured claim over an unseen defender",
+                seen.ok and probe.measured > 0 and blind is not None
+                and blind.measured == 0,
+                seen.say() + why,
+                "a measured separation badge only over a defence the camera saw "
+                "whole, every unseen slot named on the card, and no measured "
+                "badge at all once one defender is blinded",
+                "an openness claim is a minimum over the defensive set - one "
+                "defender outside observed/confirmed and the minimum is not "
+                "measured, however well the rest were seen (docs/05)")
+        # Broad for the reason the two blocks above are: every way of failing to
+        # READ the page lands as one red row, not as a traceback that takes the
+        # other rows down with it.
+        except Exception as e:
+            add("no measured claim over an unseen defender", False,
+                f"{type(e).__name__}: {e}".strip()[:160],
+                "the openness claim can be rendered and read",
+                "the claim is JS, so reading it needs node on PATH and an "
+                "`opennessClaim` to find - a gate that cannot run has not passed")
 
     # ---- C4. ...and it refuses a tag nobody could have made -----------------
     # The other half of the tagging pane, and the only check here that is about

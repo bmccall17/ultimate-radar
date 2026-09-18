@@ -93,9 +93,43 @@ Each card: label, value, one line of context, an evidence chip (`measured` / `pa
 | **Coverage** | *n* of 14 in shot, with a sparkline over the possession | Sets the trust level for everything else. It goes first for that reason. |
 | **Defensive shape** | `Person` / `Person, n off` / `Zone or junk`, plus matchup stability % | The headline tactical read. |
 | **Mark** | which side of the thrower the mark stands, and the gap | Determines what throws are available. |
-| **Separation at release** | yards between receiver and nearest defender at the last throw | The most decision-relevant number in ultimate. |
-| **Deep cover** | distance from the deepest threat to the nearest defender, and whether anyone is goal-side of them | Whether a huck is on. |
+| **Separation at release** | yards between the receiver and the nearest defender **anybody saw**, at the last throw, with every unseen defender named | The most decision-relevant number in ultimate. |
+| **Deep cover** | the same, from the deepest threat, plus who is standing between them and the endzone where somebody is | Whether the deep look is covered. It never says whether it is open — see below. |
 | **Shape lag** | cross-field offset between the defensive and offensive centroids, with a sparkline | A spike on a swing is the defence failing to shift with the disc. |
+
+### An openness claim names what it could not see
+
+**AD-15.** The two cards above print a *minimum over the defensive set*: "the receiver had
+5.1 yd" is a statement about all seven defenders, not about the one it names. So:
+
+- **The badge is taken over the whole defence.** One defender outside
+  `observed`/`confirmed` and the card is `inferred`, however well the rest were seen.
+- **The number is the nearest defender anybody saw.** A dead-reckoned marker is not a
+  sighting and the search skips it, so the figure is a fact about what was on camera.
+- **The gap between those two is said out loud.** The context line lists the missing slots
+  and the explanation names them as people — the jersey where one has been read, and
+  `by vote` where the number is an OCR vote over the tracklet rather than a reading off a
+  shirt. Omitting them is what turns an honest gap into a false statement.
+
+**Deep cover says `covered` and never says `open`.** `covered` is an existence claim and
+one witness proves it: somebody the camera saw is standing between the deepest cutter and
+the endzone, and the card names them. The opposite is a claim about every defender, and
+this card used to make it — *"no defender sits on the far side of the deepest cutter"*,
+*"the huck is on"* — off whichever defender happened to be nearest. It is gone. Where
+nobody is standing in the deep space the card says that is a question about every defender
+and that it is not answering it. The overhead shows where everybody is; what a reader
+needed was to stop being told what that meant.
+
+**The cost, stated.** All seven defenders are `observed`/`confirmed` on 24 % of p0001's
+frames and 0 % of p0005's. These two cards are `inferred` on most frames of every published
+possession, which is the truth about the coverage rather than a regression in the cards.
+`docs/30` § 2.19 carries the finding; `no measured claim over an unseen defender` is the
+gate.
+
+**The Mark card is not under this yet.** Its gap is the distance to the nearest defender to
+the *holder* — the same minimum over the same seven — and it still badges off those two
+players. AD-15 and `CONTEXT.md` both name it as an openness claim, so the gap between the
+rule and the code is written down in `docs/30` § 2.19 rather than left to be discovered.
 
 ### Scheme classification, specified
 

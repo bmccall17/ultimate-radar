@@ -854,14 +854,97 @@ has **388 of 450** at confidence ≥ 0.5, and one of them has been read. The too
 exists, the store exists, `...paint is where the model says` reports the split on
 every run, and the thing that is missing is twenty minutes of dragging.
 
+### 2.19 An openness claim is a minimum over a set, and one of the set was missing
+
+**2026-09-17, from the outside audit.** On p0001 at **15.867 s** the separation
+card printed **5.1 yd** and badged it **MEASURED**. O4 and D6 are both `observed`
+on frame 238, twelve of fourteen slots are anchored, and the number is the true
+distance between them. **D5 is `predicted` there** — dead-reckoned, drawn dashed
+on the overhead, honestly recorded in the file — and the card searched it,
+ranked it, and never mentioned it. The deep-cover card did the same thing one
+row down, on the same frame, with the same slot.
+
+**The number was never the defect.** 5.1 yd to D6 is what the camera saw. The
+defect is the word above it. "The receiver had 5.1 yd of room" is not a statement
+about D6; it is a statement about **all seven defenders**, because it is a
+*minimum over the set*. D5 could have been three yards from O4 and nothing on
+that card would have moved. A minimum over a set with an unseen member is not a
+measurement of that minimum, however well the other six were seen — and the badge
+was taken over the two slots the number happened to name.
+
+**What every other card had already got right.** AD-5 gets an evidence state to
+every sample and AGENTS rule 3 carries it to the page, and `evidence(f, slots)`
+implements exactly that: hand it the contributors and it refuses `measured` the
+moment one of them was not seen. Coverage, defensive shape and shape lag all hand
+it the whole roster. The two openness cards handed it two names. The machinery was
+right; the argument about **what contributes** was wrong, and it was wrong in the
+direction that flatters the tool.
+
+**The assertion that went with it.** The deep-cover card also printed *"no
+defender sits on the far side of the deepest cutter"* and *"the huck is on"*,
+from a test that looked only at the nearest defender — `goalSide` was assigned
+inside the `if (v < bd)` that found the minimum, so it described one player and
+was read as describing seven. It is gone. The positive half stays and is now an
+honest existence claim: `covered` means somebody the camera saw is standing
+between the deepest cutter and the endzone, and there they are, named. Nothing
+replaces the negative. Where nobody is standing there the card says so in as many
+words: whether the space is open is a question about every defender, and this
+card answers it only when one of them is in it.
+
+**What it costs to be honest.** Across the six published possessions, all seven
+defenders are `observed`/`confirmed` on **24 % of p0001's frames and 0 % of
+p0005's** (p0003 9 %, p0004 2 %, p0009 11 %, p0015 7 %). So these two cards are
+now `inferred` far more often than they were, and that is the finding rather than
+a regression: the tool was calling things measured that it had not measured. The
+route to getting them back is repair mode and more coverage, not a looser word.
+
+**The check, and why it reads the page.** `no measured claim over an unseen
+defender` runs the viewer's own card builder under node — the fifth site gate to
+do so and the same AD-12 exemption, because every field behind the 5.1 yd is
+correct and the claim built on them was not. `tools/openness.py` lifts the
+functions out of the published HTML with the two state sets they read, rather
+than restating `MEASURABLE` in Python where it would agree with itself forever.
+
+**It reads the card, not the claim, and that distinction was earned.** The first
+version swept `opennessClaim` — the numbers — and would have stayed green over a
+card that kept the downgrade and stopped naming anybody, which is this same
+finding one layer up: a reader told the figure is weak and never told who made it
+weak. So the page grew `opennessCard`, which holds the whole of what a reader is
+shown, and the sweep asserts both promises: no `measured` badge over an unseen
+defender, **and** every unseen slot named on the card. **One hop is still not
+covered** — `renderCards` pasting those strings into `card()`. A card that
+ignored them and hard-coded its own badge would pass this row. Lifting
+`renderCards` is not possible; it writes to the DOM and closes over the whole
+page. What is written down instead is where the check stops.
+
+**Three scenarios, and the middle one is constructed.** Sweeping the published
+page proves only that it makes no such claim today. So `sighted` hands the page a
+defence it can see whole and a measured badge **has to appear**; `blinded` puts
+one slot back out of sight and every measured badge **has to go**. The positive
+half is constructed rather than taken from the possession because p0005 makes no
+measured claim on any of its 450 frames — an ablation that takes nothing away
+from nothing is a row that passes having covered nothing, which is AD-11 in its
+fourth costume.
+
+**What is not under the rule yet: the Mark card.** It prints the gap to the
+nearest defender to the *holder* — the same minimum over the same seven — and
+still takes its badge from those two players. The rule reaches it; the code does
+not, because #14 named the two openness cards and stopped there. The gate cannot
+see it either: the sweep runs over attackers, and the mark is measured from the
+holder. It is here rather than nowhere so that `CONTEXT.md` and AD-15, which both
+name the mark as an openness claim, are not quietly asserting something one card
+disagrees with.
+
+---
+
 ## 3. The gates, and which of them fail on purpose
 
-`python -m tools.gates` prints **204 rows, and only 170 of them can fail.** It
+`python -m tools.gates` prints **214 rows, and only 179 of them can fail.** It
 ends on two totals, and they are not the same kind of number:
 
 ```
-156 of 170 failable check(s) pass, 14 failing.
-34 informational row(s) report a measurement and no verdict.
+165 of 179 failable check(s) pass, 14 failing.
+35 informational row(s) report a measurement and no verdict.
 ```
 
 The fourteen failures are every one either a known-unpublished possession or a
@@ -955,7 +1038,7 @@ p0006, p0007, p0008 and p0010 on coverage
 and on camera motion — they have not been through the impossible-motion check and
 are not published.
 
-### The published site — 74 rows, 71 of them failable, all passing
+### The published site — 92 rows, 89 of them failable, all passing
 
 `tools/audit_site.py`, folded into `python -m tools.gates`. Every other gate in
 this document reads `work/`; these read `docs/`, which is the only thing anybody
@@ -971,6 +1054,7 @@ defects that the whole suite was green through.
 | an unmeasured page says so | the word `unmeasured` appears in the sentence, on a page with no measurement of its own | § 2.7, the other half. Printing no number is not the same as saying there is none: a gap where a figure would go reads as "fine". Only the five pages with nothing measured carry this row; p0001 has numbers and says so. #11 |
 | published tags show on load | the page lists exactly the tags it was given before a key is pressed, the empty state appears only where there is nothing, and the list falls back to it once those tags are taken away | § 2.8. Three pages published 6, 14 and 12 human tags and all three opened saying "Nothing tagged yet", because the list was seeded from the in-session array alone. The third check here that reads the **rendered page** rather than the data: `tools/tag_list.py` runs the viewer's own `tagListHtml` under node, twice. Four ways to fail — dropping a tag, listing one twice, claiming emptiness over tags that exist, and printing rows that survive having the tags removed. #12 |
 | a self-pass is always refused | the page's own guard refuses a catch naming the player of the preceding throw, whether that throw is published or made in this session, and still takes a catch naming anybody else | § 2.9. The guard read only the tags made in the current browser tab, so a throw in `events.json` was invisible to it, and § 2.8 is what made that reachable. The fourth check to read the published page, and the only one about what the page **refuses** rather than what it says. It has to construct its own failure — every `events.json` in `work/` is correct — so it runs four invented scenarios off the page's own roster, two of which exist to stop a guard that refuses everything, or refuses regardless of its input, from passing. #25 |
+| no measured claim over an unseen defender | no openness claim badges `measured` while any defender is outside `observed`/`confirmed`; a defence the page can see whole reaches a measured badge, and blinding one slot takes every measured badge away | § 2.19. p0001 at 15.867 s printed 5.1 yd as MEASURED with D5 dead-reckoned and unnamed. A nearest-defender number is a **minimum over the defensive set**, so the badge rests on all seven and the missing ones are named as people. The fifth check to read the **rendered page**: `tools/openness.py` runs the viewer's own `opennessCard` — the strings, not the numbers under them — over every frame and every attacker, and asserts both promises, the badge and the naming. Three scenarios, because the published page passing proves only that it makes no such claim today — and the positive one is constructed, since p0005 makes no measured claim at all on any of its 450 frames. #14 |
 | no disc drawn from the failed inference | every drawn frame rests on a human tag | already true, now locked in — the viewer correctly suppressed all 385 `predicted` frames on p0009 |
 | no disc drawn on a guessed position | the holder's own position is `observed`/`confirmed` on every drawn frame | the check above asks WHO, this asks WHERE, and they are two facts about one frame. p0003 published the disc on a match official at `confirmed`: the tracker lost O2, re-acquired 26.9 yd away over the sideline, and a correct tag about the catch carried the disc there. 3 frames → 0. The tracker's own error is #4; this is the stage that was publishing it |
 | no confirmed disc from an inferred name | no frame renders a `confirmed` disc state from a tag carrying `player_inferred` | the third way a tag is weaker than it looks, after WHO and WHERE: **how the person arrived at the name**. p0003's 21.27–26.33 s holder was settled by elimination, not read off a jersey (§ 2.5 and `docs/27`), and part of that argument is which slots the tracker loses, so `span identity accuracy` already refuses to grade against it. The flag stopped at span resolution. The disc stage saw a human tag and observed coordinates and emitted `confirmed`, so the Mark card said MEASURED about a holder nobody named. 6 frames → 0. The span still draws, at `predicted`, on exactly the frames it drew on before, and every card built on it says the name was inferred. Suppressing it would reopen the display hole that naming it closed. #15 |

@@ -81,6 +81,19 @@ must not be refused**, without which a guard that refused every tag would go gre
 input at all would. The second is constraint 2 above, unchanged. The first is new, and it
 is the price of checking a refusal rather than a claim.
 
-Four site gates now: `no unmeasured percentage printed` and `an unmeasured page says so`,
+*The fourth instance, and it needed the widening.* The separation card printed `5.1 yd` and
+badged it `measured` while a defender sat `predicted` — named nowhere, searched anyway
+(§ 2.19). It is a printed claim, so the original exemption covers it: the data is right, the
+word above the number is not, and reading the fields cannot show you which players a
+sentence quantifies over. What it takes from the widening is the **constructed positive**.
+Sweeping the published page proves only that it makes no such claim today; a card that
+badged nothing `measured` would pass forever. So `tools/openness.py` hands the page a
+defence it can see whole, which must reach a measured badge, and then blinds one slot, which
+must take every measured badge away. p0005 makes no measured claim on any of its 450 frames,
+so without the first half the ablation would take nothing from nothing — AD-11 again, in the
+place the widening predicted it.
+
+Five site gates now: `no unmeasured percentage printed` and `an unmeasured page says so`,
 both owned by #11 with `docs/30` § 2.7 as the finding; `published tags show on load`, owned
-by #12 with § 2.8; and `a self-pass is always refused`, owned by #25 with § 2.9.
+by #12 with § 2.8; `a self-pass is always refused`, owned by #25 with § 2.9; and `no
+measured claim over an unseen defender`, owned by #14 with § 2.19 and AD-15.

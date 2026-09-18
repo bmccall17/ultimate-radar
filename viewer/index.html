@@ -1009,6 +1009,48 @@ function evidence(f, slots){
   return coverage(f)>=11 ? "measured" : "partial";
 }
 
+/* How much room an attacker had on one frame, and every defender the camera
+   could not see while that was worked out. #14.
+
+   An openness claim is a MINIMUM OVER A SET. "The receiver had 5.1 yd" is not a
+   statement about the defender it names, it is a statement about all seven: a
+   defender nobody saw could be nearer, and no reading of the six that were seen
+   can show that. So the badge is taken over the whole defensive set rather than
+   over the two players the number happens to name, and the ones outside
+   `observed`/`confirmed` come back to be named rather than left out. Omitting
+   them is what turned an honest gap into a false statement - p0001 at 15.867 s
+   printed 5.1 yd, badged `measured`, with D5 dead-reckoned and unmentioned.
+
+   The search itself skips them too. A distance to a dot the tracker reckoned
+   there is not a sighting, so the number is the nearest defender anybody SAW,
+   which is a fact, and the gap between that and the nearest defender is what
+   `unseen` is for.
+
+   Pure, and `tools/openness.py` lifts it out of the page with `at`, `dist`,
+   `coverage`, `evidence` and the two state sets, to run under node. */
+function seenDefenders(f){
+  return PL.filter(p => p.team===DEF && MEASURABLE.has(p.state[f]));
+}
+function opennessClaim(f, who){
+  const defs = PL.filter(p => p.team===DEF);
+  const from = who && BY[who] ? at(BY[who], f) : null;
+  const unseen = defs.filter(p => !MEASURABLE.has(p.state[f]))
+    .map(p => ({slot: p.id, state: p.state[f],
+                jersey: p.jersey === undefined ? null : p.jersey,
+                jersey_source: p.jersey_source === undefined ? null : p.jersey_source}));
+  let yd = null, nearest = null;
+  if(from){
+    let bd = Infinity;
+    for(const d of seenDefenders(f)){
+      const q = at(d, f); if(!q) continue;
+      const v = dist(from, q); if(v < bd){ bd = v; nearest = d.id }
+    }
+    if(nearest) yd = bd;
+  }
+  const ev = evidence(f, [who, ...defs.map(d => d.id)].filter(Boolean));
+  return {yd, nearest, unseen, ev};
+}
+
 /* ---------------------------------------------------------------- render */
 const over=document.getElementById("over"), octx=over.getContext("2d");
 const radar=document.getElementById("radar"), rctx=radar.getContext("2d");
@@ -1637,6 +1679,65 @@ function drawStrip(){
 }
 
 /* ----------------------------------------------------------------- cards */
+/* An unseen defender, named as a person rather than left as a gap. #14.
+
+   `docs/06` carries the two weights the jersey rail draws in: a number somebody
+   read off a shirt, a number an OCR vote proposed, or nothing at all. Prose has
+   no weights, so the vote says so in words. p0001's D5 carries `#4` from a vote
+   over the tracklet, on crops single-frame OCR read at 18.8 % accuracy, and
+   printing that bare inside the sentence that exists to stop overstatement would
+   be the same overstatement one line further down. */
+function unseenName(u){
+  const j = jerseyOf(u.slot);
+  // A slot read as two different numbers has NO jersey - that is `jerseyOf`'s
+  // whole refusal, and falling through to the published number here would
+  // resolve by borrowing what the rail declines to pick. The conflict is the
+  // finding, so it is what gets said.
+  if(j.conflict) return `${u.slot}, read as two different jerseys`;
+  if(j.jersey !== null) return `${u.slot} #${j.jersey}`;
+  if(u.jersey === null || u.jersey === undefined) return u.slot;
+  return u.jersey_source === "read" ? `${u.slot} #${u.jersey}`
+                                    : `${u.slot} #${u.jersey} by vote`;
+}
+// The slots alone, for the line a reader scans.
+function unseenTail(unseen){
+  return unseen.length ? ` · ${unseen.map(u => u.slot).join(", ")} unseen` : "";
+}
+/* ...and the whole of it, for the line that has to account for the badge. It
+   takes the claim rather than the list because the two cases are different
+   sentences: a number the camera can undercut, and no number at all. p0005
+   spends whole stretches with every defender dead-reckoned, and "this is the
+   nearest defender anybody saw" over an em dash is a sentence about a
+   measurement that was never taken. */
+function unseenSentence(op){
+  const n = op.unseen.length;
+  if(!n) return "";
+  const who = op.unseen.map(unseenName).join(", ");
+  if(op.nearest === null)
+    return ` Nothing here is a distance anybody looked at: ${who}`
+         + ` ${n===1 ? "is" : "are"} where the tracker reckons, which is not a`
+         + ` place to measure from.`;
+  return ` The camera did not see ${who} on this frame, so this is the nearest`
+       + ` defender anybody saw and not the nearest defender:`
+       + ` ${n===1 ? "that slot" : "any of those"} could be closer, and nothing`
+       + ` here would show it.`;
+}
+/* The claim as a card shows it: the figure, the tail on the context line, the
+   badge, and the sentence that accounts for the badge. `opennessClaim` decides
+   what is true; this is the whole of what a reader is told about it, and both
+   openness cards go through it.
+
+   It is a separate function so `tools/openness.py` can lift it and read the
+   STRINGS rather than the numbers underneath. #14 asks that a site check fail
+   when a measured badge *renders* over an unseen defender, and a check one layer
+   below the render stays green over a card that quietly stops naming anybody. */
+function opennessCard(f, who){
+  const op = opennessClaim(f, who);
+  return {yd: op.yd, nearest: op.nearest, unseen: op.unseen, ev: op.ev,
+          value: op.yd===null ? "—" : `${op.yd.toFixed(1)} yd`,
+          tail: unseenTail(op.unseen),
+          why: unseenSentence(op)};
+}
 function card(lab,val,ctx,ev,exp,sp){
   const say = ev==="inferred"
     ? " <i>This one is inferred: at least one player it depends on was not seen "
@@ -1732,11 +1833,14 @@ function renderCards(){
   if(th){
     const tf=clamp(Math.round(th.t*FPS),0,NF-1);
     const rec = th.target||null, recP = rec?at(BY[rec],tf):null;
-    if(recP){ let bd=1e9,bs=null;
-      for(const d of defs){ const q=at(d,tf); if(!q) continue;
-        const v=dist(recP,q); if(v<bd){bd=v;bs=d.id} }
-      sepV=`${bd.toFixed(1)} yd`;
-      sepC=`${rec} from ${bs} at the release, ${th.t.toFixed(1)}s`
+    // Every defender, not the two players the number names: the separation is a
+    // minimum over the whole defensive set, so one the camera missed is one the
+    // number cannot account for. `opennessClaim` carries both halves. #14.
+    const op = rec ? opennessCard(tf, rec) : null;
+    if(recP && op && op.yd!==null){
+      sepV=op.value;
+      sepC=`${rec} from ${op.nearest} at the release, ${th.t.toFixed(1)}s`
+           + op.tail
            + (th.solved ? " · receiver worked out from the tracking, not tagged"
               : th.inferred ? " · receiver settled by elimination, not read off a jersey"
               : "");
@@ -1744,9 +1848,10 @@ function renderCards(){
       // separation between the right two players and a separation between the
       // wrong two are not the same number, so a solved receiver caps this at
       // `partial` however well the players themselves were seen.
-      sepE=evidence(tf,[rec,bs]);
+      sepE=op.ev;
       if((th.solved||th.inferred) && sepE==="measured") sepE="partial";
       sepX="How much room the receiver actually had when the disc left the hand."
+        + op.why
         + (th.solved ? " Who caught it was solved from the timing you tagged and"
            + " the players' geometry — if it names the wrong player this is the"
            + " right distance to the wrong person. Select the receiver and press"
@@ -1754,7 +1859,21 @@ function renderCards(){
            : th.inferred ? " Nobody read this receiver's jersey; the name was"
            + " reached by ruling the others out — if it names the wrong player"
            + " this is the right distance to the wrong person." : "");
-    } else { sepC=`throw at ${th.t.toFixed(1)}s has no tagged target`; }
+    } else if(!rec){ sepC=`throw at ${th.t.toFixed(1)}s has no tagged target`; }
+    else if(!recP){ sepC=`${rec} has no position at ${th.t.toFixed(1)}s`; }
+    else {
+      // Every defender is a guess on this frame, so there is no nearest one to
+      // measure from. The old loop would have found one anyway, off whichever
+      // dot the tracker had reckoned closest.
+      sepC=`${rec} at ${th.t.toFixed(1)}s, no defender seen`;
+      // Off the claim like every other badge on these two cards, not left at the
+      // file's default. It is `inferred` either way today - no defender seen is
+      // seven unseen - and a badge that agrees by coincidence is the coupling
+      // AD-15 exists to make explicit.
+      sepE=op.ev;
+      sepX="No defender was seen on the release frame, so there is no room to "
+         + "measure." + op.why;
+    }
   }
   out.push(card("Separation at release", sepV, sepC, sepE, sepX));
 
@@ -1763,38 +1882,63 @@ function renderCards(){
   // only as good as dirState(). It used to read the declaration in clip.json and
   // conclude "the huck is on" off it; docs/30 section 2.0 is why it stopped.
   // With a direction a human has confirmed - here or, through AD-10's
-  // derivation, in another possession of the same quarter - the conclusion is
-  // back. With nothing confirmed it stays a separation and says so.
+  // derivation, in another possession of the same quarter - one conclusion is
+  // back: that the deep look is COVERED, which a defender standing there
+  // proves. The other direction never comes back, whatever the direction says,
+  // because no arrangement of the defenders anybody saw settles where the ones
+  // they did not see are. With nothing confirmed it stays a separation and says
+  // so.
   const DS2 = dirState();
   const atk = DS2.dir > 0;
   const live = offs.map(p=>({p,xy:at(p,f)})).filter(o=>o.xy);
   if(live.length){
     live.sort((u,v)=>atk?v.xy[0]-u.xy[0]:u.xy[0]-v.xy[0]);
     const deep=live[0];
-    let bd=1e9,bs=null,goalSide=false;
-    for(const d of defs){ const q=at(d,f); if(!q) continue;
-      const v=dist(deep.xy,q); if(v<bd){bd=v;bs=d.id;
-        goalSide = atk ? q[0]>deep.xy[0] : q[0]<deep.xy[0]; } }
-    deepV=`${bd.toFixed(1)} yd`;
-    deepC=`${deep.p.id} is deepest; ${bs} is nearest and ${goalSide?"is":"is NOT"} goal-side`;
+    const op = opennessCard(f, deep.p.id);
+    // Goal-side, over every defender the camera saw rather than over the nearest
+    // one. `covered` is an EXISTENCE claim and one witness proves it: somebody
+    // is between the deepest cutter and the endzone, and there they are. The
+    // negative has no witness - it would be a claim about all seven defenders,
+    // and this card used to make it off whichever one happened to be nearest,
+    // which is how "the huck is on" got printed over a defence nobody had
+    // looked at. It is gone. #14, desired outcome 8 of #9.
+    const behind = seenDefenders(f)
+      .filter(d => { const q=at(d,f);
+                     return q && (atk ? q[0]>deep.xy[0] : q[0]<deep.xy[0]) })
+      .map(d => d.id);
+    const prov = DS2.source==="confirmed"
+      ? " Which end that is was confirmed against the footage."
+      : ` Which end that is, is derived from ${DS2.from.join(", ")} —`
+        + " the other team was confirmed there, in this quarter.";
+    deepV = op.value;
+    deepC = `${deep.p.id} is deepest`
+          + (op.nearest ? `; ${op.nearest} is the nearest defender anybody saw`
+                          + op.tail
+                        : "; no defender was seen on this frame");
     if(DS2.source==="declared"){
       deepE="inferred";
       deepX="Which end counts as deep is UNVERIFIED (docs/30), so read this as a "
-          + "separation, not as a conclusion: " + (goalSide
-              ? "a defender sits on the far side of the deepest cutter."
-              : "no defender sits on the far side of the deepest cutter.")
-          + " Confirm the attacking direction under the overhead to get the rest.";
+          + "separation, not as a conclusion. Confirm the attacking direction "
+          + "under the overhead to get the rest." + op.why;
     } else {
-      // The measurement is still only as good as the two players it rests on -
-      // the direction being known does not upgrade a dead-reckoned marker.
-      deepE=evidence(f,[deep.p.id,bs].filter(Boolean));
-      deepX=(goalSide
-          ? `${bs} is between ${deep.p.id} and the endzone: the deep look is covered.`
-          : `${bs} is not between ${deep.p.id} and the endzone: the huck is on.`)
-          + (DS2.source==="confirmed"
-              ? " Which end that is was confirmed against the footage."
-              : ` Which end that is, is derived from ${DS2.from.join(", ")} —`
-                + " the other team was confirmed there, in this quarter.");
+      // The badge rests on the whole defensive set, not on the two players the
+      // number names - the direction being known does not upgrade a
+      // dead-reckoned marker, and neither does a sixth defender being seen
+      // account for a seventh that was not.
+      deepE=op.ev;
+      deepX=(behind.length
+          ? `${behind.join(", ")} ${behind.length>1?"are":"is"} between `
+            + `${deep.p.id} and the endzone: the deep look is covered.`
+          // ...and where nobody is standing there, silence about the space. The
+          // card answers "covered" with a witness and cannot answer "open" at
+          // all: that is a claim about all seven defenders, and it used to be
+          // made off whichever one was nearest. The reader has the overhead for
+          // where everybody is; what they needed was to stop being told what it
+          // meant. #14.
+          : "Nothing here says whether the deep space is open: that is a "
+            + "question about every defender, and this card answers it only "
+            + "when one of them is standing in the space.")
+          + prov + op.why;
     }
   }
   out.push(card("Deep cover", deepV, deepC, deepE, deepX));

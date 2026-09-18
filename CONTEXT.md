@@ -175,6 +175,21 @@ frames a person repairs are the frames the tracker got wrong, so removing them
 denominator. A number is only as good as which of the four it is, and `docs/30`
 § 2.0 is what happens when a declared value is mistaken for a measured one.
 
+**Openness claim** — any metric whose value is a *minimum over a set*: separation at
+release, deep cover, the gap on the mark. Its badge is taken over **everything it
+quantifies over** and not over the players its number names, so one defender outside
+`observed`/`confirmed` caps it however well the rest were seen, and the missing ones are
+named on the card as people (AD-15). The test for whether a player contributes: could they
+move and move the number? A claim like this can also state a *positive* — somebody is
+standing in the deep space, and there they are — but never its negative, which would be a
+claim about every defender. `docs/30` § 2.19.
+
+> **Two of the three are under the rule.** Separation at release and Deep cover go through
+> `opennessClaim`; **the Mark card does not yet**, and still takes its badge from the
+> holder and the one defender it names. The gap on the mark is a minimum over the same
+> seven and the rule reaches it; the code has not. `docs/30` § 2.19 carries it as the piece
+> left over, so the glossary is not quietly asserting something one card disagrees with.
+
 **Gate** — a named pass/fail check in `python -m tools.gates`. An issue closes
 when a gate flips to PASS (`docs/31`), so a gate is a definition of done, not a
 diagnostic.

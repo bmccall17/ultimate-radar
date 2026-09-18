@@ -150,6 +150,10 @@ ISSUE = {
     # The fourth, and the only one about what the page refuses rather than what
     # it says. Same pane, same half-blindness: the guard never read D.events.
     "a self-pass is always refused": 25,
+    # The fifth. A separation is a minimum over the defensive set, and the card
+    # badged it `measured` off the two players it named while a seventh sat
+    # dead-reckoned and unmentioned. AD-15, docs/30 § 2.19.
+    "no measured claim over an unseen defender": 14,
     "median roster in shot": 6,
     "frames with nothing at all": 6,
     "camera motion is possible": 6,
