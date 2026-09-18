@@ -60,8 +60,9 @@ cited everywhere as `AD-7` and never as `ADR-0007`.
 | **AD-13** | A grader is blind to what a human supplied | [`adr/0013-a-grader-is-blind-to-what-a-human-supplied.md`](adr/0013-a-grader-is-blind-to-what-a-human-supplied.md) |
 | **AD-14** | A jersey read inside the span settles the name, and nothing else does | [`adr/0014-a-jersey-read-inside-the-span-settles-the-name.md`](adr/0014-a-jersey-read-inside-the-span-settles-the-name.md) |
 | **AD-15** | An openness claim is a minimum over a set, so its badge rests on the whole set | [`adr/0015-an-openness-claim-is-a-minimum-over-a-set.md`](adr/0015-an-openness-claim-is-a-minimum-over-a-set.md) |
+| **AD-16** | A line drawn on the field is a claim, and carries its provenance like a position does | [`adr/0016-a-drawn-line-carries-its-provenance.md`](adr/0016-a-drawn-line-carries-its-provenance.md) |
 
-`docs/09-decision-record.md` is the one-page orientation over the first ten. AD-11 to AD-15 were taken while the checks were being built and live in `docs/30-findings-and-gates.md` beside the findings that forced them.
+`docs/09-decision-record.md` is the one-page orientation over the first ten. AD-11 to AD-16 were taken while the checks were being built and live in `docs/30-findings-and-gates.md` beside the findings that forced them.
 
 ---
 
