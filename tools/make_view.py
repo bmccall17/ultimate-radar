@@ -37,11 +37,24 @@ from pathlib import Path
 
 from ur import grading as GV
 
+# Composing a page prints a running commentary, which is the right behaviour for
+# a build and the wrong one for `site is current`: that check composes every
+# published possession a second time purely to hash it, and six copies of the
+# build log in the middle of a gate run reads as though the site were being
+# rebuilt. The flag is module-level rather than threaded through six signatures
+# because nothing here is concurrent.
+_QUIET = False
+
+
+def _say(msg: str) -> None:
+    if not _QUIET:
+        print(msg)
+
 
 def _maybe(work: Path, name: str) -> dict | None:
     p = work / name
     if not p.exists():
-        print(f"[make_view] - {name} not present; that pane will say so")
+        _say(f"[make_view] - {name} not present; that pane will say so")
         return None
     return json.loads(p.read_text(encoding="utf-8"))
 
@@ -72,18 +85,18 @@ def _attacking_direction(work: Path, doc: dict) -> None:
     try:
         table, conflicts = DIR.resolve_work(work.parent)
     except (ValueError, KeyError) as e:
-        print(f"[make_view] ! attacking direction not resolved: {e}")
+        _say(f"[make_view] ! attacking direction not resolved: {e}")
         doc["possession"]["attacking_direction_resolved"] = None
         return
     got = DIR.for_possession(table, q, team)
     doc["possession"]["attacking_direction_resolved"] = got
     if got:
-        print(f"[make_view] + attacking direction, Q{q}: {DIR.describe(got)}")
+        _say(f"[make_view] + attacking direction, Q{q}: {DIR.describe(got)}")
     else:
-        print(f"[make_view] - attacking direction: nothing confirmed for Q{q} "
+        _say(f"[make_view] - attacking direction: nothing confirmed for Q{q} "
               f"{team}; the page will say unverified")
     for c in conflicts:
-        print(f"[make_view] ! {c['detail']}")
+        _say(f"[make_view] ! {c['detail']}")
 
 
 def _bounded(work: Path, doc: dict) -> None:
@@ -112,27 +125,42 @@ def _bounded(work: Path, doc: dict) -> None:
         return
     src = work.parent / on
     if not GV.has(src):
-        print(f"[make_view] - gates were measured on {on}, which is not in "
+        _say(f"[make_view] - gates were measured on {on}, which is not in "
               "work/; the page cannot say whether they are bounded")
         return
     n = HU.count(GV.read_for_publishing(src))
     g["bounded"], g["bounded_frames"] = n > 0, n
     doc["gates"] = g
     if n:
-        print(f"[make_view] + gates are BOUNDED: {n} hand-placed frame(s) on "
+        _say(f"[make_view] + gates are BOUNDED: {n} hand-placed frame(s) on "
               f"{on} are outside the grading sample")
     else:
-        print(f"[make_view] + gates are not bounded: {on} is 0.0% hand-placed")
+        _say(f"[make_view] + gates are not bounded: {on} is 0.0% hand-placed")
 
 
-def build(work: Path, out: Path, video: str | None = None) -> Path:
+def compose(work: Path, *, quiet: bool = False) -> tuple[dict, dict | None, dict | None]:
+    """Build the page document from `work/`, without deciding where it goes.
+
+    Everything `build` does except the video path and the write, which is the
+    whole of the difference between "what would this page say" and "put it on
+    disk". `tools/site_digest.py` needs the first half on its own: `site is
+    current` has to compare the published values against what a rebuild would
+    emit *now*, and it cannot do that by writing a second copy of the site
+    somewhere and diffing files.
+
+    Returns the document and the two sidecars the site writes beside it
+    (`issues.json`, `identities.json`), so `build` can write all three.
+    """
+    global _QUIET
+    was, _QUIET = _QUIET, quiet
+    try:
+        return _compose(work)
+    finally:
+        _QUIET = was
+
+
+def _compose(work: Path) -> tuple[dict, dict | None, dict | None]:
     doc = GV.read_for_publishing(work)
-    clip = work / "clip.mp4"
-    if video is None:
-        video = os.path.relpath(clip, out.parent).replace("\\", "/")
-    doc["video_src"] = video
-    if not clip.exists():
-        print(f"[make_view] ! {clip} is missing; the page will show no video")
 
     ident = _maybe(work, "identities.json")
     if ident:
@@ -174,14 +202,14 @@ def build(work: Path, out: Path, video: str | None = None) -> Path:
         rs = ident.get("readings") or []
         if rs:
             doc["identity_readings"] = rs
-        print(f"[make_view] + identities.json: {named} of {len(doc['players'])} "
+        _say(f"[make_view] + identities.json: {named} of {len(doc['players'])} "
               f"slots carry a jersey, {read} read off a shirt, "
               f"{len(rs)} reading(s) carried through")
 
     ev = _maybe(work, "events.json")
     if ev:
         doc["events"] = ev.get("events", [])
-        print(f"[make_view] + events.json: {len(doc['events'])} event(s)")
+        _say(f"[make_view] + events.json: {len(doc['events'])} event(s)")
         if ev.get("observed"):
             doc["observed"] = ev["observed"]
         # The file's own note travels so the viewer's download can put it back.
@@ -195,7 +223,26 @@ def build(work: Path, out: Path, video: str | None = None) -> Path:
 
     issues = _maybe(work, "issues.json")
     if issues:
-        print(f"[make_view] + issues.json: {len(issues.get('issues', []))} open")
+        _say(f"[make_view] + issues.json: {len(issues.get('issues', []))} open")
+
+    return doc, issues, ident
+
+
+def build(work: Path, out: Path, video: str | None = None) -> Path:
+    doc, issues, ident = compose(work)
+
+    clip = work / "clip.mp4"
+    if video is None:
+        video = os.path.relpath(clip, out.parent).replace("\\", "/")
+    # Deliberately set after `compose` and never inside it: where the clip sits
+    # relative to the page is a fact about this build's output directory, not
+    # about the possession, and `viewer/` and `docs/p0003/` disagree about it
+    # while publishing the same page. `tools/site_digest.py` excludes it for that
+    # reason, and the cleanest way to keep that true is for `compose` never to
+    # have known it.
+    doc["video_src"] = video
+    if not clip.exists():
+        _say(f"[make_view] ! {clip} is missing; the page will show no video")
 
     out.parent.mkdir(parents=True, exist_ok=True)
     lines = ["// Generated by tools/make_view.py. Do not edit.",
@@ -218,7 +265,7 @@ def main(argv: list[str] | None = None) -> int:
                    help="override the relative path to the clip")
     a = p.parse_args(argv)
     out = build(Path(a.work), Path(a.out), a.video)
-    print(f"[make_view] wrote {out} ({out.stat().st_size / 1e6:.2f} MB)")
+    _say(f"[make_view] wrote {out} ({out.stat().st_size / 1e6:.2f} MB)")
     print("[make_view] open viewer/index.html directly in a browser")
     return 0
 

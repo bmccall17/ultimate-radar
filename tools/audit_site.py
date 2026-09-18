@@ -42,7 +42,6 @@ reading the file cannot show you.
 from __future__ import annotations
 
 import argparse
-import functools
 import json
 import re
 import sys
@@ -128,25 +127,37 @@ def published(pid: str) -> dict | None:
     return json.JSONDecoder().raw_decode(txt[i:])[0] if i >= 0 else None
 
 
-@functools.lru_cache(maxsize=1)
-def _direction_table():
-    """Resolve `(quarter, team) -> direction` over `work/` once per run."""
-    from ur import direction as DIR
+def site_is_current(pid: str, doc: dict) -> dict:
+    """One row: does the published page say what a rebuild would say now.
+
+    Composing is the same call `tools.build_site` makes, minus the write, so the
+    comparison is against the real builder rather than a re-derivation that would
+    only ever agree with itself - the argument `tools/gate_sentence.py` makes for
+    rendering the page's own function, made here about the page's own data.
+
+    Extracted from `audit` so a test can hand it a published document and a
+    composed one directly. The audit that motivated this row worked on an
+    in-memory copy of a published `possession.js`, and a test that cannot do the
+    same thing cannot reproduce the defect.
+    """
+    from tools import make_view as MV
+    from tools import site_digest as SD
+
     try:
-        return DIR.resolve_work(WORK)[0]
-    except (OSError, ValueError, KeyError):
-        return {}
-
-
-def _resolved_now(pid: str) -> dict | None:
-    """What this possession's page SHOULD be saying about the attacking direction."""
-    from ur import direction as DIR
-    cp = WORK / pid / "clip.json"
-    if not cp.exists():
-        return None
-    clip = json.loads(cp.read_text(encoding="utf-8"))
-    return DIR.for_possession(_direction_table(), clip.get("quarter"),
-                              clip["offense"])
+        now, _issues, _ident = MV.compose(WORK / pid, quiet=True)
+    except (OSError, ValueError, KeyError) as e:
+        # A working directory that will not compose is a finding, not a skip:
+        # the row that would have caught a stale page is exactly the row that
+        # must not quietly disappear when the pipeline is broken.
+        return C.gate("site is current", False,
+                      f"work/{pid} will not compose: {e}",
+                      "the published page matches the pipeline",
+                      "fix the pipeline, then run tools.build_site")
+    diffs = SD.differences(doc, now)
+    return C.gate("site is current", not diffs, SD.summarise(diffs),
+                  "the published page matches the pipeline",
+                  "run tools.build_site - the site is the deliverable "
+                  "(AGENTS rule 7)")
 
 
 def audit(pid: str) -> list[dict]:
@@ -171,28 +182,14 @@ def audit(pid: str) -> list[dict]:
     # `events`, which stays empty until ur.possess is re-run, made this check fail
     # the moment any tag existed. A gate that fires on the wrong thing is worse
     # than no gate: it trains you to ignore it.
-    ev_p = WORK / pid / "events.json"
-    ev = (json.loads(ev_p.read_text(encoding="utf-8")) if ev_p.exists()
-          else {"events": []})
-    live_n = len(ev.get("events", []))
+    # Counting was the whole of this check until 2026-09-18, and the audit walked
+    # through it: it changed one event's time by a second and one event's player
+    # in an in-memory copy of a published page, and all eight site checks passed.
+    # A count cannot see a value. So the page is composed again from `work/` -
+    # the same call `tools.build_site` makes, minus the write - and the two are
+    # compared by content. `tools/site_digest.py` carries the parts and the diff.
     if GV.has(WORK / pid):
-        live = GV.read_for_publishing(WORK / pid)
-        # The attacking direction goes stale in a way tags cannot, and checking
-        # this possession's own `observed` block would miss it. `make_view`
-        # RESOLVES the direction across every possession at build time (AD-10),
-        # so a confirmation made in p0008 changes what p0003's page should say
-        # while nothing in p0003 changes at all. Compare the resolved answer,
-        # which is the thing the reader sees.
-        pub_dir = doc["possession"].get("attacking_direction_resolved")
-        same = (len(doc.get("events", [])) == live_n
-                and doc["possession"]["frames"] == live["possession"]["frames"]
-                and pub_dir == _resolved_now(pid))
-        add("site is current", same,
-            f"{len(doc.get('events', []))} events published, {live_n} in work/"
-            + ("; the direction on the page is not the one work/ resolves to"
-               if pub_dir != _resolved_now(pid) else ""),
-            "the published page matches the pipeline",
-            "run tools.build_site - the site is the deliverable (AGENTS rule 7)")
+        out.append(site_is_current(pid, doc))
 
     # ---- B. published evidence is actually used ------------------------------
     # The point of tagging is that the artefact changes. p0003 and p0009 were

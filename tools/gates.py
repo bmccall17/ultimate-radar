@@ -127,6 +127,10 @@ ISSUE = {
     "...slots on somebody off the field": 29,
     # The first calibration ground truth this project has ever had.
     "...paint is where the model says": 30,
+    # Counting events, frames and a direction could not see a value change, and
+    # the audit walked a doctored page past all eight site checks. #13 gave the
+    # row a content digest; mapped so the next drift has a ticket to land on.
+    "site is current": 13,
     # Repair mode's own gate: the one thing that has to be true before a person
     # is invited to hand-place fourteen markers and a disc.
     "no human position in a metric": 8,

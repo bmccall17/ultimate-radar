@@ -935,6 +935,70 @@ holder. It is here rather than nowhere so that `CONTEXT.md` and AD-15, which bot
 name the mark as an openness claim, are not quietly asserting something one card
 disagrees with.
 
+### 2.20 A check that counts things cannot see a value change
+
+**2026-09-16, from the outside audit; fixed 2026-09-18 (#13).** The audit took a
+published `possession.js`, moved one event's time by a second and gave another
+event a different player, **in memory, never on disk**, and ran the site audit
+over the doctored page. All eight site checks passed, `site is current` among
+them.
+
+**Why it could not have done anything else.** The row compared three things: how
+many events the page carried against how many are in `work/`, how many frames,
+and which way the resolved attacking direction points. Every one of those is a
+count or a category, and none of them moves when a value underneath it changes.
+Two events at the wrong time are still two events. It is the same shape as § 2.7
+and § 2.9 from the other side: there the field was right and the rendering lied,
+here the rendering is faithful and the field it renders had drifted, and a check
+built out of totals is blind to both.
+
+**What that allows.** The site is the deliverable (AGENTS rule 7) and `work/` is
+the pipeline. A page can carry a tag at the wrong second, a throw attributed to
+the wrong player, a position from a superseded tracker run, or a gate block from
+before a threshold moved, and the board stays green, because nothing that
+changed changed a count. The scenario is not hypothetical: `docs/30` § 2.6 exists
+because two ghost players were reported as live defects when they had been fixed
+and pushed, and the published page was simply an older build.
+
+**The fix is a content digest, not a bigger list of counts.** `make_view.compose`
+was split out of `build`: it is everything the site builder does except choosing
+where the file goes, so the comparison is against the real builder rather than a
+Python re-derivation that would only ever agree with itself. It is the argument
+`tools/gate_sentence.py` makes about rendering, made here about data.
+`tools/site_digest.py` reduces the published document and the freshly composed one
+to a hash per named part and reports which parts disagree.
+
+**One field is excluded and that is the whole exclusion list.** `video_src` is
+the relative path from the page to its clip, so `viewer/live-data.js` says
+`../work/p0003/clip.mp4` where `docs/p0003/possession.js` says `clip.mp4` for the
+same page. Hashing it would make every published page permanently stale against a
+viewer build. Everything else is in, **including the position arrays**. The
+ticket asked for "event values and resolved claims"; a pipeline re-run that moves
+every player and no event is exactly the staleness this row exists to catch, and
+a check that would not see it has the same hole in a larger place.
+
+**Why parts rather than one hash.** A gate row has one line to say what is wrong,
+and a possession document is a few megabytes. So the document splits into
+`possession`, `players`, `disc_meta`, `events`, `observed`, `gates`,
+`identity_readings` and `rest`, each hashed alone. Only the part that differs is
+walked, so the row says `event 0 t: published 7.6, work/ 8.6` rather than
+`something differs`. `rest` is not there for convenience: it means a field added
+to the document tomorrow is covered the day it lands rather than the day somebody
+remembers this file.
+
+**A working directory that will not compose is a failure, not a skip.** The row
+that would have caught a stale page is exactly the row that must not quietly
+disappear when the pipeline is broken. `tools/grading_view.py` calls this failing
+open, and it is the same argument here.
+
+**The test is the audit's own move.** `tests/test_site_digest.py` reads the real
+published p0003, makes the two edits the audit made, and requires the row to
+fail; a fourth test asserts that those edits still do not move any of the three
+counts the old row read, so the first two keep testing what they were written for
+if the row ever changes again. The no-op case is tested first and deliberately:
+all six published pages pass unchanged, which is what stops this being a tripwire
+somebody turns off.
+
 ---
 
 ## 3. The gates, and which of them fail on purpose
@@ -1047,7 +1111,7 @@ defects that the whole suite was green through.
 
 | gate | threshold | where it comes from |
 |---|---|---|
-| site is current | published events **and confirmed direction** == `work/<id>/events.json` | AGENTS rule 7 — the live site is the deliverable. The direction was added with AD-10: `make_view` resolves it into the page at build time, so a confirmation made after the last build is one the reader never sees, and the page goes on saying `unverified` over something somebody had settled |
+| site is current | a **content digest** of the published document, part by part, equals the digest of what `make_view.compose` emits now — every field but `video_src` | AGENTS rule 7 — the live site is the deliverable. It counted events, frames and the resolved direction until § 2.20: the audit changed one event's time and one event's player in an in-memory copy and all eight site checks passed, because a count cannot see a value. `tools/site_digest.py` hashes eight named parts so the row can say `event 0 t: published 7.6, work/ 8.6` rather than `something differs`, and `rest` covers any field added to the document after this table was written. Direction is in it the same way everything else is — `compose` resolves it (AD-10), so a confirmation made after the last build shows up as a difference in `possession`. #13 |
 | published tags are used | tags naming a player produce disc frames sourced `human` | p0003 and p0009 published 14 and 12 human tags while every disc frame was still `inferred`. `ur.disc` had not been re-run, so the tagging bought **nothing** on the site. Fixed: 0 → 485 and 0 → 405 frames |
 | no borrowed gate numbers | numeric gates only on the possession they were measured on | every page shipped p0001's `per_player_recall: 0.9744` in its data. `measured_on` labelled it honestly, but anything reading `possession.js` still got p0001's recall for p0003. The numbers now travel only with their own possession |
 | no unmeasured percentage printed | render the page a second time with **every measurement removed**; no percentage may survive | § 2.7. Five pages printed a rounded `0 %` for recall and sigma containment off `null` fields. These two are the only checks here that read the **rendered sentence** rather than the data behind it, because the data was right and the sentence was not — they run the viewer's own `gateSentence` under node (`tools/gate_sentence.py`), which is why `node` has a row in `docs/07`. Taking the measurement away rather than comparing against an expected value is what makes it catch the bug on p0001 too, where it was latent behind a real 97 %. #11 |
