@@ -96,6 +96,9 @@ MIN_GRADED_SPANS = 8       # below this an accuracy is a coin-toss report
 ISSUE = {
     "span identity accuracy": 1,
     "margin predicts correctness": 2,
+    # The whole-broadcast index. Passing today and here to stay passing: it is
+    # what catches a re-scan or a re-labelled cluster table.
+    "goals reconcile with the final score": 16,
     "Q1: opposite teams": 5,
     "Q2: opposite teams": 5,
     "Q3: opposite teams": 5,
@@ -725,6 +728,46 @@ def check_disc(works: list[Path]) -> dict:
     return out
 
 
+GOALS_JSON = Path("eval/m9/goals.json")
+
+
+def check_goals(path: Path = GOALS_JSON) -> dict:
+    """The whole-broadcast goal index, read off the committed file.
+
+    **This never opens the broadcast.** Not for portability - `work/` is
+    gitignored too, so the gates already need local state - but for runtime, and
+    because a check that re-derives its answer from the footage every run is
+    comparing the measurement to itself. It is worth something precisely because
+    `eval/m9/goals.json` is committed: that is what catches a re-scan, a
+    re-labelled cluster table, or a collision repair that broke. #16.
+    """
+    out: dict = {"possession": "the game's goal index", "checks": []}
+    if not path.exists():
+        out["checks"].append(C.gate(
+            "goals reconcile with the final score", False, f"no {path}",
+            "the scan has run", "python -m tools.scout goals"))
+        return out
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    goals, final = doc["goals"], doc["final_score"]
+    total = sum(final.values())
+    steps = [(g["to"][0] - g["from"][0]) + (g["to"][1] - g["from"][1])
+             for g in goals]
+    odd = [g for g, s in zip(goals, steps) if s != 1]
+    out["checks"].append(C.gate(
+        "goals reconcile with the final score",
+        len(goals) == total and not odd,
+        f"{len(goals)} changes, final {'-'.join(str(v) for v in final.values())}"
+        + (f" = {total}" if len(goals) != total else "")
+        + (f", {len(odd)} moving a team by something other than one"
+           f" ({', '.join(str(g['from']) + '->' + str(g['to']) for g in odd[:3])})"
+           if odd else ""),
+        f"one change per point scored, and each moves one team by one",
+        "a count that disagrees with the scoreline is a change the scan missed "
+        "or invented; re-run `python -m tools.scout goals` and look at the "
+        "contact sheet before touching the labels"))
+    return out
+
+
 def check_site() -> dict:
     """The published site, which is the only thing anybody actually sees.
 
@@ -762,6 +805,7 @@ def main(argv: list[str] | None = None) -> int:
     reports.append(GVG.check())
     reports.append(check_declared(works))
     reports.append(check_site())
+    reports.append(check_goals())
     reports.append(check_disc(works))
 
     open_by: dict[int, int] = {}

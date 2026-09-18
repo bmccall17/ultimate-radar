@@ -92,6 +92,44 @@ CLOCK = (1285, 944, 80, 40)
 # roughly where to look for the freeze.
 CLOCK_LOOKBACK_S = 45.0
 
+# What counts as the clock changing, and what counts as it having stopped.
+#
+# Both are pixel counts over the binarised clock box, and both were already here
+# as bare 60s inside `clock_freeze`. The _PX matters: `INK` above is a grey level
+# and these are counts of pixels above it, which is close enough in a name to be
+# worth spelling out. A digit's worth of changed pixels is CLOCK_CHANGE_PX; below
+# CLOCK_LIT_PX nothing is lit at all, so a change into an empty box is the bug
+# being wiped off for a graphic rather than a tick.
+#
+# CLOCK_TICK_GAP_S is the new one. A running clock changes once a second, and
+# over the twelve goals in `fixtures/clock_freeze.json` the widest gap *inside*
+# a ticking run is 2.25 s - a tick whose frame the 4 fps sample missed. Three
+# seconds sits above that and far below the gaps that separate a run from the
+# events after it (6.00, 7.75, 9.00, 11.25, 15.00 s in that same fixture), so
+# nothing observed lands near the boundary. docs/30 section 2.24.
+CLOCK_CHANGE_PX = 60
+CLOCK_LIT_PX = 60
+CLOCK_TICK_GAP_S = 3.0
+
+# How many changes in a row make a clock rather than a coincidence. The events
+# that used to win were one frame (a wipe, a re-render, a change one pixel over
+# CLOCK_CHANGE_PX) or two together (the bug drawing itself back on, 0.25 s apart);
+# the shortest real ticking run in the fixture is 10. Three separates them with
+# nothing observed in between, and a run of three at a second's cadence is a
+# clock that visibly ran for two seconds. docs/30 section 2.24.
+CLOCK_MIN_TICKS = 3
+
+# How far past the flip to keep looking. **Unchanged at the 2.0 that was inline
+# here before, and deliberately so.** One goal's clock is still ticking when this
+# window closes (5803.21, which stops 6.00 s after its own recorded flip), and
+# widening the window to reach it looked obvious until the widening was measured:
+# at a 10 s tail the pull restarts inside the window on 9 of 52 goals and at 40 s
+# on 28, so which run is the goal's depends on a `goal_t` that #16 found is not
+# reproducible. A window is chosen against a correct anchor or not at all. Under
+# this one that goal now returns None - nothing stopped where we looked - which
+# is the honest answer and what `freeze_index` refuses on. docs/30 section 2.24.
+CLOCK_TAIL_S = 2.0
+
 # The window has to sit inside one shot: the pipeline assumes one shot per
 # possession and calibration initialises each frame from its neighbour.
 #
@@ -256,13 +294,25 @@ def find_goals(source: Path, out: Path | None) -> list[dict]:
                 print(f"   {g['from']} -> {g['to']} at {g['after_t']}", file=sys.stderr)
 
     goals = _refine(source, goals)
+    # The freeze belongs beside the flip. It existed only in `windows.json`, a
+    # by-product of the window-ranking pass, so anything wanting both the goal
+    # and the moment it happened had to read two files and join them on a float.
+    # #16 task 2: the index reads one file.
+    for g in goals:
+        g["clock_freeze_t"] = (clock_freeze(source, g["goal_t"])
+                               if g["goal_t"] is not None else None)
+    got = sum(g["clock_freeze_t"] is not None for g in goals)
+    print(f"[scout] clock freeze found for {got} of {len(goals)} changes")
+
     if out:
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(
             {"source": source.name, "final_score": {"ATX": final[0], "MIN": final[1]},
              "reconstruction_consistent": consistent,
-             "note": "goal_t is when the score bug flips, which trails the catch "
-                     "by a second or so. Look at the stills.",
+             "note": "goal_t is when the score bug flips and clock_freeze_t is "
+                     "the last second the game clock ticked before it, which is "
+                     "the goal. The flip trails it; over this scan the gap runs "
+                     "4.50-16.75 s. Look at the stills.",
              "goals": goals}, indent=1) + "\n", encoding="utf-8")
         print(f"[scout] -> {out}")
     return goals
@@ -305,28 +355,62 @@ def _crop_fps(source: Path, start: float, dur: float, fps: int,
 # when the goal actually happened, and which shot it happened in
 # --------------------------------------------------------------------------- #
 
+def freeze_index(delta, ink, *, fps: int,
+                 max_gap_s: float = CLOCK_TICK_GAP_S) -> int | None:
+    """The frame the clock last ticked on, given what each frame measured.
+
+    `delta` is how much the binarised clock box changed from the frame before it
+    and `ink` how much of it is lit, both per frame. The decision is separated
+    from the ffmpeg pass above it so it can be tested on the frames it was
+    actually wrong on without opening 2 h 22 m of broadcast - `docs/10` says the
+    footage is not redistributed, so `fixtures/clock_freeze.json` carries these
+    two series and no pixels.
+    """
+    q = [i for i in range(len(delta))
+         if delta[i] > CLOCK_CHANGE_PX and ink[i] > CLOCK_LIT_PX]
+    if not q:
+        return None
+    gap = max_gap_s * fps
+    runs: list[list[int]] = [[q[0]]]
+    for a, b in zip(q, q[1:]):
+        if b - a > gap:
+            runs.append([])
+        runs[-1].append(b)
+    ticking = [r for r in runs if len(r) >= CLOCK_MIN_TICKS]
+    if not ticking:
+        return None
+    last = ticking[-1][-1]
+    # The clock has to be *seen* to stop. A run still going when the window
+    # closes has not stopped inside it, and its final tick is only where the
+    # looking ran out - reporting that as the freeze reports the window as a
+    # measurement. docs/30 section 2.6.
+    return last if len(delta) - 1 - last >= gap else None
+
+
 def clock_freeze(source: Path, bug_t: float, *, fps: int = 4) -> float | None:
     """The last second the game clock ticked before the score bug flipped.
 
     That is the goal, to within the clock's own one-second resolution. The bug
-    itself is 9-15 s late because it updates over the replay, and a window
-    anchored to it walks straight through the cut into a celebration close-up -
-    which is the mistake `docs/22-m7-preflight.md` records p0003 making the
-    first time it was cut.
+    itself is late because it updates over the replay, and a window anchored to
+    it walks straight through the cut into a celebration close-up - which is the
+    mistake `docs/22-m7-preflight.md` records p0003 making the first time it was
+    cut.
+
+    This does the looking; `freeze_index` does the deciding. It used to do both,
+    and returned the **last** qualifying change in the window rather than the
+    moment ticking stopped, so a graphic wipe or the bug re-rendering after the
+    replay won and the answer landed at the window edge. #16, docs/30 s 2.24.
     """
     t0 = bug_t - CLOCK_LOOKBACK_S
-    fr, _ = _crop_fps(source, t0, CLOCK_LOOKBACK_S + 2.0, fps, CLOCK)
+    fr, _ = _crop_fps(source, t0, CLOCK_LOOKBACK_S + CLOCK_TAIL_S, fps, CLOCK)
     if len(fr) < 4:
         return None
     b = (fr > INK).astype(np.int16)
-    ink = b.reshape(len(b), -1).sum(1)
-    last = None
-    for i in range(1, len(b)):
-        # A change big enough to be a digit, with a clock still on screen after
-        # it - so the bug being wiped off for a graphic does not read as a tick.
-        if int(np.abs(b[i] - b[i - 1]).sum()) > 60 and ink[i] > 60:
-            last = i
-    return round(t0 + last / fps, 2) if last is not None else None
+    ink = [int(x) for x in b.reshape(len(b), -1).sum(1)]
+    delta = [0] + [int(x) for x in
+                   np.abs(np.diff(b, axis=0)).reshape(len(b) - 1, -1).sum(1)]
+    i = freeze_index(delta, ink, fps=fps)
+    return round(t0 + i / fps, 2) if i is not None else None
 
 
 def load_cuts(root: Path) -> list[tuple[float, float]]:
