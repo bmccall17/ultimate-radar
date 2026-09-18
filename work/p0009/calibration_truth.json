@@ -1,0 +1,249 @@
+{
+ "schema": "ultimate-radar/calibration-truth@1",
+ "possession_id": "p0009",
+ "note": "Hand-read positions of field paint in IMAGE pixels, against the field point whose position is known exactly. Ground truth for calibration (ur/calibrate), and NOT a correction: nothing here says anything about where a player was, and ur/resolve.py must never read it.",
+ "image": {
+  "w": 1920,
+  "h": 1080
+ },
+ "observations": [
+  {
+   "id": "g23",
+   "at": "2026-09-17T23:54:37.487Z",
+   "f": 379,
+   "landmark": "goal line +x @ yW",
+   "field": [
+    100,
+    53.333
+   ],
+   "image": [
+    1890.4,
+    353.9
+   ]
+  },
+  {
+   "id": "g39",
+   "at": "2026-09-17T23:54:41.134Z",
+   "f": 380,
+   "landmark": "goal line +x @ yW",
+   "field": [
+    100,
+    53.333
+   ],
+   "image": [
+    1881.3,
+    348.4
+   ]
+  },
+  {
+   "id": "g54",
+   "at": "2026-09-17T23:54:43.774Z",
+   "f": 381,
+   "landmark": "goal line +x @ yW",
+   "field": [
+    100,
+    53.333
+   ],
+   "image": [
+    1841.1,
+    346.6
+   ]
+  },
+  {
+   "id": "g114",
+   "at": "2026-09-17T23:54:57.799Z",
+   "f": 397,
+   "landmark": "goal line +x @ yW",
+   "field": [
+    100,
+    53.333
+   ],
+   "image": [
+    1270,
+    384.9
+   ]
+  },
+  {
+   "id": "g165",
+   "at": "2026-09-17T23:55:04.750Z",
+   "f": 401,
+   "landmark": "goal line +x @ yW",
+   "field": [
+    100,
+    53.333
+   ],
+   "image": [
+    1087.5,
+    384.9
+   ]
+  },
+  {
+   "id": "g201",
+   "at": "2026-09-17T23:55:08.851Z",
+   "f": 403,
+   "landmark": "goal line +x @ yW",
+   "field": [
+    100,
+    53.333
+   ],
+   "image": [
+    990.8,
+    379.4
+   ]
+  },
+  {
+   "id": "g241",
+   "at": "2026-09-17T23:55:14.283Z",
+   "f": 404,
+   "landmark": "goal line +x @ yW",
+   "field": [
+    100,
+    53.333
+   ],
+   "image": [
+    976.2,
+    384.9
+   ]
+  },
+  {
+   "id": "g310",
+   "at": "2026-09-17T23:55:22.381Z",
+   "f": 407,
+   "landmark": "goal line +x @ yW",
+   "field": [
+    100,
+    53.333
+   ],
+   "image": [
+    875.9,
+    383
+   ]
+  },
+  {
+   "id": "g362",
+   "at": "2026-09-17T23:55:28.891Z",
+   "f": 408,
+   "landmark": "goal line +x @ yW",
+   "field": [
+    100,
+    53.333
+   ],
+   "image": [
+    837.5,
+    384.9
+   ]
+  },
+  {
+   "id": "g409",
+   "at": "2026-09-17T23:55:33.048Z",
+   "f": 410,
+   "landmark": "goal line +x @ yW",
+   "field": [
+    100,
+    53.333
+   ],
+   "image": [
+    777.3,
+    381.2
+   ]
+  },
+  {
+   "id": "g457",
+   "at": "2026-09-17T23:55:37.467Z",
+   "f": 411,
+   "landmark": "goal line +x @ yW",
+   "field": [
+    100,
+    53.333
+   ],
+   "image": [
+    733.5,
+    379.4
+   ]
+  },
+  {
+   "id": "g527",
+   "at": "2026-09-17T23:55:45.598Z",
+   "f": 415,
+   "landmark": "goal line +x @ yW",
+   "field": [
+    100,
+    53.333
+   ],
+   "image": [
+    580.3,
+    379.4
+   ]
+  },
+  {
+   "id": "g586",
+   "at": "2026-09-17T23:55:50.449Z",
+   "f": 416,
+   "landmark": "goal line +x @ yW",
+   "field": [
+    100,
+    53.333
+   ],
+   "image": [
+    556.5,
+    381.2
+   ]
+  },
+  {
+   "id": "g654",
+   "at": "2026-09-17T23:55:57.339Z",
+   "f": 417,
+   "landmark": "goal line +x @ yW",
+   "field": [
+    100,
+    53.333
+   ],
+   "image": [
+    512.7,
+    383
+   ]
+  },
+  {
+   "id": "g713",
+   "at": "2026-09-17T23:56:01.451Z",
+   "f": 419,
+   "landmark": "goal line +x @ yW",
+   "field": [
+    100,
+    53.333
+   ],
+   "image": [
+    456.2,
+    379.4
+   ]
+  },
+  {
+   "id": "g757",
+   "at": "2026-09-17T23:56:09.937Z",
+   "f": 425,
+   "landmark": "goal line +x @ yW",
+   "field": [
+    100,
+    53.333
+   ],
+   "image": [
+    239,
+    368.4
+   ]
+  },
+  {
+   "id": "g819",
+   "at": "2026-09-17T23:56:14.297Z",
+   "f": 425,
+   "landmark": "back line +x @ yW",
+   "field": [
+    120,
+    53.333
+   ],
+   "image": [
+    1167.8,
+    324.7
+   ]
+  }
+ ]
+}

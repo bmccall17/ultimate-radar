@@ -138,16 +138,45 @@ def build(work: Path, out: Path, video: str | None = None) -> Path:
     if ident:
         # A jersey the vote declined to call stays None. docs/04 M5: a wrong
         # number is worse than no number, and the viewer must not paper over it.
+        #
+        # The number alone is not enough, because the two files this reads are
+        # not the same kind of statement. `identities@2` is what a person read
+        # off a shirt, against the frame they read it on; `identities@1` is an
+        # OCR vote over a tracklet. `ur/provenance.py::derive` will grade a tag
+        # against the first and not the second, so a page that renders them
+        # identically tells a tagger that truth exists where it does not. The
+        # provenance travels with the number.
         by = {s["slot"]: s for s in ident["slots"]}
-        named = 0
+        named = read = 0
         for p in doc["players"]:
             s = by.get(p["slot"])
-            if s and s.get("jersey") is not None:
-                p["jersey"] = s["jersey"]
-                p["jersey_confidence"] = s.get("confidence")
-                named += 1
+            if not s or s.get("jersey") is None:
+                continue
+            p["jersey"] = s["jersey"]
+            # @2 says `source`; @1 says `method` ("ocr_vote"). Anything that is
+            # not a human reading is "voted" - the page only has to tell those
+            # two apart, and collapsing the rest avoids inventing a vocabulary
+            # neither file uses.
+            p["jersey_source"] = "read" if s.get("source") == "read" else "voted"
+            # `confidence` was read here and it is an @1 field. Every page built
+            # from a human's readings carried `jersey_confidence: None`, which
+            # nothing could use and nothing did. How many times somebody looked,
+            # and whether the looks disagreed, are things a reader can weigh.
+            p["jersey_readings"] = s.get("readings")
+            p["jersey_conflict"] = s.get("conflict")
+            named += 1
+            if p["jersey_source"] == "read":
+                read += 1
+        # The append-only record travels too. The viewer restores it on load -
+        # without it every reload claims nobody has read a shirt - and it is
+        # what `derive` needs: a reading settles the tag whose span it falls
+        # INSIDE, so the frame it was read on is the whole of its value.
+        rs = ident.get("readings") or []
+        if rs:
+            doc["identity_readings"] = rs
         print(f"[make_view] + identities.json: {named} of {len(doc['players'])} "
-              "slots carry a voted jersey")
+              f"slots carry a jersey, {read} read off a shirt, "
+              f"{len(rs)} reading(s) carried through")
 
     ev = _maybe(work, "events.json")
     if ev:

@@ -816,6 +816,44 @@ measured, only its per-frame confidence, and § 2.2's suggestion that the honest
 quantity is "is the halfway line in shot" now has a second half — **and are the
 goal lines still where they should be when it is**.
 
+
+### 2.18 The first calibration ground truth, and it is one reading
+
+**2026-09-17.** Seventeen paint landmarks dragged onto the real paint on p0009,
+through the viewer's repair mode — the first time anybody has measured where this
+project's camera model is wrong rather than how confident it says it is. It is
+the measurement `#30` asked for, and it is **one reading long**.
+
+**The reading.** On **f379**, a frame the page scores **0.75**, the far goal-line
+corner is **5.06 yd** from where the model puts it — 100 px in a 1920-wide frame,
+far more than the painted line is thick. On the same possession, `M1 acceptance`
+measures **0.132 yd mean, 0.314 yd max**, and it measures the **centre** of the
+image.
+
+**Two numbers about one possession, a factor of thirty-eight apart, and both
+honest.** That is `#30` stated as a measurement instead of an impression: the
+calibration is sub-yard where it is scored and five yards where it is not, and
+nothing in the project had ever looked at the second place.
+
+**The other sixteen readings say nothing about it, and the average of all
+seventeen would be a lie.** They sit on frames scoring 0.00–0.15, where the page
+already refuses to place and the viewer already says so. Their errors run 4.6 to
+29.6 yd, the median over all seventeen is 19.45 yd, and quoting that would be
+§ 2.1's rule broken in a new way — not a number without its denominator but a
+number over the wrong population. What they do show is that `confidence` is
+directionally right: where it is low the geometry really is bad.
+
+**The caveat the single reading carries.** The far goal-line corner is the
+hardest point in the frame — the intersection of two lines at maximum distance,
+near the image edge at x = 1890 of 1920 — so it is the worst case rather than a
+typical one. That is the right place to look for this failure and the wrong place
+to generalise from.
+
+**What would settle it:** the same drag on frames the page stands behind. p0009
+has **388 of 450** at confidence ≥ 0.5, and one of them has been read. The tool
+exists, the store exists, `...paint is where the model says` reports the split on
+every run, and the thing that is missing is twenty minutes of dragging.
+
 ## 3. The gates, and which of them fail on purpose
 
 `python -m tools.gates` prints **204 rows, and only 170 of them can fail.** It

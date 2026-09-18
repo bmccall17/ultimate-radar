@@ -125,6 +125,8 @@ ISSUE = {
     "...longest blind stretch": 8,
     # A measurement today; mapped so the ticket is findable the day it is gated.
     "...slots on somebody off the field": 29,
+    # The first calibration ground truth this project has ever had.
+    "...paint is where the model says": 30,
     # Repair mode's own gate: the one thing that has to be true before a person
     # is invited to hand-place fourteen markers and a disc.
     "no human position in a metric": 8,
@@ -252,6 +254,43 @@ def check_possession(work: Path) -> dict:
         "publishing gate, not a pipeline gate")
     add("frames with nothing at all", blank <= PUBLISH_MAX_BLANK, f"{blank:.0%}",
         f"<= {PUBLISH_MAX_BLANK:.0%}", "publishing gate")
+
+    # Where the calibration is wrong, as opposed to how confident it says it is.
+    #
+    # Not a gate and #30 says why not: there is no threshold yet because there is
+    # barely a measurement yet. `confidence` is one number for a whole frame,
+    # scored by ur/calibrate/groundtruth.py at the two known points where the
+    # halfway line crosses the centre circle - both at the CENTRE of the image -
+    # so a fit good centrally and wrong at the edges reports a good frame. A
+    # person dragging the viewer's paint landmarks onto the real paint is the
+    # only thing that has ever measured the difference.
+    #
+    # Split by whether the page stands behind the frame, because a reading on a
+    # frame the page already disclaims says nothing about #30 and would drag any
+    # average toward a conclusion nobody claimed.
+    truth_p = work / "calibration_truth.json"
+    if truth_p.exists():
+        truth = json.loads(truth_p.read_text(encoding="utf-8"))
+        byf = {r["f"]: r for r in cal["frames"]}
+        vouched, other = [], []
+        for o in truth.get("observations", []):
+            rec = byf.get(o["f"]) or {}
+            H = rec.get("H")
+            if not H:
+                continue
+            q = np.asarray(H, float) @ np.array([*o["image"], 1.0])
+            if abs(q[2]) < 1e-12:
+                continue
+            err = float(np.hypot(*(q[:2] / q[2] - np.asarray(o["field"], float))))
+            (vouched if (rec.get("confidence") or 0) >= 0.5 else other).append(err)
+        if vouched or other:
+            report("...paint is where the model says",
+                   (f"{len(vouched)} reading(s) on a frame the page stands behind"
+                    + (f", worst {max(vouched):.1f} yd" if vouched else "")
+                    + f"; {len(other)} on frames it does not"
+                    + (f", worst {max(other):.1f} yd" if other else "")),
+                   "no threshold: the sample is a handful of hand-drags and only "
+                   "the first group bears on #30")
 
     # How much of the roster is standing in the crowd.
     #

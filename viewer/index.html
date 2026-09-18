@@ -70,13 +70,27 @@ main{display:grid;grid-template-columns:1.45fr 1fr;gap:14px;padding:12px 16px}
 .viewrow .stage{flex:1;min-width:0}
 /* Fourteen slots in one column beside the frame. Narrow on purpose: it is a
    chooser and a status light, not a table - the detail is on hover, where it
-   costs nothing until somebody wants it. */
-.rail{flex:0 0 46px;display:flex;flex-direction:column;gap:2px;padding:4px;
+   costs nothing until somebody wants it. The jersey is the one thing that
+   earned a second column, because a slot is not a person and the number is the
+   only referent it has. */
+.rail{flex:0 0 76px;display:flex;flex-direction:column;gap:2px;padding:4px;
   background:var(--panel);border-right:1px solid var(--line);overflow:hidden}
 .rail button{flex:1;min-height:0;font:inherit;font-size:11px;font-weight:600;
-  padding:0;border-radius:4px;border:1px solid transparent;cursor:pointer;
+  padding:0 4px;border-radius:4px;border:1px solid transparent;cursor:pointer;
   background:transparent;color:var(--dim);position:relative;
-  display:flex;align-items:center;justify-content:center;gap:3px}
+  display:flex;align-items:center;justify-content:flex-start;gap:4px}
+/* Two weights, and the difference carries a fact. Solid: a person read this
+   off a shirt, so a tag inside a span this slot holds can be graded against it.
+   Faint: a number nothing read - an OCR vote over the tracklet - which grades
+   nothing and is shown only so it is not mistaken for a gap. Amber and both
+   numbers: the slot was read as two different people. */
+.rail .sl{flex:0 0 auto}
+.rail .jn{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:500;
+  overflow:hidden;text-overflow:ellipsis}
+.rail .jn.read{color:var(--ink);font-weight:650}
+.rail .jn.voted{opacity:.45}
+.rail .jn.conflict{color:var(--warn);font-weight:650;font-size:10px}
+.rail button.on .jn.voted{opacity:.6}
 .rail button:hover{border-color:var(--dim)}
 .rail button.on{background:var(--chill-fill);border-color:var(--chill);
   color:var(--ink)}
@@ -1974,6 +1988,19 @@ function collidesWith(id, f){
    had to pick between. */
 const JERSEY = [];
 let jerseySeq = 0;
+/* Published readings are restored the way published tags are. Without this the
+   store starts empty on every load, the rail says nobody has read a shirt, the
+   relabel panel offers to record a number somebody already recorded, and
+   Download identities writes a file with this session's readings and none of
+   the ones it was built from - which would delete them. `identity_readings` is
+   the file's own append-only list, carried through by tools/make_view.py. */
+for(const r of (D.identity_readings || [])){
+  JERSEY.push(r);
+  // Keep the counter ahead of the ids already in the file, or the first reading
+  // made in this tab collides with one of them and the download has two `j3`s.
+  const n = parseInt(String(r.id || "").replace(/^j/, ""), 10);
+  if(Number.isFinite(n) && n > jerseySeq) jerseySeq = n;
+}
 function readingsFor(id){ return JERSEY.filter(r => r.slot === id); }
 function jerseyOf(id){
   // The resolution, and it refuses to guess. One number across every reading is
@@ -3009,6 +3036,35 @@ function railState(p, f){
   if(p.det && p.det[f] !== null && p.det[f] !== undefined) return "seen";
   return at(p, f) ? "guess" : "lost";
 }
+/* Three outcomes and no fourth: a number a person read off a shirt, a number
+   something voted for, or nothing at all. Never a guess to fill the gap
+   (docs/04 M5 - a wrong number is worse than no number), and never a tie
+   broken: a slot read as two different numbers is a slot that moved between
+   two people, which is the finding, so both numbers are shown.
+
+   The distinction is the point of the thing. `ur/provenance.py::derive` grades
+   a tag's name only where a reading falls inside the span that tag bounds;
+   everything else is the tracker carrying an identity between two moments. So a
+   solid number means this slot can anchor a span and a faint one means it
+   cannot, and the rail is the tagger's map of which is which. */
+function railJersey(p){
+  const j = jerseyOf(p.id);
+  if(j.conflict){
+    // No `#`, because this is not a jersey - it is two of them, and the slot
+    // has none. It also has to fit: `#28/77` ellipsises to `#28...` in this
+    // column, and a conflict that renders as its own first number is the one
+    // reading of it that must never happen.
+    const nums = [...new Set(j.conflict.map(r => r.jersey))];
+    return {text: nums.join("/"), cls:"conflict"};
+  }
+  if(j.jersey !== null) return {text:"#" + j.jersey, cls:"read"};
+  if(p.jersey === null || p.jersey === undefined) return null;
+  // A number with no reading behind it. p0001's are an OCR vote over a
+  // tracklet, and the file that holds them says single-frame OCR was 18.8 %
+  // accurate on crops a human had already read.
+  return {text:"#" + p.jersey,
+          cls: p.jersey_source === "read" ? "read" : "voted"};
+}
 function railTitle(p, f){
   const st = p.state[f], xy = at(p, f);
   const bits = [`${p.id}${p.jersey ? " #" + p.jersey : ""} — ` +
@@ -3031,6 +3087,11 @@ function railTitle(p, f){
   if(j.conflict) bits.push("read as two different jerseys — this label is on two "
                            + "people and the stretch between needs splitting");
   else if(j.jersey !== null) bits.push(`read as #${j.jersey}`);
+  else if(p.jersey !== null && p.jersey !== undefined)
+    bits.push(p.jersey_source === "read"
+      ? `read as #${p.jersey}`
+      : `#${p.jersey} is a vote over the tracklet, not a reading off a shirt — `
+        + `a tag named from it cannot be graded (ur/provenance.py)`);
   if(p.state[f] === "provisional")
     bits.push("re-acquired after a gap and never reviewed — it may be a "
               + "different person (docs/25 R4)");
@@ -3041,16 +3102,25 @@ function railTitle(p, f){
 function renderRail(){
   const f = S.f;
   const key = [f, S.sel, REPAIR.on, REPAIR.put.size,
-               PL.map(p => railState(p, f)).join("")].join("|");
+               PL.map(p => railState(p, f)).join(""),
+               // A jersey recorded in this tab has to reach the rail on the
+               // next draw, and the rail is skipped whenever the key matches.
+               PL.map(p => { const j = railJersey(p);
+                             return j ? j.cls + j.text : ""; }).join(",")
+              ].join("|");
   if(key === _railKey) return;
   _railKey = key;
   RAIL.innerHTML = PL.map(p => {
     const cls = [railState(p, f), p.team === OFF ? "sol" : "chill"];
     if(p.id === S.sel) cls.push("on");
     if(REPAIR.put.has(p.id)) cls.push("staged");
+    const jn = railJersey(p);
     return `<button class="${cls.join(" ")}" data-slot="${p.id}"
       title="${railTitle(p, f).replace(/"/g, "&quot;")}">
-      <span class="pip"></span>${p.id}</button>`;
+      <span class="pip"></span><span class="sl">${p.id}</span>${
+      // Nothing at all where there is no number: no dash, no zero, no
+      // placeholder. A gap is the honest rendering of a gap.
+      jn ? `<span class="jn ${jn.cls}">${jn.text}</span>` : ""}</button>`;
   }).join("");
   RAIL.querySelectorAll("[data-slot]").forEach(b => {
     b.onclick = () => {
