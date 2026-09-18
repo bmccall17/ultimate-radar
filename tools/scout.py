@@ -119,15 +119,22 @@ CLOCK_TICK_GAP_S = 3.0
 # clock that visibly ran for two seconds. docs/30 section 2.24.
 CLOCK_MIN_TICKS = 3
 
-# How far past the flip to keep looking. **Unchanged at the 2.0 that was inline
-# here before, and deliberately so.** One goal's clock is still ticking when this
-# window closes (5803.21, which stops 6.00 s after its own recorded flip), and
-# widening the window to reach it looked obvious until the widening was measured:
-# at a 10 s tail the pull restarts inside the window on 9 of 52 goals and at 40 s
-# on 28, so which run is the goal's depends on a `goal_t` that #16 found is not
-# reproducible. A window is chosen against a correct anchor or not at all. Under
-# this one that goal now returns None - nothing stopped where we looked - which
-# is the honest answer and what `freeze_index` refuses on. docs/30 section 2.24.
+# How far past the flip to keep looking. Unchanged at the 2.0 that was inline
+# here before, and now measured rather than inherited. Two goals' clocks are
+# still ticking where this window closes, and widening it to reach them is the
+# obvious move and the wrong one - over the 52, against a corrected `goal_t`:
+#
+#   tail   goals with a freeze   smallest lead   goals where the freeze
+#                                                follows the flip
+#    2.0        50 of 52            1.25 s              0
+#    3.0        50 of 52            0.50 s              0
+#    5.0        48 of 52            0.50 s              0
+#    8.0        49 of 52           -4.75 s              2
+#   20.0        51 of 52          -15.25 s              9
+#
+# The clock stops a median of 3.38 s BEFORE the flip, so everything past it is
+# the pull restarting and the graphics over it. Buying two more goals costs the
+# ordering on nine. docs/30 section 2.24.
 CLOCK_TAIL_S = 2.0
 
 # The window has to sit inside one shot: the pipeline assumes one shot per
@@ -319,20 +326,46 @@ def find_goals(source: Path, out: Path | None) -> list[dict]:
 
 
 def _refine(source: Path, goals: list[dict]) -> list[dict]:
-    """Pin each change to a quarter second with a short 4 fps pass."""
+    """Pin each change to a quarter second with a short 4 fps pass.
+
+    The box is compared against the score either side of the change rather than
+    against a fixed distance from its own first frame, which is what this used to
+    do: it wanted a frame more than 200 from the opening state, and an 8 becoming
+    a 9 is two short strokes worth about 90, so on a clean goal nothing qualified
+    and only a frame mid-wipe ever did. It reproduced 1 of its own 52 answers and
+    put 49 of them outside the bracket on the line above. #16, docs/30 s 2.24.
+    """
     for g in goals:
         t0, t1 = g["after_t"] - 1.0, g["before_t"] + 2.0
         frames, _ = _crop_fps(source, t0, t1 - t0, 4)
-        b = _binary(frames)
-        if len(b) < 3:
+        b = _binary(frames).astype(np.int16)
+        if len(b) < 9:
             g["goal_t"] = None
             continue
-        first, last = b[0], b[-1]
-        k = next((i for i in range(len(b))
-                  if np.abs(b[i] - last).sum() < 120
-                  and np.abs(b[i] - first).sum() > 200), None)
+        # Four frames a side, not one: the single frame this used as a reference
+        # could itself be mid-graphic, and then every distance behind it is
+        # measured from a wipe.
+        old_box, new_box = np.median(b[:4], axis=0), np.median(b[-4:], axis=0)
+        d_old = [int(np.abs(x - old_box).sum()) for x in b]
+        d_new = [int(np.abs(x - new_box).sum()) for x in b]
+        k = flip_index(d_old, d_new)
         g["goal_t"] = round(t0 + k / 4.0, 2) if k is not None else None
     return goals
+
+
+def flip_index(d_old, d_new) -> int | None:
+    """The frame the score bug changed on, given how far it sits from each score.
+
+    `d_old` and `d_new` are per-frame distances from the box to the score it
+    showed before the change and the one it showed after. The answer is the
+    first frame of the **last** unbroken stretch that reads as the new score.
+    """
+    if not d_old or d_new[-1] >= d_old[-1]:
+        return None
+    i = len(d_new) - 1
+    while i > 0 and d_new[i - 1] < d_old[i - 1]:
+        i -= 1
+    return i
 
 
 def _crop_fps(source: Path, start: float, dur: float, fps: int,

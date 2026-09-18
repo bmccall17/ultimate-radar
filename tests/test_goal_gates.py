@@ -63,3 +63,43 @@ class GoalsReconcileWithTheFinalScore(unittest.TestCase):
         # docs/31: only a gate can close a ticket, and #16 points at this one.
         p = written([goal((0, 0), (1, 0), 100.0)], final=(1, 0))
         self.assertTrue(C.is_gate(row(p, self.NAME)))
+
+
+class EveryGoalHasAReadableClockFreeze(unittest.TestCase):
+    NAME = "every goal has a readable clock freeze"
+
+    def test_a_freeze_a_clear_second_before_the_flip_passes(self):
+        p = written([goal((0, 0), (1, 0), 100.0)], final=(1, 0))
+        self.assertIs(row(p, self.NAME)["pass"], True)
+
+    def test_a_goal_with_no_freeze_at_all_fails(self):
+        # The detector refusing is the honest answer when nothing was seen to
+        # stop inside the window - and a refusal is still a goal whose moment
+        # the index does not have.
+        g = goal((0, 0), (1, 0), 100.0)
+        g["clock_freeze_t"] = None
+        self.assertIs(row(written([g], final=(1, 0)), self.NAME)["pass"], False)
+
+    def test_a_freeze_after_the_flip_fails(self):
+        g = goal((0, 0), (1, 0), 100.0)
+        g["clock_freeze_t"] = 101.0
+        self.assertIs(row(written([g], final=(1, 0)), self.NAME)["pass"], False)
+
+    def test_a_freeze_inside_the_measurement_noise_fails(self):
+        # Both times are read on a quarter-second grid, so their difference
+        # carries half a second of quantisation. Half a second of lead is not an
+        # ordering, it is two measurements that cannot be told apart.
+        g = goal((0, 0), (1, 0), 100.0)
+        g["clock_freeze_t"] = 99.5
+        self.assertIs(row(written([g], final=(1, 0)), self.NAME)["pass"], False)
+
+    def test_it_names_the_goals_that_fail(self):
+        # A gate that says "3 of 52" sends somebody back to the footage with no
+        # idea where to look.
+        g = goal((0, 0), (1, 0), 100.0)
+        g["clock_freeze_t"] = None
+        self.assertIn("100.0", row(written([g], final=(1, 0)), self.NAME)["got"])
+
+    def test_it_is_a_gate_and_not_a_measurement(self):
+        p = written([goal((0, 0), (1, 0), 100.0)], final=(1, 0))
+        self.assertTrue(C.is_gate(row(p, self.NAME)))

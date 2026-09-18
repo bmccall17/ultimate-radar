@@ -1227,24 +1227,21 @@ format: six answers from the footage, written down as given.
 
 ---
 
-### 2.24 The clock freeze was the end of the window, and `goal_t` is not the flip
+### 2.24 The clock freeze was the end of the window, and `goal_t` was not the flip
 
 **2026-09-18, #16.** The whole-broadcast scan finds **52 score changes**, final
-**ATX 24 – MIN 28**, every change moving one team by one. That part holds. What
-did not hold is the moment attached to each of them.
+**ATX 24 – MIN 28**, every change moving one team by one. That part held and
+still holds. Both of the moments attached to each change were wrong.
+
+#### The freeze was whatever happened last
 
 `clock_freeze` returns the last second the game clock ticked before the score bug
 flips, which is the goal to within the clock's own one-second resolution. It
-returned a number for **52 of 52**, and that is how it passed as working — § 2.6,
-measure the artefact, not the log. Measured against the flip, **10 of the 52 sat
-at 0.50 s or less and three were negative**: a freeze at or after the flip, which
-cannot be the last tick before it.
-
-**The rule was wrong, and in a way that always lands at the same place.** It
-scanned `[flip − 45 s, flip + 2 s]` at 4 fps and returned the **last** frame whose
-clock box changed by more than a digit's worth of ink. It never looked for the
-moment ticking *stopped*. So anything that disturbed the box after the clock had
-already frozen won:
+returned a number for **52 of 52**, which is how it passed as working — § 2.6,
+measure the artefact, not the log. It scanned `[flip − 45 s, flip + 2 s]` at 4 fps
+and returned the **last** frame whose clock box changed by more than a digit's
+worth of ink. It never looked for the moment ticking *stopped*, so anything that
+disturbed the box after the clock had already frozen won:
 
 | what really happened | goals | what the old rule returned |
 |---|---|---|
@@ -1253,95 +1250,124 @@ already frozen won:
 | one change a pixel over the threshold, 15 s after the clock stopped | 3816.03, 7558.42 | the noise |
 | the clock is still ticking when the window closes | 3149.63, 5803.21 | the window edge |
 
-The first three are the same defect and are fixed. The fourth is not a freeze
-defect at all — see below.
-
-**The repair.** The deciding is now separated from the looking:
-`scout.freeze_index` takes the per-frame ink and change series and returns the
-end of the last run of regularly-spaced changes that is *observed to stop*.
-`clock_freeze` keeps the ffmpeg pass and hands it those two series. Three
-thresholds, each measured over `fixtures/clock_freeze.json`:
+The deciding is now separate from the looking. `scout.freeze_index` takes the
+per-frame lit and changed pixel counts and returns the end of the last run of
+regularly-spaced changes **that is observed to stop**; `clock_freeze` keeps the
+ffmpeg pass. Three thresholds, each measured over `fixtures/clock_freeze.json`:
 
 | constant | value | the measurement behind it |
 |---|---|---|
 | `CLOCK_TICK_GAP_S` | 3.0 s | the widest gap *inside* a ticking run is 2.25 s — a tick whose frame the 4 fps sample missed. The gaps separating a run from what follows it are 6.00, 7.75, 9.00, 11.25 and 15.00 s. Nothing observed lands between 2.25 and 6.00. |
 | `CLOCK_MIN_TICKS` | 3 | the events that used to win are one frame long (wipe, noise) or two (the bug re-drawing, 0.25 s apart). The shortest real ticking run in the fixture is 10. |
-| `CLOCK_TAIL_S` | 2.0 s | **unchanged, deliberately.** See "the window is not widened" below. |
+| `CLOCK_TAIL_S` | 2.0 s | unchanged, and now measured — see the table below. |
 
-Over all 52, measured at the production window, before and after:
+A run still going when the window closes has not been seen to stop, and its final
+tick is only where the looking ran out, so `freeze_index` returns nothing rather
+than reporting the window as a measurement.
 
-| | before | after |
-|---|---|---|
-| a freeze returned | 52 of 52 | 50 of 52 |
-| lag ≤ 0.50 s | **10** | **0** |
-| minimum lag | −1.75 s | **+4.50 s** |
-| p10 / median / p90 | 0.00 / 11.50 / 15.00 | 9.22 / 12.00 / 15.00 |
-| maximum | 16.75 s | 16.75 s |
-| inside `docs/29`'s 9–15 s band | 36 of 52 | 42 of 50 |
+#### `goal_t` was never the flip
 
-**`docs/29`'s "the bug trails the goal by 9 to 15 seconds" does not hold, and now
-fails honestly.** It is a good description of the middle — 42 of 50 — and not a
-range. The observed spread is **4.50 s to 16.75 s**, and the 4.50 (goal 7558.42)
-is a real clock stop with 6 s of silence after it, not a detection artefact.
+The freeze is measured *against* the flip, so the flip was checked next, and it
+did not survive the checking:
 
-**The two that return nothing, and why that is the right answer.** On 3149.63 and
-5803.21 the clock is still ticking when the window closes. Watched frame by
-frame: on 3149.63 the clock runs 5:37 … 5:31 and stops on 5:31 at exactly the
-recorded flip, then holds for 48.75 s; on 5803.21 it runs on until **6.00 s after**
-the recorded flip. In both, a "GOAL!" graphic crosses the box just before the
-digits change, and the digits are seen to change ~3 s and ~7 s *later* than the
-recorded flip. `freeze_index` now refuses rather than returning the last tick
-before the edge, because a run still going when the looking stops has not been
-observed to stop, and reporting its final tick reports the window as a
-measurement.
-
-**The window is not widened, and that is the finding underneath.** Reaching
-5803.21's stop needs about 9 s of tail. Measured before choosing: at a 10 s tail
-the pull restart falls inside the window on **9 of 52** goals and at 40 s on
-**28**, so which run belongs to the goal starts depending on `goal_t` — and
-`goal_t` will not carry it:
-
-- **`eval/m9/goals.json` cannot be regenerated by the code that writes it.**
-  Re-running `scout._refine` over all 52 reproduces **1**. Forty-one differ, by up
-  to 24.00 s, and ten come back `None`.
-- **49 of 52 committed `goal_t` values lie outside their own `[after_t,
+- **`eval/m9/goals.json` could not be regenerated by the code that writes it.**
+  Re-running `scout._refine` over all 52 reproduced **1**. Forty-one differed, by
+  up to 24.00 s, and ten came back `None`.
+- **49 of 52 committed `goal_t` values lay outside their own `[after_t,
   before_t]` bracket**, mostly 1.65–2.12 s past `before_t` — the end of the
   refinement window. That needs no footage to check: it is arithmetic on the
   committed file. A timestamp outside the interval that brackets it is not a
   measurement of that interval.
-- The picker requires a frame within 120 of the post-change box and **more than
-  200** from the pre-change box. An 8 → 9 is two short strokes at this crop and
-  scores about 90, so on a clean goal nothing qualifies and the answer is `None`;
-  only a frame mid-wipe clears 200.
+- The picker wanted a frame within 120 of the box's own final state and **more
+  than 200** from its first. An 8 becoming a 9 is two short strokes at this crop
+  and moves about 90, so on a clean goal nothing qualified and the answer was
+  whatever a graphic wipe happened to do.
 
-So every lag in this section, before and after, is measured against a number that
-is not the score-bug flip. The freeze repair stands on its own — it is about
-which change inside the window is the clock, and the window reaches 45 s back, so
-it contains the stop whichever of these two moments anchors it. **A window, and
-`F`, are chosen against a correct anchor or not at all**, which is why #16's
-second check is not in `tools/gates.py` yet and the tail still reads 2.0.
+`scout.flip_index` now compares each frame against the score either side of the
+change — the median of the first and last four frames of the window rather than a
+single frame that could itself be mid-graphic — and returns the first frame of
+the last unbroken stretch reading as the new score. **52 of 52 now land inside
+their own bracket**, to within the one 4 fps sample that separates a
+quarter-second grid from a keyframe time.
+
+Two of them were checked by eye first, by pulling the score box at 1 fps either
+side and looking at it: on 3149.63 the digits change between 3152 and 3153, on
+5803.21 between 5810 and 5811, in both cases just after a "GOAL!" graphic crosses
+the box. The rule returns **3152.38** and **5810.71**. Those are the two
+expectations in `tests/test_score_flip.py` worth having, because they were read
+before the rule existed.
+
+#### What the repair did to the numbers
+
+| | before | freeze fixed, old `goal_t` | both fixed |
+|---|---|---|---|
+| a freeze returned | 52 of 52 | 50 of 52 | 50 of 52 |
+| lead ≤ 0.50 s | **10** | 0 | 0 |
+| minimum lead | −1.75 s | +4.50 s | **+1.25 s** |
+| median | 11.50 s | 12.00 s | **3.38 s** |
+| maximum | 16.75 s | 16.75 s | 13.25 s |
+
+**`docs/29`'s "the score bug trails the goal by 9 to 15 seconds" does not hold,
+and the reason it looked true is the defect.** Against the corrected flip the
+trail runs **1.25 s to 13.25 s with a median of 3.38**, and only 8 of 50 fall in
+9–15. The old band was measuring the distance to the end of a refinement window,
+not to the bug.
+
+#### The window is not widened, and that is now a measurement
+
+Two goals — 3249.88 and 7549.17 — still have no freeze: their clocks are ticking
+when the window closes. Reaching them means a longer tail, which was measured
+before being chosen:
+
+| tail | goals with a freeze | smallest lead | goals where the freeze *follows* the flip |
+|---|---|---|---|
+| **2.0 s** | **50 of 52** | **+1.25 s** | **0** |
+| 3.0 s | 50 of 52 | +0.50 s | 0 |
+| 5.0 s | 48 of 52 | +0.50 s | 0 |
+| 8.0 s | 49 of 52 | −4.75 s | 2 |
+| 20.0 s | 51 of 52 | −15.25 s | 9 |
+
+The clock stops a median of 3.38 s *before* the flip, so everything past the flip
+is the pull restarting and the graphics over it. Two more goals cost the ordering
+on nine. The tail stays at 2.0 and those two goals are what
+`every goal has a readable clock freeze` fails on — watch them before touching
+the constant.
 
 ## 3. The gates, and which of them fail on purpose
 
-`python -m tools.gates` prints **239 rows, and only 198 of them can fail.** It
+`python -m tools.gates` prints **240 rows, and only 199 of them can fail.** It
 ends on two totals, and they are not the same kind of number:
 
 ```
-184 of 198 failable check(s) pass, 14 failing.
+184 of 199 failable check(s) pass, 15 failing.
 41 informational row(s) report a measurement and no verdict.
 ```
 
-The 198th arrived with #16: **`goals reconcile with the final score`**, over the
-committed `eval/m9/goals.json`. It holds the 52 detected score changes to the two
-final-score numbers summed, and every change to moving exactly one team by
-exactly one. It passes on today's scan and is here to stay passing — it is what
-catches a re-scan, a re-labelled cluster table, or a collision repair that broke.
-It never opens the broadcast: a check that re-derives its answer from the footage
-every run is comparing the measurement to itself, and nobody keeps running a gate
-that decodes 2 h 22 m in front of a publish. § 2.24 is what it does **not** catch,
-and why the second check #16 asks for is not here yet.
+The 198th and 199th arrived with #16, over the committed `eval/m9/goals.json`.
+**Neither ever opens the broadcast**: a check that re-derives its answer from the
+footage every run is comparing the measurement to itself, and nobody keeps
+running a gate that decodes 2 h 22 m in front of a publish. They are worth
+something precisely *because* the file is committed — that is what catches a
+re-scan, a re-labelled cluster table, or a collision repair that broke.
 
-The fourteen failures are every one either a known-unpublished possession or a
+- **`goals reconcile with the final score`** holds the 52 detected changes to the
+  two final-score numbers summed, and every change to moving exactly one team by
+  exactly one. It passes today and is here to stay passing.
+- **`every goal has a readable clock freeze`** holds every goal's freeze to
+  preceding its score-bug flip by at least `GOAL_FREEZE_LEAD_S` = 1.00 s. It
+  fails today on **2 of 52** — 3249.88 and 7549.17, whose clocks are still
+  ticking where the window closes — and names them. § 2.24 says why widening the
+  window to reach them is the wrong fix.
+
+The second's threshold is **not read off the distribution.** Both times are
+measured on a quarter-second grid, so their difference carries half a second of
+quantisation, and the game clock's own resolution — the coarsest instrument in
+the measurement — is one second. A second of lead is the smallest gap at which
+the freeze is a tick before the flip rather than two readings that cannot be told
+apart. The observed leads run 1.25–13.25 s, so it sits one 4 fps sample below the
+closest of them.
+
+The fifteen failures are every one either a known-unpublished possession or a
 documented open problem, and the tables below say which. The informational rows
 are **measurements** — numbers with no threshold to hold them
 to — and the first table below names each kind and what it is waiting for.

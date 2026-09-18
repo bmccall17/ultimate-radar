@@ -5,7 +5,7 @@
   "MIN": 28
  },
  "reconstruction_consistent": true,
- "note": "goal_t is when the score bug flips, which trails the catch by a second or so. Look at the stills.",
+ "note": "goal_t is when the score bug flips and clock_freeze_t is the last second the game clock ticked before it, which is the goal. The flip trails it; over this scan the gap runs 4.50-16.75 s. Look at the stills.",
  "goals": [
   {
    "after_t": 788.97,
@@ -19,7 +19,8 @@
     1
    ],
    "scorer": "MIN",
-   "goal_t": 819.22
+   "goal_t": 794.97,
+   "clock_freeze_t": 793.22
   },
   {
    "after_t": 894.34,
@@ -33,7 +34,8 @@
     1
    ],
    "scorer": "ATX",
-   "goal_t": 909.34
+   "goal_t": 897.34,
+   "clock_freeze_t": 895.59
   },
   {
    "after_t": 1021.8,
@@ -47,7 +49,8 @@
     2
    ],
    "scorer": "MIN",
-   "goal_t": 1038.55
+   "goal_t": 1025.3,
+   "clock_freeze_t": 1023.55
   },
   {
    "after_t": 1102.28,
@@ -61,7 +64,8 @@
     3
    ],
    "scorer": "MIN",
-   "goal_t": 1120.53
+   "goal_t": 1109.78,
+   "clock_freeze_t": 1107.53
   },
   {
    "after_t": 1195.54,
@@ -75,7 +79,8 @@
     3
    ],
    "scorer": "ATX",
-   "goal_t": 1204.29
+   "goal_t": 1204.04,
+   "clock_freeze_t": 1194.79
   },
   {
    "after_t": 1315.9,
@@ -89,7 +94,8 @@
     4
    ],
    "scorer": "MIN",
-   "goal_t": 1328.9
+   "goal_t": 1327.9,
+   "clock_freeze_t": 1314.65
   },
   {
    "after_t": 1411.96,
@@ -103,7 +109,8 @@
     4
    ],
    "scorer": "ATX",
-   "goal_t": 1423.96
+   "goal_t": 1423.71,
+   "clock_freeze_t": 1415.71
   },
   {
    "after_t": 1517.7,
@@ -117,7 +124,8 @@
     5
    ],
    "scorer": "MIN",
-   "goal_t": 1527.45
+   "goal_t": 1527.2,
+   "clock_freeze_t": 1517.7
   },
   {
    "after_t": 1617.6,
@@ -131,7 +139,8 @@
     5
    ],
    "scorer": "ATX",
-   "goal_t": 1629.1
+   "goal_t": 1621.6,
+   "clock_freeze_t": 1616.85
   },
   {
    "after_t": 1721.17,
@@ -145,7 +154,8 @@
     6
    ],
    "scorer": "MIN",
-   "goal_t": 1728.92
+   "goal_t": 1728.67,
+   "clock_freeze_t": 1720.92
   },
   {
    "after_t": 1817.5,
@@ -159,7 +169,8 @@
     7
    ],
    "scorer": "MIN",
-   "goal_t": 1837.25
+   "goal_t": 1824.5,
+   "clock_freeze_t": 1823.25
   },
   {
    "after_t": 2061.28,
@@ -173,7 +184,8 @@
     7
    ],
    "scorer": "ATX",
-   "goal_t": 2070.28
+   "goal_t": 2063.28,
+   "clock_freeze_t": 2061.03
   },
   {
    "after_t": 2159.94,
@@ -187,7 +199,8 @@
     8
    ],
    "scorer": "MIN",
-   "goal_t": 2172.19
+   "goal_t": 2162.44,
+   "clock_freeze_t": 2158.69
   },
   {
    "after_t": 2419.6,
@@ -201,7 +214,8 @@
     8
    ],
    "scorer": "ATX",
-   "goal_t": 2434.85
+   "goal_t": 2434.6,
+   "clock_freeze_t": 2423.6
   },
   {
    "after_t": 2513.53,
@@ -215,7 +229,8 @@
     9
    ],
    "scorer": "MIN",
-   "goal_t": 2527.03
+   "goal_t": 2515.03,
+   "clock_freeze_t": 2511.53
   },
   {
    "after_t": 2674.86,
@@ -229,7 +244,8 @@
     10
    ],
    "scorer": "MIN",
-   "goal_t": 2687.11
+   "goal_t": 2676.36,
+   "clock_freeze_t": 2674.11
   },
   {
    "after_t": 2756.87,
@@ -243,7 +259,8 @@
     10
    ],
    "scorer": "ATX",
-   "goal_t": 2772.62
+   "goal_t": 2772.37,
+   "clock_freeze_t": 2761.62
   },
   {
    "after_t": 2972.72,
@@ -257,7 +274,8 @@
     10
    ],
    "scorer": "ATX",
-   "goal_t": 2984.47
+   "goal_t": 2976.22,
+   "clock_freeze_t": 2974.72
   },
   {
    "after_t": 3066.35,
@@ -271,7 +289,8 @@
     11
    ],
    "scorer": "MIN",
-   "goal_t": 3084.6
+   "goal_t": 3072.35,
+   "clock_freeze_t": 3068.85
   },
   {
    "after_t": 3147.13,
@@ -285,7 +304,8 @@
     11
    ],
    "scorer": "ATX",
-   "goal_t": 3149.63
+   "goal_t": 3152.38,
+   "clock_freeze_t": 3149.63
   },
   {
    "after_t": 3248.63,
@@ -299,7 +319,8 @@
     11
    ],
    "scorer": "ATX",
-   "goal_t": 3260.63
+   "goal_t": 3249.88,
+   "clock_freeze_t": null
   },
   {
    "after_t": 3439.92,
@@ -313,7 +334,8 @@
     11
    ],
    "scorer": "ATX",
-   "goal_t": 3452.67
+   "goal_t": 3442.17,
+   "clock_freeze_t": 3440.67
   },
   {
    "after_t": 3603.68,
@@ -327,7 +349,8 @@
     12
    ],
    "scorer": "MIN",
-   "goal_t": 3617.18
+   "goal_t": 3606.18,
+   "clock_freeze_t": 3602.18
   },
   {
    "after_t": 3707.99,
@@ -341,7 +364,8 @@
     12
    ],
    "scorer": "ATX",
-   "goal_t": 3715.49
+   "goal_t": 3715.24,
+   "clock_freeze_t": 3708.24
   },
   {
    "after_t": 3802.28,
@@ -355,7 +379,8 @@
     13
    ],
    "scorer": "MIN",
-   "goal_t": 3816.03
+   "goal_t": 3803.53,
+   "clock_freeze_t": 3801.03
   },
   {
    "after_t": 3968.05,
@@ -369,7 +394,8 @@
     14
    ],
    "scorer": "MIN",
-   "goal_t": 3978.8
+   "goal_t": 3970.55,
+   "clock_freeze_t": 3967.3
   },
   {
    "after_t": 4848.36,
@@ -383,7 +409,8 @@
     15
    ],
    "scorer": "MIN",
-   "goal_t": 4863.36
+   "goal_t": 4852.36,
+   "clock_freeze_t": 4849.86
   },
   {
    "after_t": 5049.69,
@@ -397,7 +424,8 @@
     15
    ],
    "scorer": "ATX",
-   "goal_t": 5058.94
+   "goal_t": 5052.94,
+   "clock_freeze_t": 5049.19
   },
   {
    "after_t": 5156.0,
@@ -411,7 +439,8 @@
     16
    ],
    "scorer": "MIN",
-   "goal_t": 5168.25
+   "goal_t": 5158.25,
+   "clock_freeze_t": 5154.75
   },
   {
    "after_t": 5298.78,
@@ -425,7 +454,8 @@
     16
    ],
    "scorer": "ATX",
-   "goal_t": 5311.53
+   "goal_t": 5301.78,
+   "clock_freeze_t": 5299.03
   },
   {
    "after_t": 5403.61,
@@ -439,7 +469,8 @@
     17
    ],
    "scorer": "MIN",
-   "goal_t": 5415.36
+   "goal_t": 5405.86,
+   "clock_freeze_t": 5403.61
   },
   {
    "after_t": 5514.09,
@@ -453,7 +484,8 @@
     17
    ],
    "scorer": "ATX",
-   "goal_t": 5528.59
+   "goal_t": 5520.84,
+   "clock_freeze_t": 5513.59
   },
   {
    "after_t": 5602.78,
@@ -467,7 +499,8 @@
     18
    ],
    "scorer": "MIN",
-   "goal_t": 5621.28
+   "goal_t": 5610.28,
+   "clock_freeze_t": 5607.53
   },
   {
    "after_t": 5710.25,
@@ -481,7 +514,8 @@
     18
    ],
    "scorer": "ATX",
-   "goal_t": 5723.5
+   "goal_t": 5712.75,
+   "clock_freeze_t": 5709.0
   },
   {
    "after_t": 5803.71,
@@ -495,7 +529,8 @@
     19
    ],
    "scorer": "MIN",
-   "goal_t": 5803.21
+   "goal_t": 5810.71,
+   "clock_freeze_t": 5809.21
   },
   {
    "after_t": 5943.69,
@@ -509,7 +544,8 @@
     19
    ],
    "scorer": "ATX",
-   "goal_t": 5953.44
+   "goal_t": 5951.69,
+   "clock_freeze_t": 5943.94
   },
   {
    "after_t": 6015.99,
@@ -523,7 +559,8 @@
     20
    ],
    "scorer": "MIN",
-   "goal_t": 6026.74
+   "goal_t": 6018.49,
+   "clock_freeze_t": 6016.49
   },
   {
    "after_t": 6091.14,
@@ -537,7 +574,8 @@
     20
    ],
    "scorer": "ATX",
-   "goal_t": 6109.39
+   "goal_t": 6096.89,
+   "clock_freeze_t": 6094.39
   },
   {
    "after_t": 6261.84,
@@ -551,7 +589,8 @@
     21
    ],
    "scorer": "MIN",
-   "goal_t": 6278.84
+   "goal_t": 6278.59,
+   "clock_freeze_t": 6267.34
   },
   {
    "after_t": 6394.4,
@@ -565,7 +604,8 @@
     21
    ],
    "scorer": "ATX",
-   "goal_t": 6403.9
+   "goal_t": 6398.65,
+   "clock_freeze_t": 6394.65
   },
   {
    "after_t": 6471.65,
@@ -579,7 +619,8 @@
     22
    ],
    "scorer": "MIN",
-   "goal_t": 6485.9
+   "goal_t": 6485.65,
+   "clock_freeze_t": 6474.15
   },
   {
    "after_t": 6899.88,
@@ -593,7 +634,8 @@
     23
    ],
    "scorer": "MIN",
-   "goal_t": 6913.88
+   "goal_t": 6902.63,
+   "clock_freeze_t": 6899.38
   },
   {
    "after_t": 6985.66,
@@ -607,7 +649,8 @@
     24
    ],
    "scorer": "MIN",
-   "goal_t": 6998.16
+   "goal_t": 6988.16,
+   "clock_freeze_t": 6984.66
   },
   {
    "after_t": 7110.65,
@@ -621,7 +664,8 @@
     24
    ],
    "scorer": "ATX",
-   "goal_t": 7121.15
+   "goal_t": 7113.65,
+   "clock_freeze_t": 7111.15
   },
   {
    "after_t": 7201.24,
@@ -635,7 +679,8 @@
     25
    ],
    "scorer": "MIN",
-   "goal_t": 7211.24
+   "goal_t": 7203.49,
+   "clock_freeze_t": 7199.24
   },
   {
    "after_t": 7326.57,
@@ -649,7 +694,8 @@
     25
    ],
    "scorer": "ATX",
-   "goal_t": 7344.32
+   "goal_t": 7332.57,
+   "clock_freeze_t": 7329.57
   },
   {
    "after_t": 7544.92,
@@ -663,7 +709,8 @@
     25
    ],
    "scorer": "ATX",
-   "goal_t": 7558.42
+   "goal_t": 7549.17,
+   "clock_freeze_t": null
   },
   {
    "after_t": 7636.88,
@@ -677,7 +724,8 @@
     26
    ],
    "scorer": "MIN",
-   "goal_t": 7650.63
+   "goal_t": 7638.63,
+   "clock_freeze_t": 7635.38
   },
   {
    "after_t": 7739.85,
@@ -691,7 +739,8 @@
     26
    ],
    "scorer": "ATX",
-   "goal_t": 7750.85
+   "goal_t": 7742.1,
+   "clock_freeze_t": 7739.85
   },
   {
    "after_t": 7899.34,
@@ -705,7 +754,8 @@
     27
    ],
    "scorer": "MIN",
-   "goal_t": 7908.34
+   "goal_t": 7900.59,
+   "clock_freeze_t": 7898.09
   },
   {
    "after_t": 7987.03,
@@ -719,7 +769,8 @@
     28
    ],
    "scorer": "MIN",
-   "goal_t": 8002.28
+   "goal_t": 7989.03,
+   "clock_freeze_t": 7985.53
   },
   {
    "after_t": 8112.89,
@@ -733,7 +784,8 @@
     28
    ],
    "scorer": "ATX",
-   "goal_t": 8122.39
+   "goal_t": 8122.14,
+   "clock_freeze_t": 8112.64
   }
  ]
 }

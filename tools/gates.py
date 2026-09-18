@@ -99,6 +99,7 @@ ISSUE = {
     # The whole-broadcast index. Passing today and here to stay passing: it is
     # what catches a re-scan or a re-labelled cluster table.
     "goals reconcile with the final score": 16,
+    "every goal has a readable clock freeze": 16,
     "Q1: opposite teams": 5,
     "Q2: opposite teams": 5,
     "Q3: opposite teams": 5,
@@ -730,6 +731,16 @@ def check_disc(works: list[Path]) -> dict:
 
 GOALS_JSON = Path("eval/m9/goals.json")
 
+# How far the clock freeze has to precede the score-bug flip before the ordering
+# means anything. **Not read off the distribution.** Both times are measured on a
+# quarter-second grid, so their difference carries half a second of quantisation,
+# and the game clock's own resolution - the coarsest instrument in the
+# measurement - is one second. A second of lead is the smallest gap at which the
+# freeze is a tick before the flip rather than two readings that cannot be told
+# apart. Over the 2026-09-18 scan the observed leads run 1.25-13.25 s, so this
+# sits one 4 fps sample below the closest of them. docs/30 section 2.24.
+GOAL_FREEZE_LEAD_S = 1.0
+
 
 def check_goals(path: Path = GOALS_JSON) -> dict:
     """The whole-broadcast goal index, read off the committed file.
@@ -765,6 +776,26 @@ def check_goals(path: Path = GOALS_JSON) -> dict:
         "a count that disagrees with the scoreline is a change the scan missed "
         "or invented; re-run `python -m tools.scout goals` and look at the "
         "contact sheet before touching the labels"))
+
+    missing = [g for g in goals if g.get("clock_freeze_t") is None]
+    late = [g for g in goals if g.get("clock_freeze_t") is not None
+            and g["goal_t"] - g["clock_freeze_t"] < GOAL_FREEZE_LEAD_S]
+    bad = missing + late
+    lead = sorted(g["goal_t"] - g["clock_freeze_t"] for g in goals
+                  if g.get("clock_freeze_t") is not None)
+    out["checks"].append(C.gate(
+        "every goal has a readable clock freeze",
+        not bad,
+        f"{len(goals) - len(bad)}/{len(goals)}"
+        + (f", lead {lead[0]:.2f}-{lead[-1]:.2f} s" if lead else "")
+        + (f" - no freeze at {', '.join(str(g['goal_t']) for g in missing)}"
+           if missing else "")
+        + (f" - under {GOAL_FREEZE_LEAD_S:.2f} s at "
+           f"{', '.join(str(g['goal_t']) for g in late)}" if late else ""),
+        f"the freeze precedes the flip by >= {GOAL_FREEZE_LEAD_S:.2f} s on every goal",
+        "the clock is still ticking where the window closes, so nothing was seen "
+        "to stop; watch those goals before widening it, because widening was "
+        "measured and made every other goal worse. docs/30 s 2.24"))
     return out
 
 
