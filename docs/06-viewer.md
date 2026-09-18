@@ -171,15 +171,17 @@ what was measured and let the coach supply the name.
 Fourteen slots in a column beside the frame, `O1`–`D7`. Three jobs at once, and they are
 all things that used to need a different panel:
 
-- **See** what the tracker has hold of on this frame. A solid pip means a detection is
-  matched to that slot right now; hollow means it is dead reckoning; nothing means the slot
-  states no position at all. Form, not shade, per `docs/05`.
+- **See** what the tracker has hold of on this frame. A solid leading edge on the button
+  means a detection is matched to that slot right now; a dotted edge means it is dead
+  reckoning; no edge means the slot states no position at all. Form, not shade, per
+  `docs/05`. It was a bullet in a column of its own until the jersey needed the width; the
+  three states are unchanged and the edge costs nothing.
 - **Ask.** Hover gives the state, whether a detection is matched, the position and sigma or
   how long since anything saw it, whether the frame was hand-placed, and whether it is an
   unreviewed re-acquisition.
 - **Choose.** In repair mode a click selects that slot to place, next to the picture you
   are about to click into.
-- **Know who it is, and how well.** Beside the slot label, the jersey number, in two
+- **Know who it is, and how well.** Tucked under the slot label, the jersey number, in two
   weights and no third. **Solid** is a number a person read off a shirt; **faint** is a
   number nothing read — an OCR vote over the tracklet; **nothing at all** is nothing at
   all, blank, never a dash or a zero. Where one slot has been read as two different
@@ -196,6 +198,18 @@ all things that used to need a different panel:
   and the append-only `readings` list; the viewer restores that list on load, so the rail
   is not blank after a reload and Download identities cannot write a file that drops the
   readings it was built from.
+
+  The rail is 34 px wide and every pixel of it is a pixel off the picture, which is why the
+  number sits under the label rather than beside it. It is positioned out of the row's
+  height, not laid out in it: fourteen buttons of two lines each have a content height that
+  on a small window exceeds the picture's, and as an ordinary flex item the rail stretched
+  the stage past 16:9 and letterboxed the video inside its own box — with the overlay
+  canvas sized to the stage, every marker would then have been drawn a bar's width from the
+  player it names. The stage's aspect ratio now decides the row's height on its own,
+  measured at zero letterbox and zero pillarbox from 340 px to 1900 px. Where the window
+  leaves a button too short for two lines the number drops rather than being sliced through
+  its digits; the label survives, because it is the chooser, and the number is still on the
+  hover and in Selected Player.
 
 It exists for the roster verification pass in `#4`. Deciding whether a slot is on the right
 person means looking at a person, and the viewer used to make that a fourteen-times

@@ -66,41 +66,70 @@ main{display:grid;grid-template-columns:1.45fr 1fr;gap:14px;padding:12px 16px}
 .panel > h2 .spacer{flex:1}
 .panel > h2 button{padding:2px 8px;font-size:11px;text-transform:none;
   letter-spacing:0}
-.viewrow{display:flex;align-items:stretch;background:#000}
-.viewrow .stage{flex:1;min-width:0}
-/* Fourteen slots in one column beside the frame. Narrow on purpose: it is a
-   chooser and a status light, not a table - the detail is on hover, where it
-   costs nothing until somebody wants it. The jersey is the one thing that
-   earned a second column, because a slot is not a person and the number is the
-   only referent it has. */
-.rail{flex:0 0 76px;display:flex;flex-direction:column;gap:2px;padding:4px;
-  background:var(--panel);border-right:1px solid var(--line);overflow:hidden}
-.rail button{flex:1;min-height:0;font:inherit;font-size:11px;font-weight:600;
-  padding:0 4px;border-radius:4px;border:1px solid transparent;cursor:pointer;
-  background:transparent;color:var(--dim);position:relative;
-  display:flex;align-items:center;justify-content:flex-start;gap:4px}
-/* Two weights, and the difference carries a fact. Solid: a person read this
-   off a shirt, so a tag inside a span this slot holds can be graded against it.
-   Faint: a number nothing read - an OCR vote over the tracklet - which grades
-   nothing and is shown only so it is not mistaken for a gap. Amber and both
-   numbers: the slot was read as two different people. */
-.rail .sl{flex:0 0 auto}
-.rail .jn{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:500;
-  overflow:hidden;text-overflow:ellipsis}
+/* The rail is taken out of the row's height entirely. It is absolutely
+   positioned and the picture is given the same width as a margin, so the stage
+   alone decides how tall the row is and its aspect-ratio always holds. Laid out
+   as an ordinary flex item it did the opposite: fourteen buttons have a
+   content height, two lines each now that the jersey sits under the label, and
+   on a narrow window that height exceeded the picture's - which stretched the
+   stage past 16:9 and letterboxed the video inside its own box. The overlay
+   canvas is sized to the STAGE, so every marker would have been drawn a bar's
+   width away from the player it names. */
+.viewrow{position:relative;display:flex;background:#000}
+.viewrow .stage{flex:1;min-width:0;margin-left:var(--rail)}
+/* Fourteen slots in one column beside the frame, and as narrow as two lines of
+   type allow: every pixel here is a pixel off the picture. The slot label, and
+   the jersey tucked under it - a slot is not a person, so the number is the
+   only referent it has and it belongs with the label, not in a column of its
+   own that costs 40 px of video. */
+:root{--rail:34px}
+.rail{position:absolute;left:0;top:0;bottom:0;width:var(--rail);
+  display:flex;flex-direction:column;gap:2px;padding:3px 2px;z-index:2;
+  background:var(--panel);border-right:1px solid var(--line);overflow:hidden;
+  container-type:size}
+/* Fourteen buttons share the picture's height, so on a small window each one is
+   too short for two lines and the second would be sliced through the middle of
+   its digits. Below the height where the number fits, the number goes: the
+   label is the chooser and has to survive, and the number is still on the
+   hover and in Selected Player. A figure cut in half is a figure that can be
+   misread, which is the one thing a jersey must not be. */
+@container (max-height: 360px){ .rail .jn{display:none} }
+.rail button{flex:1;min-height:0;overflow:hidden;font:inherit;font-size:11px;
+  font-weight:600;padding:0 1px 0 3px;border-radius:3px;cursor:pointer;
+  background:transparent;color:var(--dim);position:relative;line-height:1.1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  /* The status light, which used to be a bullet taking a column of its own.
+     Same three states, same rule - docs/05 says form carries the doubt, so
+     these are shapes and not shades - now on the button's own leading edge,
+     where it costs no width at all. Solid: a detection is matched to this slot
+     on this frame. Dotted: the tracker is dead reckoning. Nothing: the slot
+     states no position. */
+  border:1px solid transparent;border-left-width:2px}
+/* Two weights on the number, and the difference carries a fact. Solid: a person
+   read this off a shirt, so a tag inside a span this slot holds can be graded
+   against it. Faint: a number nothing read - an OCR vote over the tracklet -
+   which grades nothing and is shown only so it is not mistaken for a gap. Amber
+   and both numbers: the slot was read as two different people. */
+.rail .sl{font-size:11px}
+.rail .jn{font-size:10px;font-weight:500;font-variant-numeric:tabular-nums;
+  /* Borrows the button's side padding: the label never needs it and two jersey
+     numbers with a slash between them do. */
+  margin:0 -2px;max-width:calc(100% + 4px);overflow:hidden;text-overflow:ellipsis}
 .rail .jn.read{color:var(--ink);font-weight:650}
 .rail .jn.voted{opacity:.45}
-.rail .jn.conflict{color:var(--warn);font-weight:650;font-size:10px}
+.rail .jn.conflict{color:var(--warn);font-weight:650;font-size:8.5px;
+  letter-spacing:-.2px}
 .rail button.on .jn.voted{opacity:.6}
 .rail button:hover{border-color:var(--dim)}
 .rail button.on{background:var(--chill-fill);border-color:var(--chill);
   color:var(--ink)}
-/* The status light. Solid = the tracker has a detection on this slot right now;
-   hollow = it is dead reckoning; absent = it states no position at all. docs/05
-   says form carries the doubt, so these are shapes, not shades. */
-.rail .pip{width:6px;height:6px;border-radius:50%;flex:0 0 auto}
-.rail .seen .pip{background:currentColor}
-.rail .guess .pip{border:1px solid currentColor}
-.rail .lost .pip{background:none;border:none}
+/* After the hover and selected rules, and at the same specificity, so selecting
+   a slot cannot light an edge the tracker has not earned: `.on` sets every
+   border colour, and a lost slot showing a solid edge because somebody clicked
+   it would be the signal lying about the one thing it reports. */
+.rail button.seen{border-left-color:currentColor}
+.rail button.guess{border-left-color:currentColor;border-left-style:dotted}
+.rail button.lost{border-left-color:transparent}
 .rail .sol{color:var(--sol)} .rail .chill{color:var(--chill)}
 .rail .staged{border-color:var(--warn)}
 .stage{position:relative;line-height:0;background:#000;overflow:hidden;
@@ -3176,8 +3205,11 @@ function recordPaint(m,u,v){
    Fourteen slots beside the frame. Three jobs in one column:
 
    - **see** which slots the tracker actually has hold of on this frame, without
-     reading the overhead - a solid pip means a detection is matched, hollow
-     means dead reckoning, nothing means the slot states no position at all;
+     reading the overhead - a solid leading edge means a detection is matched,
+     a dotted one means dead reckoning, and no edge means the slot states no
+     position at all. It was a bullet in a column of its own until the jersey
+     needed the width more; the three states are unchanged and still shapes
+     rather than shades, per docs/05;
    - **ask** what any one of them is resting on, on hover, because the answer is
      four fields deep and nobody should have to click to find out;
    - **choose** who to place, in repair mode, one click, beside the picture they
@@ -3207,11 +3239,15 @@ function railJersey(p){
   const j = jerseyOf(p.id);
   if(j.conflict){
     // No `#`, because this is not a jersey - it is two of them, and the slot
-    // has none. It also has to fit: `#28/77` ellipsises to `#28...` in this
-    // column, and a conflict that renders as its own first number is the one
-    // reading of it that must never happen.
+    // has none. It also has to FIT: an ellipsis here would turn `28/77` into
+    // `28/7`, and a conflict that renders as a number is the one reading of it
+    // that must never happen. Two of them fit the column; more than that become
+    // a count, which cannot be mistaken for a jersey either way. The numbers
+    // themselves are on the hover and in Selected Player.
     const nums = [...new Set(j.conflict.map(r => r.jersey))];
-    return {text: nums.join("/"), cls:"conflict"};
+    const both = nums.join("/");
+    return {text: both.length <= 5 ? both : "×" + nums.length,
+            cls:"conflict"};
   }
   if(j.jersey !== null) return {text:"#" + j.jersey, cls:"read"};
   if(p.jersey === null || p.jersey === undefined) return null;
@@ -3273,7 +3309,7 @@ function renderRail(){
     const jn = railJersey(p);
     return `<button class="${cls.join(" ")}" data-slot="${p.id}"
       title="${railTitle(p, f).replace(/"/g, "&quot;")}">
-      <span class="pip"></span><span class="sl">${p.id}</span>${
+      <span class="sl">${p.id}</span>${
       // Nothing at all where there is no number: no dash, no zero, no
       // placeholder. A gap is the honest rendering of a gap.
       jn ? `<span class="jn ${jn.cls}">${jn.text}</span>` : ""}</button>`;
