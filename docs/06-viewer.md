@@ -145,6 +145,23 @@ all things that used to need a different panel:
   unreviewed re-acquisition.
 - **Choose.** In repair mode a click selects that slot to place, next to the picture you
   are about to click into.
+- **Know who it is, and how well.** Beside the slot label, the jersey number, in two
+  weights and no third. **Solid** is a number a person read off a shirt; **faint** is a
+  number nothing read — an OCR vote over the tracklet; **nothing at all** is nothing at
+  all, blank, never a dash or a zero. Where one slot has been read as two different
+  numbers the rail shows both in amber and picks neither: that is not a tie to break, it
+  is proof the label moved between two people, and the stretch between needs splitting.
+
+  The two weights carry a fact rather than a preference. `ur/provenance.py::derive` grades
+  a tag's name only where a reading falls **inside** the span that tag bounds; everything
+  else is the tracker carrying an identity between two moments, and drops out of the graded
+  sample. So a solid number means that slot can anchor a span and a faint one means it
+  cannot, which makes the rail the tagger's map of where truth already exists and where a
+  number still needs reading. The readings come from `identities.json` via
+  `tools/make_view.py`, which carries `source`, the per-slot reading count, any conflict,
+  and the append-only `readings` list; the viewer restores that list on load, so the rail
+  is not blank after a reload and Download identities cannot write a file that drops the
+  readings it was built from.
 
 It exists for the roster verification pass in `#4`. Deciding whether a slot is on the right
 person means looking at a person, and the viewer used to make that a fourteen-times
