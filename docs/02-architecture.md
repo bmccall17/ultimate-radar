@@ -34,9 +34,9 @@ video ──> ingest ──> frames + clip.json
                                                      viewer
 ```
 
-Ten decisions define this system, and each carries its reason, because a coding agent that
-knows the reason makes better local choices than one following a diagram. They moved to
-`docs/adr/` on 2026-09-16. **The names did not change**: `AD-7` is `docs/adr/0007-*.md`,
+Seventeen decisions define this system, and each carries its reason, because a coding agent
+that knows the reason makes better local choices than one following a diagram. The first ten
+moved to `docs/adr/` on 2026-09-16 and the rest were written there as they were taken. **The names did not change**: `AD-7` is `docs/adr/0007-*.md`,
 cited everywhere as `AD-7` and never as `ADR-0007`.
 
 ---
@@ -61,8 +61,9 @@ cited everywhere as `AD-7` and never as `ADR-0007`.
 | **AD-14** | A jersey read inside the span settles the name, and nothing else does | [`adr/0014-a-jersey-read-inside-the-span-settles-the-name.md`](adr/0014-a-jersey-read-inside-the-span-settles-the-name.md) |
 | **AD-15** | An openness claim is a minimum over a set, so its badge rests on the whole set | [`adr/0015-an-openness-claim-is-a-minimum-over-a-set.md`](adr/0015-an-openness-claim-is-a-minimum-over-a-set.md) |
 | **AD-16** | A line drawn on the field is a claim, and carries its provenance like a position does | [`adr/0016-a-drawn-line-carries-its-provenance.md`](adr/0016-a-drawn-line-carries-its-provenance.md) |
+| **AD-17** | An answer at the edge of its own search window is not a measurement | [`adr/0017-an-answer-at-the-window-edge-is-not-a-measurement.md`](adr/0017-an-answer-at-the-window-edge-is-not-a-measurement.md) |
 
-`docs/09-decision-record.md` is the one-page orientation over the first ten. AD-11 to AD-16 were taken while the checks were being built and live in `docs/30-findings-and-gates.md` beside the findings that forced them.
+`docs/09-decision-record.md` is the one-page orientation over the first ten. AD-11 to AD-17 were taken while the checks were being built and live in `docs/30-findings-and-gates.md` beside the findings that forced them.
 
 ---
 
